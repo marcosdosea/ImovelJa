@@ -79067,7 +79067,7 @@
 											"font": "Arial;13;0",
 											"left": 333,
 											"top": 341,
-											"width": 155,
+											"width": 167,
 											"height": 13,
 											"text": "«control»"
 										},
@@ -79080,9 +79080,9 @@
 											"font": "Arial;13;1",
 											"left": 333,
 											"top": 356,
-											"width": 155,
+											"width": 167,
 											"height": 13,
-											"text": "ManterUsuario"
+											"text": "ControladorManterUsuario"
 										},
 										{
 											"_type": "LabelView",
@@ -79115,7 +79115,7 @@
 									"font": "Arial;13;0",
 									"left": 328,
 									"top": 336,
-									"width": 165,
+									"width": 177,
 									"height": 38,
 									"stereotypeLabel": {
 										"$ref": "AAAAAAGgonm79I/jupE="
@@ -79142,7 +79142,7 @@
 									"font": "Arial;13;0",
 									"left": 328,
 									"top": 374,
-									"width": 165,
+									"width": 177,
 									"height": 10
 								},
 								{
@@ -79157,7 +79157,7 @@
 									"font": "Arial;13;0",
 									"left": 328,
 									"top": 384,
-									"width": 165,
+									"width": 177,
 									"height": 10
 								},
 								{
@@ -79197,7 +79197,7 @@
 							"containerChangeable": true,
 							"left": 328,
 							"top": 336,
-							"width": 165,
+							"width": 177,
 							"height": 58,
 							"nameCompartment": {
 								"$ref": "AAAAAAGgonm79I/iKqo="
@@ -79543,7 +79543,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 408,
+									"left": 412,
 									"top": 266,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -79564,8 +79564,8 @@
 									},
 									"visible": null,
 									"font": "Arial;13;0",
-									"left": 393,
-									"top": 263,
+									"left": 397,
+									"top": 264,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -79585,7 +79585,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 437,
+									"left": 441,
 									"top": 271,
 									"height": 13,
 									"alpha": -1.5707963267948966,
@@ -79604,7 +79604,7 @@
 								"$ref": "AAAAAAGgonm79I/hVyw="
 							},
 							"lineStyle": 1,
-							"points": "414:335;433:216",
+							"points": "420:335;435:216",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGgonqix5Lr8Sw="
@@ -80003,7 +80003,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 538,
+									"left": 544,
 									"top": 342,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -80024,7 +80024,7 @@
 									},
 									"visible": null,
 									"font": "Arial;13;0",
-									"left": 538,
+									"left": 544,
 									"top": 327,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -80045,7 +80045,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 538,
+									"left": 544,
 									"top": 372,
 									"height": 13,
 									"alpha": -1.5707963267948966,
@@ -80066,7 +80066,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 518,
+									"left": 530,
 									"top": 342,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -80087,7 +80087,7 @@
 									},
 									"visible": false,
 									"font": "Arial;13;0",
-									"left": 521,
+									"left": 533,
 									"top": 328,
 									"height": 13,
 									"alpha": 0.7853981633974483,
@@ -80107,7 +80107,7 @@
 										"$ref": "AAAAAAGgonxtgKwiNSo="
 									},
 									"font": "Arial;13;0",
-									"left": 511,
+									"left": 523,
 									"top": 369,
 									"width": 7,
 									"height": 13,
@@ -80217,7 +80217,7 @@
 								"$ref": "AAAAAAGgonm79I/hVyw="
 							},
 							"lineStyle": 1,
-							"points": "493:363;583:363",
+							"points": "505:363;583:363",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGgonxtgKwm7L0="
@@ -91717,7 +91717,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgpV1UhCDdIuM="
 							},
-							"name": "ManterUsuario",
+							"name": "ControladorManterUsuario",
 							"ownedElements": [
 								{
 									"_type": "UMLDependency",
