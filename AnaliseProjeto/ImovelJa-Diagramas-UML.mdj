@@ -79082,7 +79082,7 @@
 											"top": 356,
 											"width": 167,
 											"height": 13,
-											"text": "ControladorManterUsuario"
+											"text": "ControladorUsuario"
 										},
 										{
 											"_type": "LabelView",
@@ -79273,7 +79273,7 @@
 											"top": -72,
 											"width": 126,
 											"height": 13,
-											"text": "(from Persistencia)"
+											"text": "(from Persistence)"
 										},
 										{
 											"_type": "LabelView",
@@ -91717,7 +91717,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGgpV1UhCDdIuM="
 							},
-							"name": "ControladorManterUsuario",
+							"name": "ControladorUsuario",
 							"ownedElements": [
 								{
 									"_type": "UMLDependency",
@@ -92931,7 +92931,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFFxnG7qRNvP5M="
 					},
-					"name": "Persistencia",
+					"name": "Persistence",
 					"ownedElements": [
 						{
 							"_type": "UMLClass",
