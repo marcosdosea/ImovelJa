@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Core/Core.csproj" />
+  <Project Path="ImovelJaWeb/ImovelJaWeb.csproj" />
+  <Project Path="Service/Service.csproj" Id="d7778209-8017-4e21-b5a5-23d61b8dd31c" />
+</Solution>
