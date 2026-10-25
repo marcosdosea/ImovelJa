@@ -11,5 +11,7 @@ namespace Core.Service
         void Delete(uint id);
         Aluguel? Get(uint id);
         IEnumerable<Aluguel> GetAll();
+        IEnumerable<Aluguel> GetByImovel(uint idImovel);
+        IEnumerable<Aluguel> GetByInquilino(uint idPessoa);
     }
 }

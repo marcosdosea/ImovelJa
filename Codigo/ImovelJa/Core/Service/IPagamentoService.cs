@@ -10,5 +10,6 @@ namespace Core.Service
         void Edit(Pagamento pagamento);
         Pagamento? Get(uint id);
         IEnumerable<Pagamento> GetAll();
+        IEnumerable<Pagamento> GetByAluguel(uint idAluguel);
     }
 }
