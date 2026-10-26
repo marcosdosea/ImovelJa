@@ -9,5 +9,6 @@ namespace Core.Service
         uint Create(Mensagem mensagem);
         Mensagem? Get(uint id);
         IEnumerable<Mensagem> GetAll();
+        IEnumerable<Mensagem> GetByPessoa(uint idPessoa);
     }
 }
