@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Service
 {
-    internal class PagamentoService :IPagamentoService
+    public class PagamentoService : IPagamentoService
     {
         private readonly ImovelJaContext context;
 
