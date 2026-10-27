@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Service
+namespace Core.Service
 {
     /// <summary>
     /// Exceção lançada quando uma regra de negócio não é cumprida
