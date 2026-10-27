@@ -197745,11 +197745,12 @@
 											"_parent": {
 												"$ref": "AAAAAAGhfZ5YR0IPA78="
 											},
-											"visible": false,
 											"font": "Arial;13;0",
-											"left": -144,
-											"top": 16,
-											"height": 13
+											"left": 649,
+											"top": 469,
+											"width": 107,
+											"height": 13,
+											"text": "«UnitOfWork»"
 										},
 										{
 											"_type": "LabelView",
@@ -197759,7 +197760,7 @@
 											},
 											"font": "Arial;13;1",
 											"left": 649,
-											"top": 471,
+											"top": 484,
 											"width": 107,
 											"height": 13,
 											"text": "ImovelJaContext"
@@ -197796,7 +197797,7 @@
 									"left": 644,
 									"top": 464,
 									"width": 117,
-									"height": 25,
+									"height": 38,
 									"stereotypeLabel": {
 										"$ref": "AAAAAAGhfZ5YR0IQQUU="
 									},
@@ -197942,7 +197943,7 @@
 											"top": 455,
 											"width": 80,
 											"height": 13,
-											"text": "SeriveImpl"
+											"text": "ServiceImpl"
 										},
 										{
 											"_type": "LabelView",
@@ -199462,7 +199463,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGhfUfsDjnJMoE="
 							},
-							"name": "ImovelJaContext"
+							"name": "ImovelJaContext",
+							"stereotype": "UnitOfWork"
 						},
 						{
 							"_type": "UMLInterface",
@@ -202496,7 +202498,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGhfUgYfDs/pk4="
 							},
-							"name": "SeriveImpl"
+							"name": "ServiceImpl"
 						}
 					]
 				}
