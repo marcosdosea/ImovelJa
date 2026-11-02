@@ -22,7 +22,7 @@ public partial class Imovel
 
     public uint? QuantidadeQuartos { get; set; }
 
-    public decimal? AreaGaragem { get; set; }
+    public uint? QuantidadeVagasGaragem { get; set; }
 
     public decimal? AreaCozinha { get; set; }
 
