@@ -126,9 +126,6 @@ public partial class ImovelJaContext : DbContext
             entity.Property(e => e.AreaCozinha)
                 .HasPrecision(10)
                 .HasColumnName("areaCozinha");
-            entity.Property(e => e.AreaGaragem)
-                .HasPrecision(10)
-                .HasColumnName("areaGaragem");
             entity.Property(e => e.AreaLavanderia)
                 .HasPrecision(10)
                 .HasColumnName("areaLavanderia");
@@ -167,6 +164,7 @@ public partial class ImovelJaContext : DbContext
                 .HasColumnName("nome");
             entity.Property(e => e.QuantidadeBanheiros).HasColumnName("quantidadeBanheiros");
             entity.Property(e => e.QuantidadeQuartos).HasColumnName("quantidadeQuartos");
+            entity.Property(e => e.QuantidadeVagasGaragem).HasColumnName("quantidadeVagasGaragem");
             entity.Property(e => e.Rua)
                 .HasMaxLength(150)
                 .HasColumnName("rua");
