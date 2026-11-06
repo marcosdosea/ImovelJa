@@ -7,12 +7,6 @@ public partial class Aluguel
 {
     public uint Id { get; set; }
 
-    public string? NomeInquilino { get; set; }
-
-    public string DocumentoInquilino { get; set; } = null!;
-
-    public string? TelefoneInquilino { get; set; }
-
     public int DiaPagamento { get; set; }
 
     public DateTime? DataVencimentoProximo { get; set; }
@@ -28,11 +22,11 @@ public partial class Aluguel
 
     public uint IdImovel { get; set; }
 
-    public uint? IdPessoaInquilino { get; set; }
+    public uint IdPessoaInquilino { get; set; }
 
     public virtual Imovel IdImovelNavigation { get; set; } = null!;
 
-    public virtual Pessoa? IdPessoaInquilinoNavigation { get; set; }
+    public virtual Pessoa IdPessoaInquilinoNavigation { get; set; } = null!;
 
     public virtual ICollection<Pagamento> Pagamentos { get; set; } = new List<Pagamento>();
 }

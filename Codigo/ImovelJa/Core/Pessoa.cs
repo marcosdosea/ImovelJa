@@ -12,7 +12,7 @@ public partial class Pessoa
     /// </summary>
     public string Tipo { get; set; } = null!;
 
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; }
 
     public string Nome { get; set; } = null!;
 

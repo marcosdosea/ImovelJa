@@ -49,22 +49,13 @@ public partial class ImovelJaContext : DbContext
                 .HasColumnType("date")
                 .HasColumnName("dataVencimentoProximo");
             entity.Property(e => e.DiaPagamento).HasColumnName("diaPagamento");
-            entity.Property(e => e.DocumentoInquilino)
-                .HasMaxLength(14)
-                .HasColumnName("documentoInquilino");
             entity.Property(e => e.IdImovel).HasColumnName("idImovel");
             entity.Property(e => e.IdPessoaInquilino).HasColumnName("idPessoaInquilino");
-            entity.Property(e => e.NomeInquilino)
-                .HasMaxLength(100)
-                .HasColumnName("nomeInquilino");
             entity.Property(e => e.Status)
                 .HasDefaultValueSql("'A'")
                 .HasComment("A = ATIVO, C = CANCELADO")
                 .HasColumnType("enum('A','C')")
                 .HasColumnName("status");
-            entity.Property(e => e.TelefoneInquilino)
-                .HasMaxLength(20)
-                .HasColumnName("telefoneInquilino");
             entity.Property(e => e.Valor)
                 .HasPrecision(12)
                 .HasColumnName("valor");
