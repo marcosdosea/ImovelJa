@@ -17,24 +17,35 @@ namespace Service
         }
 
         /// <summary>
-        /// Cadastra uma nova pessoa e vincula os aluguéis já registrados com o mesmo documento (RN04)
+        /// Cria a conta de uma pessoa (CSU10). Se o CPF ou CNPJ já pertencer a uma pessoa cadastrada como inquilina
+        /// por um proprietário, sem conta, completa esse cadastro em vez de criar outro (RN04)
         /// </summary>
         /// <param name="pessoa">dados da pessoa</param>
-        /// <returns>id da pessoa criada</returns>
-        /// <exception cref="ServiceException">campos obrigatórios do tipo de pessoa ausentes ou e-mail, CPF ou CNPJ já cadastrado</exception>
+        /// <returns>id da pessoa criada ou completada</returns>
+        /// <exception cref="ServiceException">e-mail não informado, campos obrigatórios do tipo de pessoa ausentes ou e-mail, CPF ou CNPJ já cadastrado</exception>
         public uint Create(Pessoa pessoa)
         {
+            if (string.IsNullOrWhiteSpace(pessoa.Email))
+                throw new ServiceException("Informe o e-mail.");
+
+            string? documento = pessoa.Tipo == "F" ? pessoa.Cpf : pessoa.Cnpj;
+            var cadastrada = string.IsNullOrWhiteSpace(documento) ? null : context.Pessoas.AsNoTracking()
+                .FirstOrDefault(p => p.Cpf == documento || p.Cnpj == documento);
+
+            if (cadastrada != null)
+            {
+                if (cadastrada.Email != null)
+                    throw new ServiceException(pessoa.Tipo == "F" ? "CPF já cadastrado." : "CNPJ já cadastrado.");
+                pessoa.Id = cadastrada.Id;
+            }
+
             VerificarDados(pessoa);
-            pessoa.Status = "A";
+            pessoa.Status = cadastrada?.Status ?? "A";
 
-            string documento = (pessoa.Tipo == "F" ? pessoa.Cpf : pessoa.Cnpj)!;
-            var alugueis = context.Aluguels
-                .Where(a => a.DocumentoInquilino == documento && a.IdPessoaInquilino == null)
-                .ToList();
-            foreach (var aluguel in alugueis)
-                aluguel.IdPessoaInquilinoNavigation = pessoa;
-
-            context.Add(pessoa);
+            if (cadastrada == null)
+                context.Add(pessoa);
+            else
+                context.Update(pessoa);
             context.SaveChanges();
             return pessoa.Id;
         }
@@ -126,7 +137,7 @@ namespace Service
                 throw new ServiceException("Tipo de pessoa inválido.");
             }
 
-            if (context.Pessoas.Any(p => p.Email == pessoa.Email && p.Id != pessoa.Id))
+            if (pessoa.Email != null && context.Pessoas.Any(p => p.Email == pessoa.Email && p.Id != pessoa.Id))
                 throw new ServiceException("E-mail já cadastrado.");
 
             if (pessoa.Cpf != null && context.Pessoas.Any(p => p.Cpf == pessoa.Cpf && p.Id != pessoa.Id))
