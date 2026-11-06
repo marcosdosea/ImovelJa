@@ -17,11 +17,14 @@ namespace Service
         }
 
         /// <summary>
-        /// Registra um novo aluguel para o imóvel e marca o imóvel como alugado
+        /// Registra um novo aluguel para o imóvel e marca o imóvel como alugado.
+        /// O inquilino é a pessoa informada pelo id ou, quando o id não é informado, pelos dados em IdPessoaInquilinoNavigation:
+        /// se o CPF ou CNPJ já estiver cadastrado, o aluguel é vinculado a essa pessoa; senão, a pessoa é cadastrada
+        /// junto com o aluguel, na mesma transação (RN04)
         /// </summary>
-        /// <param name="aluguel">dados do aluguel</param>
+        /// <param name="aluguel">dados do aluguel e do inquilino</param>
         /// <returns>id do aluguel criado</returns>
-        /// <exception cref="ServiceException">imóvel não encontrado ou com aluguel ativo</exception>
+        /// <exception cref="ServiceException">imóvel não encontrado ou com aluguel ativo, inquilino não encontrado ou dados do inquilino incompletos</exception>
         public uint Create(Aluguel aluguel)
         {
             var imovel = context.Imovels.Find(aluguel.IdImovel)
@@ -30,7 +33,40 @@ namespace Service
             if (context.Aluguels.Any(a => a.IdImovel == aluguel.IdImovel && a.Status == "A"))
                 throw new ServiceException("O imóvel já possui um aluguel ativo.");
 
-            VincularInquilino(aluguel);
+            if (aluguel.IdPessoaInquilino != 0)
+            {
+                if (!context.Pessoas.Any(p => p.Id == aluguel.IdPessoaInquilino))
+                    throw new ServiceException("Inquilino não encontrado.");
+                aluguel.IdPessoaInquilinoNavigation = null!;
+            }
+            else
+            {
+                var inquilino = aluguel.IdPessoaInquilinoNavigation
+                    ?? throw new ServiceException("Informe os dados do inquilino.");
+
+                if (inquilino.Tipo != "F" && inquilino.Tipo != "J")
+                    throw new ServiceException("Tipo de pessoa inválido.");
+
+                string? documento = inquilino.Tipo == "F" ? inquilino.Cpf : inquilino.Cnpj;
+                if (string.IsNullOrWhiteSpace(documento) || string.IsNullOrWhiteSpace(inquilino.Nome))
+                    throw new ServiceException("Informe o nome e o CPF ou CNPJ do inquilino.");
+
+                var cadastrada = context.Pessoas.FirstOrDefault(p => p.Cpf == documento || p.Cnpj == documento);
+                if (cadastrada != null)
+                {
+                    aluguel.IdPessoaInquilinoNavigation = cadastrada;
+                }
+                else
+                {
+                    if (inquilino.Tipo == "F")
+                        inquilino.Cnpj = null;
+                    else
+                        inquilino.Cpf = null;
+                    inquilino.Status = "A";
+                    context.Add(inquilino);
+                }
+            }
+
             aluguel.Status = "A";
             imovel.Status = "A";
 
@@ -40,16 +76,18 @@ namespace Service
         }
 
         /// <summary>
-        /// Edita os dados do aluguel
+        /// Edita os dados do aluguel, mantendo o inquilino vinculado
         /// </summary>
         /// <param name="aluguel">dados do aluguel</param>
         /// <exception cref="ServiceException">aluguel não encontrado</exception>
         public void Edit(Aluguel aluguel)
         {
-            if (!context.Aluguels.Any(a => a.Id == aluguel.Id))
-                throw new ServiceException("Aluguel não encontrado.");
+            var atual = context.Aluguels.AsNoTracking().FirstOrDefault(a => a.Id == aluguel.Id)
+                ?? throw new ServiceException("Aluguel não encontrado.");
 
-            VincularInquilino(aluguel);
+            aluguel.IdPessoaInquilino = atual.IdPessoaInquilino;
+            aluguel.IdPessoaInquilinoNavigation = null!;
+
             context.Update(aluguel);
             context.SaveChanges();
         }
@@ -108,26 +146,6 @@ namespace Service
         public IEnumerable<Aluguel> GetByInquilino(uint idPessoa)
         {
             return context.Aluguels.Where(a => a.IdPessoaInquilino == idPessoa).AsNoTracking();
-        }
-
-        /// <summary>
-        /// Vincula o inquilino ao aluguel quando o documento pertence a uma pessoa cadastrada (RN04)
-        /// </summary>
-        /// <param name="aluguel">dados do aluguel</param>
-        private void VincularInquilino(Aluguel aluguel)
-        {
-            var pessoa = context.Pessoas.AsNoTracking()
-                .FirstOrDefault(p => p.Cpf == aluguel.DocumentoInquilino || p.Cnpj == aluguel.DocumentoInquilino);
-
-            if (pessoa == null)
-            {
-                aluguel.IdPessoaInquilino = null;
-                return;
-            }
-
-            aluguel.IdPessoaInquilino = pessoa.Id;
-            aluguel.NomeInquilino = pessoa.Nome;
-            aluguel.TelefoneInquilino = pessoa.Telefone;
         }
     }
 }
