@@ -1,0 +1,63 @@
+@model IEnumerable<ImovelJaWeb.Models.ImovelViewModel>
+
+@{
+    ViewData["Title"] = "Análise de Anúncios";
+}
+
+<h1>Análise de Anúncios</h1>
+
+<p>@Model.Count() anúncio(s) pendente(s) de validação</p>
+
+@if (!Model.Any())
+{
+    <p>Nenhum anúncio pendente de validação no momento.</p>
+}
+else
+{
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Anúncio
+            </th>
+            <th>
+                Endereço
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Finalidade)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Valor)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StatusValidacao)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.Nome)
+            </td>
+            <td>
+                @item.Bairro, @item.Cidade - @item.Estado
+            </td>
+            <td>
+                @(item.Finalidade == "V" ? "Venda" : "Aluguel")
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Valor)
+            </td>
+            <td>
+                @(item.StatusValidacao switch { "A" => "Aprovado", "R" => "Reprovado", _ => "Pendente" })
+            </td>
+            <td>
+                <a asp-action="Validar" asp-route-id="@item.Id">Ver detalhes</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+}
