@@ -1,3 +1,8 @@
+using Core;
+using Core.Service;
+using Microsoft.EntityFrameworkCore;
+using Service;
+
 namespace ImovelJaWeb
 {
     public class Program
@@ -8,6 +13,11 @@ namespace ImovelJaWeb
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddDbContext<ImovelJaContext>(options =>
+                options.UseMySQL(builder.Configuration.GetConnectionString("ImovelJaDatabase") ?? throw new InvalidOperationException("Conexão com o banco de dados não foi possível. Favor entrar em contato com o Administrador.")));
+
+            builder.Services.AddTransient<IImovelService, ImovelService>();
 
             var app = builder.Build();
 
