@@ -1,31 +1,773 @@
-html {
-  font-size: 14px;
+@charset "UTF-8";
+
+/* Fontes locais, só com os caracteres latinos (português incluído).
+   Variáveis: um arquivo por família cobre todos os pesos. */
+
+@font-face {
+    font-family: "Manrope";
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url("../lib/fontes/manrope-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+        U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+        U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("../lib/fontes/inter-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+        U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+        U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* Tokens do design system, tirados dos protótipos */
+
+:root {
+    /* marca (protótipos de alta fidelidade) */
+    --cor-primaria: #1F597C;
+    --cor-primaria-escura: #184766;
+    --cor-primaria-clara: #E8F0F5;
+
+    /* neutros */
+    --cor-fundo: #F0F4F8;
+    --cor-superficie: #FFFFFF;
+    --cor-borda: #E5E7EB;
+    --cor-texto: #111827;
+    --cor-texto-suave: #6B7280;
+    --cor-icone: #9EADB8;
+
+    /* ações de validação (Tela_017) */
+    --cor-sucesso: #16A34A;
+    --cor-sucesso-escura: #15803D;
+    --cor-perigo: #DC2626;
+    --cor-perigo-fundo: #FEF2F2;
+    --cor-perigo-borda: #FCA5A5;
+
+    /* selos de situação (Tela_016) */
+    --selo-pendente-fundo: #FEF3C7;
+    --selo-pendente-texto: #92400E;
+    --selo-aprovado-fundo: #DCFCE7;
+    --selo-aprovado-texto: #166534;
+    --selo-reprovado-fundo: #FEE2E2;
+    --selo-reprovado-texto: #991B1B;
+    --selo-neutro-fundo: #E5E7EB;
+    --selo-neutro-texto: #374151;
+
+    /* tipografia */
+    --fonte-titulo: "Manrope", "Segoe UI", Arial, sans-serif;
+    --fonte-texto: "Inter", "Segoe UI", Arial, sans-serif;
+
+    /* medidas reaproveitadas */
+    --largura-maxima: 1140px;
+    --respiro: 1rem;
+    --raio: 12px;
+    --raio-grande: 16px;
+    --sombra: 0 1px 3px rgba(17, 24, 39, 0.06), 0 1px 2px rgba(17, 24, 39, 0.04);
+
+    /* o Bootstrap passa a usar os mesmos tokens */
+    --bs-body-font-family: var(--fonte-texto);
+    --bs-body-bg: var(--cor-fundo);
+    --bs-body-color: var(--cor-texto);
+    --bs-secondary-color: var(--cor-texto-suave);
+    --bs-border-color: var(--cor-borda);
+    --bs-link-color: var(--cor-primaria);
+    --bs-link-color-rgb: 31, 89, 124;
+    --bs-link-hover-color: var(--cor-primaria-escura);
+    --bs-link-hover-color-rgb: 24, 71, 102;
+    --bs-focus-ring-color: rgba(31, 89, 124, 0.35);
+}
+
+/* Base */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--fonte-titulo);
+    font-weight: 700;
+    color: var(--cor-texto);
+    line-height: 1.25;
+}
+
+h1 {
+    font-size: 1.75rem;
+}
+
+:focus-visible {
+    outline: 3px solid var(--bs-focus-ring-color);
+    outline-offset: 2px;
+}
+
+.conteudo {
+    flex: 1;
+    width: 100%;
+    max-width: var(--largura-maxima);
+    margin: 0 auto;
+    padding: 2rem var(--respiro) 3rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    * {
+        transition: none !important;
+    }
+}
+
+/* Botões: o Bootstrap fornece o componente, os tokens fornecem as cores */
+
+.btn {
+    --bs-btn-font-weight: 600;
+    --bs-btn-border-radius: 8px;
+    font-family: var(--fonte-texto);
+}
+
+.btn-primary {
+    --bs-btn-bg: var(--cor-primaria);
+    --bs-btn-border-color: var(--cor-primaria);
+    --bs-btn-hover-bg: var(--cor-primaria-escura);
+    --bs-btn-hover-border-color: var(--cor-primaria-escura);
+    --bs-btn-active-bg: var(--cor-primaria-escura);
+    --bs-btn-active-border-color: var(--cor-primaria-escura);
+    --bs-btn-disabled-bg: var(--cor-primaria);
+    --bs-btn-disabled-border-color: var(--cor-primaria);
+}
+
+.btn-aprovar {
+    --bs-btn-color: #FFFFFF;
+    --bs-btn-bg: var(--cor-sucesso);
+    --bs-btn-border-color: var(--cor-sucesso);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: var(--cor-sucesso-escura);
+    --bs-btn-hover-border-color: var(--cor-sucesso-escura);
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: var(--cor-sucesso-escura);
+    --bs-btn-active-border-color: var(--cor-sucesso-escura);
+    --bs-btn-disabled-color: #FFFFFF;
+    --bs-btn-disabled-bg: var(--cor-sucesso);
+    --bs-btn-disabled-border-color: var(--cor-sucesso);
+}
+
+.btn-reprovar {
+    --bs-btn-color: var(--cor-perigo);
+    --bs-btn-bg: var(--cor-perigo-fundo);
+    --bs-btn-border-color: var(--cor-perigo-borda);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: var(--cor-perigo);
+    --bs-btn-hover-border-color: var(--cor-perigo);
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: var(--cor-perigo);
+    --bs-btn-active-border-color: var(--cor-perigo);
+    --bs-btn-disabled-color: var(--cor-perigo);
+    --bs-btn-disabled-bg: var(--cor-perigo-fundo);
+    --bs-btn-disabled-border-color: var(--cor-perigo-borda);
+}
+
+.btn svg {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.15em;
+}
+
+/* Cabeçalho comum a todas as telas */
+
+.cabecalho {
+    background-color: var(--cor-primaria);
+    color: #FFFFFF;
+}
+
+.cabecalho__interno {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    max-width: var(--largura-maxima);
+    margin: 0 auto;
+    padding: 0.875rem var(--respiro);
+}
+
+.cabecalho__marca,
+.cabecalho__conta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.cabecalho__conta {
+    flex-shrink: 0;
+}
+
+.marca {
+    font-family: var(--fonte-titulo);
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: #FFFFFF;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.marca:hover,
+.marca:focus {
+    color: #FFFFFF;
+}
+
+.cabecalho__perfil {
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.16);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+/* Botão só de ícone: menu (Tela_001.2) e conversas */
+.cabecalho__icone {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: -0.375rem 0;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #FFFFFF;
+}
+
+.cabecalho__icone:hover,
+.cabecalho__icone:focus {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+}
+
+.cabecalho__icone svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+/* No celular os botões só diminuem: continuam visíveis, sem menu recolhido */
+@media (max-width: 399.98px) {
+
+    .cabecalho__interno {
+        gap: 0.5rem;
+        padding: 0.75rem 0.75rem;
+    }
+
+    .marca {
+        font-size: 1.2rem;
+    }
+
+    .cabecalho__conta {
+        gap: 0.375rem;
+    }
+
+    .cabecalho__conta .btn {
+        --bs-btn-padding-x: 0.5rem;
+        --bs-btn-padding-y: 0.25rem;
+        --bs-btn-font-size: 0.8125rem;
+    }
+}
+
+/* Menu lateral de navegação (Tela_001.1) */
+
+.menu-lateral {
+    --bs-offcanvas-width: min(20rem, 85vw);
+    --bs-offcanvas-bg: var(--cor-primaria-escura);
+    --bs-offcanvas-color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-lateral__topo {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.menu-lateral__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.16);
+}
+
+.menu-lateral__avatar svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.menu-lateral__titulo {
+    margin: 0;
+    font-family: var(--fonte-titulo);
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.menu-lateral__links {
+    flex: 1;
+    margin: 0;
+    padding: 1rem 0.75rem;
+    list-style: none;
+}
+
+.menu-lateral__links a {
+    display: block;
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.menu-lateral__links a:hover,
+.menu-lateral__links a:focus {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+.menu-lateral__sair {
+    --bs-btn-color: #FFFFFF;
+    --bs-btn-bg: rgba(255, 255, 255, 0.12);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: rgba(255, 255, 255, 0.2);
+    margin: 0 1.25rem 1.5rem;
+}
+
+.btn-cabecalho {
+    --bs-btn-color: #FFFFFF;
+    --bs-btn-border-color: rgba(255, 255, 255, 0.45);
+    --bs-btn-hover-color: #FFFFFF;
+    --bs-btn-hover-bg: rgba(255, 255, 255, 0.12);
+    --bs-btn-hover-border-color: #FFFFFF;
+    --bs-btn-active-color: #FFFFFF;
+    --bs-btn-active-bg: rgba(255, 255, 255, 0.2);
+    --bs-btn-active-border-color: #FFFFFF;
+}
+
+.btn-cabecalho-destaque {
+    --bs-btn-color: var(--cor-primaria);
+    --bs-btn-bg: #FFFFFF;
+    --bs-btn-border-color: #FFFFFF;
+    --bs-btn-hover-color: var(--cor-primaria-escura);
+    --bs-btn-hover-bg: var(--cor-primaria-clara);
+    --bs-btn-hover-border-color: var(--cor-primaria-clara);
+    --bs-btn-active-color: var(--cor-primaria-escura);
+    --bs-btn-active-bg: var(--cor-primaria-clara);
+    --bs-btn-active-border-color: var(--cor-primaria-clara);
+}
+
+/* Título de página com botão de voltar (Tela_016 e Tela_017) */
+
+.titulo-pagina {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.titulo-pagina h1 {
+    margin: 0;
+}
+
+.titulo-pagina p {
+    margin: 0.25rem 0 0;
+    color: var(--cor-texto-suave);
+}
+
+.voltar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-top: 0.125rem;
+    border-radius: 8px;
+    color: var(--cor-texto-suave);
+}
+
+.voltar:hover,
+.voltar:focus {
+    background-color: var(--cor-borda);
+    color: var(--cor-texto);
+}
+
+.voltar svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Selos (situação de validação e finalidade) */
+
+.selo {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background-color: var(--selo-neutro-fundo);
+    color: var(--selo-neutro-texto);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+.selo--pequeno {
+    padding: 0.125rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.selo--pendente {
+    background-color: var(--selo-pendente-fundo);
+    color: var(--selo-pendente-texto);
+}
+
+.selo--aprovado {
+    background-color: var(--selo-aprovado-fundo);
+    color: var(--selo-aprovado-texto);
+}
+
+.selo--reprovado {
+    background-color: var(--selo-reprovado-fundo);
+    color: var(--selo-reprovado-texto);
+}
+
+/* Preço */
+
+.preco {
+    font-family: var(--fonte-titulo);
+    font-weight: 700;
+    color: var(--cor-primaria);
+    white-space: nowrap;
+}
+
+/* Miniatura do imóvel (sem foto cadastrada) */
+
+.miniatura {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 10px;
+    background-color: var(--cor-fundo);
+    color: var(--cor-icone);
+}
+
+.miniatura svg {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+/* Lista de anúncios (Tela_016) */
+
+.lista-anuncios__cabecalho {
+    display: none;
+    padding: 0 1rem 0.5rem;
+    color: var(--cor-texto-suave);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.lista-anuncios {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.anuncio {
+    display: grid;
+    grid-template-areas:
+        "dados dados"
+        "situacao acao";
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.875rem 1rem;
+    padding: 1rem;
+    border-radius: var(--raio);
+    background-color: var(--cor-superficie);
+    box-shadow: var(--sombra);
+}
+
+.anuncio__dados {
+    grid-area: dados;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    min-width: 0;
+}
+
+.anuncio__nome {
+    margin: 0;
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+}
+
+.anuncio__local {
+    margin: 0.125rem 0 0.375rem;
+    color: var(--cor-texto-suave);
+    font-size: 0.875rem;
+}
+
+.anuncio__valores {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.anuncio__situacao {
+    grid-area: situacao;
+}
+
+.anuncio__acao {
+    grid-area: acao;
+}
+
+.lista-vazia {
+    padding: 2rem 1rem;
+    border-radius: var(--raio);
+    background-color: var(--cor-superficie);
+    box-shadow: var(--sombra);
+    color: var(--cor-texto-suave);
+    text-align: center;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+
+    .lista-anuncios__cabecalho,
+    .anuncio {
+        grid-template-columns: minmax(0, 1fr) 9rem 9rem;
+    }
+
+    .lista-anuncios__cabecalho {
+        display: grid;
+    }
+
+    .anuncio {
+        grid-template-areas: "dados situacao acao";
+        padding: 1.25rem 1rem;
+    }
+
+    .anuncio__acao {
+        justify-self: end;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* Detalhe do anúncio (Tela_017) */
+
+.detalhe-anuncio {
+    border-radius: var(--raio-grande);
+    background-color: var(--cor-superficie);
+    box-shadow: var(--sombra);
+    overflow: hidden;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+.detalhe-anuncio__capa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 9rem;
+    background-color: #D3DCE3;
+    color: var(--cor-icone);
 }
 
-body {
-  margin-bottom: 60px;
+.detalhe-anuncio__capa svg {
+    width: 3.5rem;
+    height: 3.5rem;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+.detalhe-anuncio__corpo {
+    padding: 1.5rem 1.25rem;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.detalhe-anuncio__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+}
+
+.detalhe-anuncio__topo h2 {
+    margin: 0;
+    font-size: 1.375rem;
+}
+
+.detalhe-anuncio__topo .preco {
+    font-size: 1.25rem;
+}
+
+.detalhe-anuncio__local {
+    margin: 0.375rem 0 0.75rem;
+    color: var(--cor-texto-suave);
+    font-size: 0.9375rem;
+}
+
+.detalhe-anuncio__local svg,
+.anuncio__local svg {
+    width: 1em;
+    height: 1em;
+    margin-right: 0.25rem;
+    vertical-align: -0.125em;
+}
+
+.detalhe-anuncio__selos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.estatisticas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 0 0 1.25rem;
+}
+
+.estatistica {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    padding: 0.875rem 0.5rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 10px;
+    background-color: var(--cor-fundo);
+    text-align: center;
+}
+
+.estatistica dt {
+    color: var(--cor-texto-suave);
+    font-size: 0.8125rem;
+    font-weight: 400;
+}
+
+.estatistica dd {
+    margin: 0;
+    font-family: var(--fonte-titulo);
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.detalhe-anuncio__descricao {
+    color: var(--cor-texto-suave);
+}
+
+.detalhe-anuncio__endereco {
+    margin: 0 0 1.5rem;
+    font-size: 0.9375rem;
+}
+
+.detalhe-anuncio__endereco dt {
+    font-weight: 600;
+}
+
+.detalhe-anuncio__endereco dd {
+    margin: 0 0 0.25rem;
+    color: var(--cor-texto-suave);
+}
+
+.acoes-validacao {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.acoes-validacao .btn {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+@media (min-width: 576px) {
+
+    .estatisticas {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .detalhe-anuncio__capa {
+        height: 14rem;
+    }
+
+    .detalhe-anuncio__corpo {
+        padding: 1.75rem 1.75rem 2rem;
+    }
+}
+
+/* Mensagens de erro do serviço */
+
+.validation-summary-errors ul {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--cor-perigo-borda);
+    border-radius: 8px;
+    background-color: var(--cor-perigo-fundo);
+    color: var(--cor-perigo);
+    list-style: none;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+/* Largura dos campos conforme o tamanho máximo de cada dado (DD) */
+
+.campo-cep {
+    max-width: 12ch;
+}
+
+.campo-cpf {
+    max-width: 17ch;
+}
+
+.campo-cnpj {
+    max-width: 21ch;
+}
+
+.campo-telefone {
+    max-width: 20ch;
+}
+
+.campo-valor {
+    max-width: 18ch;
+}
+
+.campo-numero {
+    max-width: 10ch;
+}
+
+.campo-curto {
+    max-width: 20rem;
+}
+
+.campo-medio {
+    max-width: 32rem;
+}
+
+.campo-longo {
+    max-width: 48rem;
 }

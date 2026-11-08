@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Validar Anúncio";
+    ViewData["Perfil"] = "Administrador";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var aluguel = Model.Finalidade != "V";
 
     var tipo = Model.Tipo switch
     {
@@ -13,183 +17,87 @@
         "O" => "Outro",
         _ => Model.Tipo
     };
-    var finalidade = Model.Finalidade switch
-    {
-        "A" => "Aluguel",
-        "V" => "Venda",
-        _ => Model.Finalidade
-    };
+    var area = Model.AreaTotal.HasValue ? Model.AreaTotal.Value.ToString("0.##", ptBR) + "m²" : "-";
+    var cep = Model.Cep?.Length == 8 ? $"{Model.Cep[..5]}-{Model.Cep[5..]}" : Model.Cep;
     var situacao = Model.StatusValidacao switch
     {
-        "P" => "Pendente",
-        "A" => "Aprovado",
-        "R" => "Reprovado",
-        _ => Model.StatusValidacao
+        "A" => ("Aprovado", "selo--aprovado"),
+        "R" => ("Reprovado", "selo--reprovado"),
+        _ => ("Pendente", "selo--pendente")
     };
 }
 
-<h1>Validar Anúncio</h1>
-
-<div>
-    <h4>Dados do anúncio</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Nome)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Nome)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Descricao)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Descricao)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Tipo)
-        </dt>
-        <dd class = "col-sm-10">
-            @tipo
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Finalidade)
-        </dt>
-        <dd class = "col-sm-10">
-            @finalidade
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Valor)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Valor)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.QuantidadeQuartos)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.QuantidadeQuartos)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.QuantidadeBanheiros)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.QuantidadeBanheiros)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.QuantidadeVagasGaragem)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.QuantidadeVagasGaragem)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AreaTotal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AreaTotal)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AreaCozinha)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AreaCozinha)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AreaSala)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AreaSala)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AreaQuintal)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AreaQuintal)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AreaLavanderia)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AreaLavanderia)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Rua)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Rua)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Bairro)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Bairro)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Cep)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Cep)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Cidade)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Cidade)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Estado)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Estado)
-        </dd>
-    </dl>
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.StatusValidacao)
-        </dt>
-        <dd class = "col-sm-10">
-            @situacao
-        </dd>
-    </dl>
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <form asp-action="Approve">
-        <input type="hidden" asp-for="Id" />
-        <button type="submit" name="aprovado" value="false" class="btn btn-danger">Reprovar</button>
-        <button type="submit" name="aprovado" value="true" class="btn btn-success">Aprovar</button> |
-        <a asp-action="Pendentes">Voltar para a lista</a>
-    </form>
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Pendentes" aria-label="Voltar para a análise de anúncios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <h1>Validar Anúncio</h1>
 </div>
+
+<article class="detalhe-anuncio" aria-labelledby="nome-anuncio">
+    <div class="detalhe-anuncio__capa" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+    </div>
+
+    <div class="detalhe-anuncio__corpo">
+        <header>
+            <div class="detalhe-anuncio__topo">
+                <h2 id="nome-anuncio">@Model.Nome</h2>
+                <p class="preco m-0">@Model.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</p>
+            </div>
+            <p class="detalhe-anuncio__local">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                @Model.Bairro, @Model.Cidade - @Model.Estado
+            </p>
+            <p class="detalhe-anuncio__selos">
+                <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
+                <span class="selo selo--pequeno">@tipo</span>
+                <span class="visually-hidden">Status: </span>
+                <span class="selo @situacao.Item2">@situacao.Item1</span>
+            </p>
+        </header>
+
+        <dl class="estatisticas">
+            <div class="estatistica">
+                <dt>@Html.DisplayNameFor(model => model.QuantidadeQuartos)</dt>
+                <dd>@(Model.QuantidadeQuartos?.ToString() ?? "-")</dd>
+            </div>
+            <div class="estatistica">
+                <dt>@Html.DisplayNameFor(model => model.QuantidadeBanheiros)</dt>
+                <dd>@(Model.QuantidadeBanheiros?.ToString() ?? "-")</dd>
+            </div>
+            <div class="estatistica">
+                <dt>Vagas</dt>
+                <dd>@(Model.QuantidadeVagasGaragem?.ToString() ?? "-")</dd>
+            </div>
+            <div class="estatistica">
+                <dt>Área</dt>
+                <dd>@area</dd>
+            </div>
+        </dl>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Descricao))
+        {
+            <p class="detalhe-anuncio__descricao">@Model.Descricao</p>
+        }
+
+        <dl class="detalhe-anuncio__endereco">
+            <dt>Endereço</dt>
+            <dd>@Model.Rua, @Model.Bairro, @Model.Cidade - @Model.Estado, CEP @cep</dd>
+        </dl>
+
+        <div asp-validation-summary="ModelOnly"></div>
+
+        <form asp-action="Approve" class="acoes-validacao" data-envio-unico>
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" name="aprovado" value="false" class="btn btn-reprovar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                Reprovar
+            </button>
+            <button type="submit" name="aprovado" value="true" class="btn btn-aprovar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+                Aprovar
+            </button>
+        </form>
+    </div>
+</article>

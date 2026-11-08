@@ -2,62 +2,69 @@
 
 @{
     ViewData["Title"] = "Análise de Anúncios";
+    ViewData["Perfil"] = "Administrador";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var quantidade = Model.Count();
 }
 
-<h1>Análise de Anúncios</h1>
+<div class="titulo-pagina">
+    <a class="voltar" asp-controller="Home" asp-action="Index" aria-label="Voltar ao início">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Análise de Anúncios</h1>
+        <p>@(quantidade == 1 ? "1 anúncio pendente" : $"{quantidade} anúncios pendentes") de validação</p>
+    </div>
+</div>
 
-<p>@Model.Count() anúncio(s) pendente(s) de validação</p>
-
-@if (!Model.Any())
+@if (quantidade == 0)
 {
-    <p>Nenhum anúncio pendente de validação no momento.</p>
+    <p class="lista-vazia">Nenhum anúncio pendente de validação no momento.</p>
 }
 else
 {
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Anúncio
-            </th>
-            <th>
-                Endereço
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Finalidade)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Valor)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.StatusValidacao)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.Nome)
-            </td>
-            <td>
-                @item.Bairro, @item.Cidade - @item.Estado
-            </td>
-            <td>
-                @(item.Finalidade == "V" ? "Venda" : "Aluguel")
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Valor)
-            </td>
-            <td>
-                @(item.StatusValidacao switch { "A" => "Aprovado", "R" => "Reprovado", _ => "Pendente" })
-            </td>
-            <td>
-                <a asp-action="Validar" asp-route-id="@item.Id">Ver detalhes</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="lista-anuncios__cabecalho" aria-hidden="true">
+        <span>Anúncio</span>
+        <span>Status</span>
+        <span></span>
+    </div>
+
+    <ul class="lista-anuncios">
+        @foreach (var item in Model)
+        {
+            var situacao = item.StatusValidacao switch
+            {
+                "A" => ("Aprovado", "selo--aprovado"),
+                "R" => ("Reprovado", "selo--reprovado"),
+                _ => ("Pendente", "selo--pendente")
+            };
+            var aluguel = item.Finalidade != "V";
+
+            <li>
+                <article class="anuncio" aria-labelledby="anuncio-@item.Id">
+                    <div class="anuncio__dados">
+                        <div class="miniatura" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+                        </div>
+                        <div>
+                            <h2 class="anuncio__nome" id="anuncio-@item.Id">@item.Nome</h2>
+                            <p class="anuncio__local">@item.Bairro, @item.Cidade - @item.Estado</p>
+                            <p class="anuncio__valores">
+                                <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
+                                <span class="preco">@item.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</span>
+                            </p>
+                        </div>
+                    </div>
+                    <p class="anuncio__situacao m-0">
+                        <span class="visually-hidden">Status: </span>
+                        <span class="selo @situacao.Item2">@situacao.Item1</span>
+                    </p>
+                    <a class="btn btn-primary anuncio__acao" asp-action="Validar" asp-route-id="@item.Id">
+                        Ver detalhes<span class="visually-hidden"> de @item.Nome</span>
+                    </a>
+                </article>
+            </li>
+        }
+    </ul>
 }

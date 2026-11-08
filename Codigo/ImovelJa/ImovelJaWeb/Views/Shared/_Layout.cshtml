@@ -1,47 +1,95 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@{
+    var perfil = ViewData["Perfil"] as string;
+    var administrador = perfil == "Administrador";
+    var usuario = perfil == "Usuario";
+    var nomeUsuario = ViewData["NomeUsuario"] as string ?? "Usuário";
+}
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - ImovelJaWeb</title>
-    <script type="importmap"></script>
+    <meta name="description" content="ImóvelJá: plataforma para anunciar, buscar e alugar imóveis." />
+    <title>@ViewData["Title"] - ImóvelJá</title>
+    <link rel="preload" href="~/lib/fontes/manrope-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="~/lib/fontes/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ImovelJaWeb.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">ImovelJaWeb</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+    <header class="cabecalho">
+        <div class="cabecalho__interno">
+            <div class="cabecalho__marca">
+                @if (usuario)
+                {
+                    <button class="cabecalho__icone" type="button" data-bs-toggle="offcanvas" data-bs-target="#menuPrincipal"
+                            aria-controls="menuPrincipal" aria-label="Abrir o menu">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></svg>
+                    </button>
+                }
+                <a class="marca" asp-area="" asp-controller="Home" asp-action="Index">ImóvelJá</a>
+                @if (administrador)
+                {
+                    <span class="cabecalho__perfil">Admin</span>
+                }
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - ImovelJaWeb - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            @* Ações da conta: ficam sempre visíveis e só diminuem no celular *@
+            <div class="cabecalho__conta">
+                @if (administrador)
+                {
+                    <a class="btn btn-sm btn-cabecalho" asp-area="" asp-controller="Home" asp-action="Index">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                        Sair
+                    </a>
+                }
+                else if (usuario)
+                {
+                    <a class="cabecalho__icone" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Conversas">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    </a>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-cabecalho" asp-area="" asp-controller="Home" asp-action="Index">Entrar</a>
+                    <a class="btn btn-sm btn-cabecalho-destaque" asp-area="" asp-controller="Home" asp-action="Index">Cadastrar</a>
+                }
+            </div>
+        </div>
+    </header>
+
+    @if (usuario)
+    {
+        @* Menu lateral de navegação (Tela_001.1): cada caso de uso acrescenta aqui as suas telas *@
+        <nav class="offcanvas offcanvas-start menu-lateral" id="menuPrincipal" tabindex="-1" aria-labelledby="menuPrincipalTitulo">
+            <div class="menu-lateral__topo">
+                <div class="menu-lateral__avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6z" /></svg>
+                </div>
+                <p class="menu-lateral__titulo" id="menuPrincipalTitulo">Olá, @nomeUsuario</p>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Fechar o menu"></button>
+            </div>
+            <ul class="menu-lateral__links">
+                <li><a asp-area="" asp-controller="Home" asp-action="Index">Perfil</a></li>
+                <li><a asp-area="" asp-controller="Home" asp-action="Index">Gestão de Imóveis</a></li>
+                <li><a asp-area="" asp-controller="Home" asp-action="Index">Conversas</a></li>
+                <li><a asp-area="" asp-controller="Home" asp-action="Index">Planos</a></li>
+            </ul>
+            <a class="btn menu-lateral__sair" asp-area="" asp-controller="Home" asp-action="Index">Sair</a>
+        </nav>
+    }
+
+    <main class="conteudo">
+        @RenderBody()
+    </main>
+
+    <footer class="rodape">
+        <div class="rodape__interno">
+            &copy; 2026 - ImóvelJá
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
