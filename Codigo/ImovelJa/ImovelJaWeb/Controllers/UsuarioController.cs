@@ -1,7 +1,5 @@
 ﻿using Core.Service;
 using ImovelJaWeb.Mappers;
-using ImovelJaWeb.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Service;
 
@@ -18,9 +16,9 @@ namespace ImovelJaWeb.Controllers
             this.imovelService = imovelService;
         }
         // GET: PessoaController/GetAll
-        public ActionResult Get()
+        public ActionResult Index()
         {
-            var pessoas = pessoaService.GetAll();
+            var pessoas = pessoaService.GetUsuario();
             var pessoasViewModel = PessoaMapper.ToViewModel(pessoas);
             return View(pessoasViewModel);
         }
@@ -43,37 +41,19 @@ namespace ImovelJaWeb.Controllers
         // POST: UsuarioController/Block/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Block(uint id)
+        public ActionResult Activate(uint id, bool ativo)
         {
             try
             {
-                pessoaService.Activate(id, false);
-                TempData["Mensagem"] = "Usuário bloqueado com sucesso.";
+                pessoaService.Activate(id, ativo);
+                TempData["Mensagem"] = ativo ? "Usuário ativado com sucesso." : "Usuário bloqueado com sucesso.";
             }
             catch (ServiceException ex)
             {
                 TempData["Erro"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Get));
-        }
-
-        // POST: UsuarioController/Activate/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Activate(uint id)
-        {
-            try
-            {
-                pessoaService.Activate(id, true);
-                TempData["Mensagem"] = "Usuário ativado com sucesso.";
-            }
-            catch (ServiceException e)
-            {
-                TempData["Erro"] = e.Message;
-            }
-
-            return RedirectToAction(nameof(Get));
+            return RedirectToAction(nameof(Index));
         }
     }
 }

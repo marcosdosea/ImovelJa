@@ -51,7 +51,7 @@ public class UsuarioControllerTests
     public void Get_QuandoExistemPessoas_DeveRetornarViewComTodasAsPessoas()
     {
         // Act
-        var resultado = controller.Get();
+        var resultado = controller.Index();
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -81,7 +81,7 @@ public class UsuarioControllerTests
             .Returns(Array.Empty<Pessoa>());
 
         // Act
-        var resultado = controller.Get();
+        var resultado = controller.Index();
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -164,7 +164,7 @@ public class UsuarioControllerTests
     public void Block_QuandoPessoaExiste_DeveBloquearContaERedirecionarParaLista()
     {
         // Act
-        var resultado = controller.Block(1);
+        var resultado = controller.Activate(1,false);
 
         // Assert
         VerificarRedirecionamentoParaLista(resultado);
@@ -188,7 +188,7 @@ public class UsuarioControllerTests
             .Throws(new ServiceException(mensagem));
 
         // Act
-        var resultado = controller.Block(999);
+        var resultado = controller.Activate(999, false);
 
         // Assert
         VerificarRedirecionamentoParaLista(resultado);
@@ -201,7 +201,7 @@ public class UsuarioControllerTests
     public void Activate_QuandoPessoaExiste_DeveAtivarContaERedirecionarParaLista()
     {
         // Act
-        var resultado = controller.Activate(2);
+        var resultado = controller.Activate(2,true);
 
         // Assert
         VerificarRedirecionamentoParaLista(resultado);
@@ -225,7 +225,7 @@ public class UsuarioControllerTests
             .Throws(new ServiceException(mensagem));
 
         // Act
-        var resultado = controller.Activate(999);
+        var resultado = controller.Activate(999, true);
 
         // Assert
         VerificarRedirecionamentoParaLista(resultado);
@@ -241,7 +241,7 @@ public class UsuarioControllerTests
 
         Assert.IsNull(redirectResult.ControllerName);
         Assert.AreEqual(
-            nameof(UsuarioController.Get),
+            nameof(UsuarioController.Index),
             redirectResult.ActionName);
     }
 
