@@ -22,7 +22,7 @@ public class UsuarioControllerTests
         imovelServiceMock = new Mock<IImovelService>();
 
         pessoaServiceMock
-            .Setup(service => service.GetAll())
+            .Setup(service => service.GetUsuario())
             .Returns(ObterPessoasDeTeste());
 
         pessoaServiceMock
@@ -68,7 +68,7 @@ public class UsuarioControllerTests
         Assert.AreEqual("A", primeiraPessoa.Status);
 
         pessoaServiceMock.Verify(
-            service => service.GetAll(),
+            service => service.GetUsuario(),
             Times.Once);
     }
 
@@ -77,7 +77,7 @@ public class UsuarioControllerTests
     {
         // Arrange
         pessoaServiceMock
-            .Setup(service => service.GetAll())
+            .Setup(service => service.GetUsuario())
             .Returns(Array.Empty<Pessoa>());
 
         // Act
@@ -91,7 +91,7 @@ public class UsuarioControllerTests
         Assert.IsEmpty(pessoas);
 
         pessoaServiceMock.Verify(
-            service => service.GetAll(),
+            service => service.GetUsuario(),
             Times.Once);
     }
 
@@ -164,7 +164,7 @@ public class UsuarioControllerTests
     public void Block_QuandoPessoaExiste_DeveBloquearContaERedirecionarParaLista()
     {
         // Act
-        var resultado = controller.Activate(1,false);
+        var resultado = controller.Activate(1, false);
 
         // Assert
         VerificarRedirecionamentoParaLista(resultado);
@@ -201,7 +201,7 @@ public class UsuarioControllerTests
     public void Activate_QuandoPessoaExiste_DeveAtivarContaERedirecionarParaLista()
     {
         // Act
-        var resultado = controller.Activate(2,true);
+        var resultado = controller.Activate(2, true);
 
         // Assert
         VerificarRedirecionamentoParaLista(resultado);
