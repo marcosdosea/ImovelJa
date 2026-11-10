@@ -20,6 +20,7 @@ namespace ImovelJaWeb
             builder.Services.AddTransient<IImovelService, ImovelService>();
             builder.Services.AddTransient<IMensagemService, MensagemService>();
             builder.Services.AddTransient<IPessoaService, PessoaService>();
+            builder.Services.AddTransient<IPlanoService, PlanoService>();
 
             var app = builder.Build();
 
