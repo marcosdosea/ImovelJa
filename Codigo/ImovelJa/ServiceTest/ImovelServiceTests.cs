@@ -1,6 +1,8 @@
 using Core;
 using Core.Service;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.X509Certificates;
+using Core.DTO;
 
 namespace Service.Tests;
 
@@ -114,7 +116,49 @@ public class ImovelServiceTests
                 Status = "D",
                 StatusValidacao = "R",
                 IdPessoaProprietario = 1
-            });
+            },
+
+
+            new Imovel
+            {
+                Id = 5,
+                Nome = "Apartamento 2 quartos nos Jardins",
+                Tipo = "A",
+                AreaTotal = 62.5m,
+                QuantidadeQuartos = 2,
+                Rua = "Rua Itabaianinha, 410",
+                Bairro = "Jardins",
+                Cep = "49025000",
+                Cidade = "Aracaju",
+                Estado = "Sergipe",
+                Valor = 1450.50m,
+                Finalidade = "A",
+                Status = "D",
+                StatusValidacao = "A",
+                IdPessoaProprietario = 1
+            },
+
+            new Imovel
+            {
+                Id = 6,
+                Nome = "Apartamento 3 quartos nos Jardins",
+                Descricao = "Apartamento no ultimo andar.",
+                Tipo = "A",
+                AreaTotal = 82.5m,
+                QuantidadeQuartos = 3,
+                Rua = "Rua Itabaianinha, 430",
+                Bairro = "Jardins",
+                Cep = "49025000",
+                Cidade = "Aracaju",
+                Estado = "Sergipe",
+                Valor = 1450.50m,
+                Finalidade = "A",
+                Status = "P",
+                StatusValidacao = "A",
+                IdPessoaProprietario = 1
+            }
+
+            );
 
         contexto.SaveChanges();
 
@@ -293,5 +337,131 @@ public class ImovelServiceTests
 
         // Assert
         Assert.AreEqual("Imóvel não encontrado.", excecao.Message);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoNaoExistemFiltros_DeveRetornarColecaoComTodosImoveis()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO();
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+
+        // Assert
+        Assert.HasCount(2, imoveis);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriterios_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Termo = "Apartamento",
+            Localizacao = "Jardins",
+            Tipos = new List<string> { "A" },
+            ValorMinimo = 1000m,
+            ValorMaximo = 2000m,
+            QuantidadeQuartos = 2
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(5u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoNaoExistemImoveisQueAtendamOsCriterios_DeveRetornarColecaoVazia()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Termo = "Casa",
+            Localizacao = "Jardins",
+            Tipos = new List<string> { "A" },
+            ValorMinimo = 1000m,
+            ValorMaximo = 2000m,
+            QuantidadeQuartos = 2
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.IsNotNull(imoveis);
+        Assert.IsEmpty(imoveis);
+    }
+
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorArea_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            AreaMinima = 60m,
+            AreaMaxima = 90m
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        CollectionAssert.AreEquivalent(
+            new uint[] { 5 },
+            imoveis.Select(imovel => imovel.Id).ToList());
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorQuantidadeQuartos_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            QuantidadeQuartos = 1
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorValor_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            ValorMinimo = 600m,
+            ValorMaximo = 1000m
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorTipo_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Tipos = new List<string> { "A" }
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        CollectionAssert.AreEquivalent(
+            new uint[] { 5 },
+            imoveis.Select(imovel => imovel.Id).ToList());
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorTermo_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Termo = "Studio"
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
     }
 }

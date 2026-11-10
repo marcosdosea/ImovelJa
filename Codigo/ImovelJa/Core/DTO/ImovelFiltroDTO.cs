@@ -14,7 +14,7 @@ namespace Core.DTO
         public List<string>? Tipos { get; set; }
         public decimal? ValorMinimo { get; set; }
         public decimal? ValorMaximo { get; set; }
-        public uint? Quartos { get; set; }
+        public uint? QuantidadeQuartos { get; set; }
         public decimal? AreaMinima { get; set; }
         public decimal? AreaMaxima { get; set; }
     }

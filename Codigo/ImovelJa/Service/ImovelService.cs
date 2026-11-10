@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.DTO;
 using Core.Service;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -164,6 +165,62 @@ namespace Service
 
             return context.Planos.AsNoTracking().FirstOrDefault(p => p.Nome == "Básico")
                 ?? throw new ServiceException("Plano Básico não cadastrado.");
+        }
+
+        /// <summary>
+        /// Busca os imoveis disponíveis para aluguel ou venda, de acordo com os critérios informados no filtro, 
+        /// não incluindo imóveis que não estão aprovados ou que já foram alugados ou vendidos
+        /// </summary>
+        /// <param name="filtro">filtro de busca</param>
+        /// <returns>coleção de imóveis que atendem aos critérios</returns>
+        public IEnumerable<Imovel> GetByFiltro(ImovelFiltroDTO filtro)
+        {
+            var consulta = context.Imovels.Where(i => i.Status == "D" && i.StatusValidacao == "A");
+
+            if (!string.IsNullOrEmpty(filtro.Termo))
+            {
+                consulta = consulta.Where(i => i.Nome.Contains(filtro.Termo) || (i.Descricao != null && i.Descricao.Contains(filtro.Termo)));
+            }
+
+            var local = filtro.Localizacao?.Trim();
+            if (!string.IsNullOrWhiteSpace(local))
+            {
+                consulta = consulta.Where(i => i.Bairro.Contains(local)
+                                            || i.Cidade.Contains(local)
+                                            || i.Estado.Contains(local));
+            }
+
+            if (filtro.Tipos != null && filtro.Tipos.Any())
+            {
+                consulta = consulta.Where(i => filtro.Tipos.Contains(i.Tipo));
+            }
+
+            if (filtro.ValorMinimo.HasValue)
+            {
+                consulta = consulta.Where(i => i.Valor >= filtro.ValorMinimo.Value);
+            }
+
+            if (filtro.ValorMaximo.HasValue)
+            {
+                consulta = consulta.Where(i => i.Valor <= filtro.ValorMaximo.Value);
+            }
+
+            if (filtro.QuantidadeQuartos.HasValue)
+            {
+                consulta = consulta.Where(i => i.QuantidadeQuartos == filtro.QuantidadeQuartos.Value);
+            }
+            
+            if (filtro.AreaMinima.HasValue)
+            {
+                consulta = consulta.Where(i => i.AreaTotal >= filtro.AreaMinima.Value);
+            }
+
+            if (filtro.AreaMaxima.HasValue)
+            {
+                consulta = consulta.Where(i => i.AreaTotal <= filtro.AreaMaxima.Value);
+            }
+            
+            return consulta.AsNoTracking();
         }
     }
 }
