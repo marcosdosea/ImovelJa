@@ -22,7 +22,7 @@ public class UsuarioControllerTests
         imovelServiceMock = new Mock<IImovelService>();
 
         pessoaServiceMock
-            .Setup(service => service.GetUsuario())
+            .Setup(service => service.GetUsuarios())
             .Returns(ObterPessoasDeTeste());
 
         pessoaServiceMock
@@ -48,7 +48,7 @@ public class UsuarioControllerTests
     }
 
     [TestMethod]
-    public void Get_QuandoExistemPessoas_DeveRetornarViewComTodasAsPessoas()
+    public void Index_QuandoExistemPessoas_DeveRetornarViewComTodasAsPessoas()
     {
         // Act
         var resultado = controller.Index();
@@ -68,16 +68,16 @@ public class UsuarioControllerTests
         Assert.AreEqual("A", primeiraPessoa.Status);
 
         pessoaServiceMock.Verify(
-            service => service.GetUsuario(),
+            service => service.GetUsuarios(),
             Times.Once);
     }
 
     [TestMethod]
-    public void Get_QuandoNaoExistemPessoas_DeveRetornarViewComColecaoVazia()
+    public void Index_QuandoNaoExistemPessoas_DeveRetornarViewComColecaoVazia()
     {
         // Arrange
         pessoaServiceMock
-            .Setup(service => service.GetUsuario())
+            .Setup(service => service.GetUsuarios())
             .Returns(Array.Empty<Pessoa>());
 
         // Act
@@ -91,7 +91,7 @@ public class UsuarioControllerTests
         Assert.IsEmpty(pessoas);
 
         pessoaServiceMock.Verify(
-            service => service.GetUsuario(),
+            service => service.GetUsuarios(),
             Times.Once);
     }
 
@@ -161,7 +161,7 @@ public class UsuarioControllerTests
     }
 
     [TestMethod]
-    public void Block_QuandoPessoaExiste_DeveBloquearContaERedirecionarParaLista()
+    public void Activate_QuandoPessoaExiste_DeveBloquearContaERedirecionarParaLista()
     {
         // Act
         var resultado = controller.Activate(1, false);
@@ -178,7 +178,7 @@ public class UsuarioControllerTests
     }
 
     [TestMethod]
-    public void Block_QuandoPessoaNaoExiste_DeveRedirecionarComMensagemDeErro()
+    public void Activate_QuandoPessoaNaoExiste_DeveRedirecionarComMensagemDeErro()
     {
         // Arrange
         const string mensagem = "Pessoa não encontrada.";
@@ -212,26 +212,6 @@ public class UsuarioControllerTests
 
         Assert.AreEqual("Usuário ativado com sucesso.", controller.TempData["Mensagem"]);
         Assert.IsNull(controller.TempData["Erro"]);
-    }
-
-    [TestMethod]
-    public void Activate_QuandoPessoaNaoExiste_DeveRedirecionarComMensagemDeErro()
-    {
-        // Arrange
-        const string mensagem = "Pessoa não encontrada.";
-
-        pessoaServiceMock
-            .Setup(service => service.Activate(999, true))
-            .Throws(new ServiceException(mensagem));
-
-        // Act
-        var resultado = controller.Activate(999, true);
-
-        // Assert
-        VerificarRedirecionamentoParaLista(resultado);
-
-        Assert.AreEqual(mensagem, controller.TempData["Erro"]);
-        Assert.IsNull(controller.TempData["Mensagem"]);
     }
 
     private static void VerificarRedirecionamentoParaLista(ActionResult resultado)

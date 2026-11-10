@@ -86,11 +86,14 @@ namespace Service
             return context.Pessoas.AsNoTracking();
         }
 
-
-        public IEnumerable<Pessoa> GetUsuario()
+        /// <summary>
+        /// Busca todas pessoas cadastradas e possui email
+        /// </summary>
+        /// <returns>lista de pessoas</returns>
+        public IEnumerable<Pessoa> GetUsuarios()
         {
             return context.Pessoas.AsNoTracking()
-                .Where(Pessoa => Pessoa.Email != null);
+                .Where(p => p.Email != null);
         }
         /// <summary>
         /// Busca uma pessoa pelo CPF ou CNPJ

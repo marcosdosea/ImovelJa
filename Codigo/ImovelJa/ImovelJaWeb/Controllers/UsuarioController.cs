@@ -1,7 +1,6 @@
 ﻿using Core.Service;
 using ImovelJaWeb.Mappers;
 using Microsoft.AspNetCore.Mvc;
-using Service;
 
 namespace ImovelJaWeb.Controllers
 {
@@ -15,10 +14,10 @@ namespace ImovelJaWeb.Controllers
             this.pessoaService = pessoaService;
             this.imovelService = imovelService;
         }
-        // GET: PessoaController/GetAll
+        // GET: PessoaController/Index
         public ActionResult Index()
         {
-            var pessoas = pessoaService.GetUsuario();
+            var pessoas = pessoaService.GetUsuarios();
             var pessoasViewModel = PessoaMapper.ToViewModel(pessoas);
             return View(pessoasViewModel);
         }
@@ -38,7 +37,7 @@ namespace ImovelJaWeb.Controllers
             return View(PessoaMapper.ToViewModel(pessoa));
         }
 
-        // POST: UsuarioController/Block/5
+        // POST: UsuarioController/Activate/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Activate(uint id, bool ativo)
