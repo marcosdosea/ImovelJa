@@ -1,7 +1,5 @@
-using System.Globalization;
 using Core;
 using Core.Service;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Service;
 
@@ -28,18 +26,7 @@ namespace ImovelJaWeb
             builder.Services.AddTransient<IPessoaService, PessoaService>();
             builder.Services.AddTransient<IPlanoService, PlanoService>();
 
-            // O preço do plano é um input numérico, que envia o decimal com ponto.
-            // Sem isso, uma máquina em pt-BR interpreta "49.90" como 4990.
-            var cultura = CultureInfo.InvariantCulture;
-            var localizacao = new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture(cultura),
-                SupportedCultures = new List<CultureInfo> { cultura },
-                SupportedUICultures = new List<CultureInfo> { new CultureInfo("pt-BR") }
-            };
             var app = builder.Build();
-
-            app.UseRequestLocalization(localizacao);
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
