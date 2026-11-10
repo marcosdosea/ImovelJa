@@ -59,6 +59,8 @@ public partial class Imovel
     /// </summary>
     public string StatusValidacao { get; set; } = null!;
 
+    public DateTime DataCadastro { get; set; }
+
     public uint IdPessoaProprietario { get; set; }
 
     public virtual ICollection<Aluguel> Aluguels { get; set; } = new List<Aluguel>();
