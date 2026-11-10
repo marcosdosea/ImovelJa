@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Core;
 using Core.Service;
 using ImovelJaWeb.Models;
@@ -42,6 +43,9 @@ public class MensagemControllerTests
         pessoaServiceMock
             .Setup(service => service.Get(3))
             .Returns(new Pessoa { Id = 3, Nome = "Ana Souza" });
+        pessoaServiceMock
+            .Setup(service => service.Get(4))
+            .Returns(new Pessoa { Id = 4, Nome = "Carla Lima" });
 
         controller = new MensagemController(
             mensagemServiceMock.Object,
@@ -73,20 +77,43 @@ public class MensagemControllerTests
         Assert.IsTrue(historico[0].DataEnvio < historico[1].DataEnvio);
         Assert.IsFalse(historico.Any(item => item.Texto.Contains("Ana")));
 
-        var conversas = Assert.IsInstanceOfType<List<ConversaItemViewModel>>(
-            viewResult.ViewData[MensagemController.ChaveConversas]);
-
-        Assert.HasCount(2, conversas);
-        Assert.AreEqual("Maria José Santos", conversas[0].Nome);
-        Assert.IsTrue(conversas[0].Ativa);
-        Assert.AreEqual("Apartamento 2 Quartos – Centro", conversas[0].NomeImovel);
-        Assert.AreEqual("Ana Souza", conversas[1].Nome);
-        Assert.IsNull(conversas[1].NomeImovel);
-
         mensagemServiceMock.Verify(
             service => service.GetConversa(2, 1),
             Times.Once);
         pessoaServiceMock.Verify(service => service.GetAll(), Times.Never);
+    }
+
+    [TestMethod]
+    public void Get_QuandoMontaALista_DeveMostrarQuemApareceAUltimaMensagemEAOrdem()
+    {
+        // Act
+        var resultado = controller.Get(1, 2);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var conversas = Assert.IsInstanceOfType<List<ConversaItemViewModel>>(
+            viewResult.ViewData[MensagemController.ChaveConversas]);
+
+        Assert.HasCount(3, conversas);
+        Assert.IsFalse(conversas.Any(conversa => conversa.IdPessoa == 2));
+
+        Assert.AreEqual(1u, conversas[0].IdPessoa);
+        Assert.AreEqual("Maria José Santos", conversas[0].Nome);
+        Assert.IsTrue(conversas[0].Ativa);
+        Assert.AreEqual("Apartamento 2 Quartos – Centro", conversas[0].NomeImovel);
+        Assert.AreEqual("Oi, João, obrigado pelo interesse! Sim, ainda está disponível.", conversas[0].Texto);
+
+        Assert.AreEqual(3u, conversas[1].IdPessoa);
+        Assert.AreEqual("Ana Souza", conversas[1].Nome);
+        Assert.IsFalse(conversas[1].Ativa);
+        Assert.IsNull(conversas[1].NomeImovel);
+        Assert.AreEqual("Oi, João. Sou a Ana.", conversas[1].Texto);
+
+        Assert.AreEqual(4u, conversas[2].IdPessoa);
+        Assert.AreEqual("Carla Lima", conversas[2].Nome);
+        Assert.IsFalse(conversas[2].Ativa);
+        Assert.AreEqual("João, ainda tem a casa?", conversas[2].Texto);
+        Assert.IsTrue(conversas[1].DataEnvio > conversas[2].DataEnvio);
     }
 
     [TestMethod]
@@ -128,10 +155,20 @@ public class MensagemControllerTests
         // Arrange
         var modelo = new MensagemViewModel
         {
-            Texto = "   ",
+            Texto = "",
             IdPessoaEnviou = 2,
             IdPessoaRecebeu = 1
         };
+
+        var validacao = new ValidationContext(modelo);
+        var resultados = new List<ValidationResult>();
+        Assert.IsFalse(Validator.TryValidateObject(modelo, validacao, resultados, true));
+        foreach (var item in resultados)
+        {
+            controller.ModelState.AddModelError(
+                item.MemberNames.FirstOrDefault() ?? string.Empty,
+                item.ErrorMessage ?? string.Empty);
+        }
 
         // Act
         var resultado = controller.Create(modelo, 1);
@@ -142,7 +179,7 @@ public class MensagemControllerTests
             viewResult.ViewData.Model);
 
         Assert.AreEqual(nameof(MensagemController.Get), viewResult.ViewName);
-        Assert.AreEqual("   ", mensagem.Texto);
+        Assert.AreEqual("", mensagem.Texto);
 
         var erros = controller.ModelState.Values
             .SelectMany(entrada => entrada.Errors)
@@ -225,6 +262,13 @@ public class MensagemControllerTests
             Texto = "Oi, João. Sou a Ana.",
             DataEnvio = new DateTime(2026, 11, 9, 15, 0, 0),
             IdPessoaEnviou = 3,
+            IdPessoaRecebeu = 2
+        }).Append(new Mensagem
+        {
+            Id = 4,
+            Texto = "João, ainda tem a casa?",
+            DataEnvio = new DateTime(2026, 11, 9, 13, 0, 0),
+            IdPessoaEnviou = 4,
             IdPessoaRecebeu = 2
         });
     }

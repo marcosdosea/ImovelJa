@@ -16,8 +16,6 @@ namespace ImovelJaWeb.Controllers
         public const string ChaveNomePessoa = "NomePessoa";
         public const string ChaveConversaAberta = "ConversaAberta";
 
-        private const string ChaveTexto = "Texto";
-
         private readonly IMensagemService mensagemService;
         private readonly IImovelService imovelService;
         private readonly IPessoaService pessoaService;
@@ -44,11 +42,7 @@ namespace ImovelJaWeb.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Create(MensagemViewModel mensagem, uint? idImovel)
         {
-            var emBranco = string.IsNullOrWhiteSpace(mensagem.Texto);
-            if (emBranco && ModelState[ChaveTexto]?.Errors.Count is null or 0)
-                ModelState.AddModelError(ChaveTexto, "A mensagem não pode estar em branco.");
-
-            if (!ModelState.IsValid || emBranco)
+            if (!ModelState.IsValid)
                 return View(nameof(Get), Montar(idImovel ?? 0, mensagem.IdPessoaEnviou, mensagem.IdPessoaRecebeu, mensagem));
 
             try
