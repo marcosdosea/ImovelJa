@@ -1,0 +1,56 @@
+@model ImovelJaWeb.Models.PlanoViewModel
+
+@{
+    ViewData["Title"] = "Detalhes do plano";
+    ViewData["Perfil"] = "Administrador";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Index" aria-label="Voltar para os planos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Detalhes do plano</h1>
+        <p>@(string.IsNullOrEmpty(Model.Nome) ? "Plano não encontrado" : Model.Nome)</p>
+    </div>
+</div>
+
+@if (Model.Id == 0)
+{
+    <p class="lista-vazia">Plano não encontrado.</p>
+}
+else
+{
+    <ul class="lista-planos">
+        <partial name="_Card" model="Model" />
+    </ul>
+
+    <dl class="ficha">
+        <div>
+            <dt>@Html.DisplayNameFor(model => model.Id)</dt>
+            <dd>@Model.Id</dd>
+        </div>
+        <div>
+            <dt>@Html.DisplayNameFor(model => model.Nome)</dt>
+            <dd>@Model.Nome</dd>
+        </div>
+        <div>
+            <dt>@Html.DisplayNameFor(model => model.Valor)</dt>
+            <dd>@(PlanoTexto.Gratuito(Model.Valor) ? "Grátis" : Model.Valor.ToString("C", ptBR))</dd>
+        </div>
+        <div>
+            <dt>@Html.DisplayNameFor(model => model.LimiteImoveisAnunciados)</dt>
+            <dd>@PlanoTexto.Limite(Model.LimiteImoveisAnunciados)</dd>
+        </div>
+        <div>
+            <dt>@Html.DisplayNameFor(model => model.Status)</dt>
+            <dd>@PlanoTexto.Situacao(Model.Status)</dd>
+        </div>
+        <div class="ficha__largo">
+            <dt>@Html.DisplayNameFor(model => model.Beneficios)</dt>
+            <dd class="ficha__texto">@(string.IsNullOrWhiteSpace(Model.Beneficios) ? "—" : Model.Beneficios)</dd>
+        </div>
+    </dl>
+}

@@ -1,0 +1,105 @@
+@model ImovelJaWeb.Models.PlanoViewModel
+
+@{
+    ViewData["Title"] = "Editar plano";
+    ViewData["Perfil"] = "Administrador";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var inativo = PlanoTexto.Inativo(Model.Status);
+    var gratuito = PlanoTexto.Gratuito(Model.Valor);
+    var demais = ViewBag.DemaisPlanos as IEnumerable<PlanoViewModel>;
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Index" aria-label="Voltar para os planos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Planos da Plataforma</h1>
+        <p>Gerencie preços e benefícios dos planos disponíveis</p>
+    </div>
+</div>
+
+@if (Model.Id == 0)
+{
+    <div asp-validation-summary="ModelOnly"></div>
+    <p class="lista-vazia">Plano não encontrado.</p>
+}
+else
+{
+    <article class="plano plano--edicao" aria-labelledby="plano-edicao">
+        <form asp-action="Edit" method="post" data-envio-unico id="form-plano">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Nome" />
+            <input type="hidden" asp-for="LimiteImoveisAnunciados" />
+            <input type="hidden" asp-for="Status" />
+            <input type="hidden" name="retorno" value="Edit" />
+
+            <div class="plano__cabecalho">
+                <div class="plano__identidade">
+                    <h2 class="plano__nome" id="plano-edicao">@Model.Nome</h2>
+                    @if (inativo)
+                    {
+                        <span class="selo selo--inativo">Inativo</span>
+                    }
+                    <span class="plano__divisor" aria-hidden="true"></span>
+                    <p class="plano__limite">@PlanoTexto.Limite(Model.LimiteImoveisAnunciados)</p>
+                </div>
+                <p class="preco plano__preco m-0" data-preco-exibicao>
+                    <span data-preco-texto>@(gratuito ? "Grátis" : Model.Valor.ToString("C", ptBR))</span><span class="preco__periodo" data-preco-periodo @(gratuito ? "hidden" : null)>/mês</span>
+                </p>
+                <div class="plano__acoes">
+                    <button type="submit" class="btn btn-salvar">Salvar</button>
+                    <button type="submit"
+                            class="btn @(inativo ? "btn-ativar" : "btn-desativar")"
+                            formaction="@Url.Action("Activate")"
+                            formnovalidate
+                            name="ativo"
+                            value="@(inativo ? "true" : "false")">
+                        @(inativo ? "Ativar" : "Desativar")<span class="visually-hidden"> @Model.Nome</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="plano-edicao__campos">
+                <div asp-validation-summary="ModelOnly"></div>
+                <p class="alerta-regra" data-alerta-basico hidden>O plano Básico deve ter valor zero.</p>
+
+                <div class="campo">
+                    <div class="campo__rotulo">
+                        <label class="form-label" asp-for="Valor"></label>
+                        <span class="campo__dica">— deixe 0 para Grátis</span>
+                    </div>
+                    <input asp-for="Valor" class="form-control campo-preco" type="number" step="0.01" lang="en" inputmode="decimal" data-preco-campo />
+                    <span asp-validation-for="Valor" class="text-danger"></span>
+                </div>
+
+                <div class="campo beneficios-editor" data-beneficios>
+                    <label class="form-label" asp-for="Beneficios"></label>
+                    <textarea asp-for="Beneficios" class="form-control campo-longo beneficios-editor__texto" rows="4"></textarea>
+                    <span asp-validation-for="Beneficios" class="text-danger"></span>
+                    <ul class="beneficios-editor__lista" data-beneficios-lista></ul>
+                    <div class="beneficios-editor__novo">
+                        <label class="visually-hidden" for="novo-beneficio">Adicionar benefício</label>
+                        <input id="novo-beneficio" class="form-control" type="text" placeholder="Adicionar benefício..." data-beneficio-novo autocomplete="off" />
+                        <button type="button" class="btn btn-salvar" data-beneficio-adicionar>Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </article>
+}
+
+@if (demais != null && demais.Any())
+{
+    <ul class="lista-planos lista-planos--demais">
+        @foreach (var item in demais)
+        {
+            <partial name="_Card" model="item" />
+        }
+    </ul>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

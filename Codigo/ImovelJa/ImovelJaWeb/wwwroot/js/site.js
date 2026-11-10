@@ -2,11 +2,12 @@
     "use strict";
 
     /* Envio único: nos formulários marcados com data-envio-unico, desativa os
-       botões depois do primeiro clique. Sem isso, um clique duplo em "Aprovar"
-       manda dois pedidos, e o segundo falha porque o anúncio já foi validado. */
+       botões depois do primeiro clique válido. Sem isso, um clique duplo em
+       "Aprovar" manda dois pedidos, e o segundo falha porque o anúncio já foi
+       validado. Se a validação recusar o envio, os botões continuam ativos. */
     function ligarEnvioUnico(formulario) {
         formulario.addEventListener("submit", function (evento) {
-            if (typeof formulario.checkValidity === "function" && !formulario.checkValidity()) {
+            if (evento.defaultPrevented || (typeof formulario.checkValidity === "function" && !formulario.checkValidity())) {
                 return;
             }
 
@@ -50,7 +51,20 @@
         });
     }
 
-    document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
+    function iniciar() {
+        document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
+    }
+
+    function agendar() {
+        window.setTimeout(iniciar, 0);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", agendar);
+    } else {
+        agendar();
+    }
+
     window.addEventListener("pageshow", reativarFormularios);
 
     /* A conversa abre já no fim do histórico, na mensagem mais recente. */
