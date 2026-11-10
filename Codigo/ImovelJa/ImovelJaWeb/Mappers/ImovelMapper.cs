@@ -1,4 +1,5 @@
 using Core;
+using Core.DTO;
 using ImovelJaWeb.Models;
 using Mapster;
 
@@ -24,6 +25,11 @@ namespace ImovelJaWeb.Mappers
         public static IEnumerable<Imovel> ToEntity(IEnumerable<ImovelViewModel> imoveisViewModel)
         {
             return imoveisViewModel.Adapt<IEnumerable<Imovel>>();
+        }
+
+        public static ImovelFiltroDTO ToDTO(ImovelFiltroViewModel filtroViewModel)
+        {
+            return filtroViewModel.Adapt<ImovelFiltroDTO>();
         }
     }
 }
