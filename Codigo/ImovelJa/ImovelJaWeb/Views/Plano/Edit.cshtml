@@ -5,6 +5,7 @@
     ViewData["Perfil"] = "Administrador";
 
     var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var preco = Model.Valor.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
     var inativo = PlanoTexto.Inativo(Model.Status);
     var gratuito = PlanoTexto.Gratuito(Model.Valor);
     var demais = ViewBag.DemaisPlanos as IEnumerable<PlanoViewModel>;
@@ -70,7 +71,7 @@ else
                         <label class="form-label" asp-for="Valor"></label>
                         <span class="campo__dica">— deixe 0 para Grátis</span>
                     </div>
-                    <input asp-for="Valor" class="form-control campo-preco" type="number" step="0.01" lang="en" inputmode="decimal" data-preco-campo />
+                    <input asp-for="Valor" class="form-control campo-preco" type="number" step="0.01" lang="en" inputmode="decimal" data-preco-campo value="@preco" />
                     <span asp-validation-for="Valor" class="text-danger"></span>
                 </div>
 
