@@ -46,6 +46,20 @@
         });
     }
 
+    /* Confirmação: nos formulários marcados com data-confirm-nome, pede
+    confirmação antes de bloquear. O nome vem de um atributo, lido como
+    texto puro, e nunca é montado dentro de código JavaScript. */
+    function ligarConfirmacao(formulario) {
+        formulario.addEventListener("submit", function (evento) {
+            var nome = formulario.getAttribute("data-confirm-nome");
+
+            if (!window.confirm("Deseja realmente bloquear o usuário " + nome + "?")) {
+                evento.preventDefault();
+            }
+        });
+    }
+
     document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
+    document.querySelectorAll("form[data-confirm-nome]").forEach(ligarConfirmacao);
     window.addEventListener("pageshow", reativarFormularios);
 })();

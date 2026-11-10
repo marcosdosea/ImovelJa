@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Detalhes do Usuário";
+    ViewData["Perfil"] = "Administrador";
 
     var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
     var imoveis = ViewBag.imoveis as IEnumerable<ImovelViewModel>
@@ -58,7 +59,7 @@
     @if (ativo)
     {
         <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="d-inline"
-              onsubmit="return confirm('Deseja realmente bloquear o usuário @Model.Nome?');">
+              data-confirm-nome="@Model.Nome">
             <input type="hidden" name="ativo" value="false" />
             <button type="submit" class="btn btn-outline-danger">Bloquear</button>
         </form>

@@ -16,7 +16,15 @@
         <p>@(quantidade == 1 ? "1 usuário cadastrado" : $"{quantidade} usuários cadastrados")</p>
     </div>
 </div>
+@if (TempData["Mensagem"] is string mensagem && !string.IsNullOrWhiteSpace(mensagem))
+{
+    <div class="alert alert-success" role="status">@mensagem</div>
+}
 
+@if (TempData["Erro"] is string erro && !string.IsNullOrWhiteSpace(erro))
+{
+    <div class="alert alert-danger" role="alert">@erro</div>
+}
 @if (quantidade == 0)
 {
     <p class="lista-vazia">Nenhum usuário cadastrado no momento.</p>
@@ -64,7 +72,7 @@ else
                         @if (ativo)
                         {
                             <form asp-action="Activate" asp-route-id="@item.Id" method="post" class="d-inline"
-                                  onsubmit="return confirm('Deseja realmente bloquear o usuário @item.Nome?');">
+                                  data-confirm-nome="@item.Nome">
                                 <input type="hidden" name="ativo" value="false" />
                                 <button type="submit" class="btn btn-outline-danger">
                                     Bloquear<span class="visually-hidden"> @item.Nome</span>
