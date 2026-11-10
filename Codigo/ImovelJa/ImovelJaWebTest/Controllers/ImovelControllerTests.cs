@@ -105,6 +105,69 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
+    public void Detalhes_QuandoAnuncioAprovadoEDisponivel_DeveRetornarViewComImovel()
+    {
+        // Arrange
+        var publicado = ObterImovelAlvo();
+        publicado.Id = 3;
+        publicado.Status = "D";
+        publicado.StatusValidacao = "A";
+
+        imovelServiceMock
+            .Setup(service => service.Get(3))
+            .Returns(publicado);
+
+        // Act
+        var resultado = controller.Detalhes(3);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imovel = Assert.IsInstanceOfType<ImovelViewModel>(
+            viewResult.ViewData.Model);
+
+        Assert.AreEqual(3u, imovel.Id);
+        Assert.AreEqual("Casa com 3 quartos no Centro", imovel.Nome);
+        Assert.AreEqual("A", imovel.StatusValidacao);
+        Assert.AreEqual("D", imovel.Status);
+
+        imovelServiceMock.Verify(
+            service => service.Get(3),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public void Detalhes_QuandoAnuncioNaoEstaPublicado_DeveRetornarViewComModeloVazio()
+    {
+        // Act
+        var resultado = controller.Detalhes(1);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imovel = Assert.IsInstanceOfType<ImovelViewModel>(
+            viewResult.ViewData.Model);
+
+        Assert.AreEqual(0u, imovel.Id);
+    }
+
+    [TestMethod]
+    public void Detalhes_QuandoImovelNaoExiste_DeveRetornarViewComModeloVazio()
+    {
+        // Act
+        var resultado = controller.Detalhes(999);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imovel = Assert.IsInstanceOfType<ImovelViewModel>(
+            viewResult.ViewData.Model);
+
+        Assert.AreEqual(0u, imovel.Id);
+
+        imovelServiceMock.Verify(
+            service => service.Get(999),
+            Times.Once);
+    }
+
+    [TestMethod]
     public void Validar_QuandoImovelNaoExiste_DeveRetornarViewComModeloVazio()
     {
         // Act

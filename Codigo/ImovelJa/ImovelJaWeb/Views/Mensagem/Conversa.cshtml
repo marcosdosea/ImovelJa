@@ -1,0 +1,156 @@
+@model ImovelJaWeb.Models.ConversaViewModel
+
+@{
+    ViewData["Title"] = Model.ConversaAberta && !string.IsNullOrWhiteSpace(Model.NomeDestinatario)
+        ? Model.NomeDestinatario
+        : "Conversas";
+    ViewData["Perfil"] = "Usuario";
+
+    var nome = Model.NomePessoa;
+    ViewData["NomeUsuario"] = string.IsNullOrWhiteSpace(nome)
+        ? "Usuário"
+        : nome.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+
+    string Horario(DateTime? data, bool comHora)
+    {
+        if (data == null)
+            return string.Empty;
+
+        if (data.Value.Date == DateTime.Today)
+            return data.Value.ToString("HH:mm", ptBR);
+
+        if (!comHora && data.Value.Date >= DateTime.Today.AddDays(-6))
+        {
+            var dia = ptBR.DateTimeFormat.GetAbbreviatedDayName(data.Value.DayOfWeek).TrimEnd('.');
+            return char.ToUpper(dia[0]) + dia[1..];
+        }
+
+        return comHora
+            ? data.Value.ToString("dd/MM HH:mm", ptBR)
+            : data.Value.ToString("dd/MM", ptBR);
+    }
+}
+
+<div class="conversa-pagina">
+    <section class="conversa @(Model.ConversaAberta ? "conversa--aberta" : null)" aria-label="Conversas">
+        <div class="conversa__lista">
+            @if (Model.ConversaAberta)
+            {
+                <p class="conversa__titulo" id="titulo-lista">Conversas</p>
+            }
+            else
+            {
+                <h1 class="conversa__titulo" id="titulo-lista">Conversas</h1>
+            }
+
+            @if (Model.Conversas.Count == 0)
+            {
+                <p class="conversa__vazia">Nenhuma conversa no momento.</p>
+            }
+            else
+            {
+                <ul class="conversa__itens" aria-labelledby="titulo-lista">
+                    @foreach (var item in Model.Conversas)
+                    {
+                        <li>
+                            <a class="conversa-item @(item.Ativa ? "conversa-item--ativa" : null)"
+                               asp-action="Conversa"
+                               asp-route-idDestinatario="@item.IdPessoa"
+                               asp-route-idPessoa="@Model.IdPessoa"
+                               asp-route-idImovel="@(item.NomeImovel != null ? Model.IdImovel : null)"
+                               aria-current="@(item.Ativa ? "true" : null)">
+                                <span class="conversa-item__nome">@item.Nome</span>
+                                <time class="conversa-item__hora" datetime="@item.DataEnvio?.ToString("s")">@Horario(item.DataEnvio, false)</time>
+                                @if (!string.IsNullOrWhiteSpace(item.NomeImovel))
+                                {
+                                    <span class="conversa-item__imovel">@item.NomeImovel</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(item.Texto))
+                                {
+                                    <span class="conversa-item__texto">@item.Texto</span>
+                                }
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="conversa__painel">
+            @if (!Model.ConversaAberta)
+            {
+                <p class="conversa__vazia conversa__vazia--painel">Selecione uma conversa para ver as mensagens.</p>
+            }
+            else
+            {
+                <header class="conversa__cabecalho">
+                    <a class="voltar conversa__voltar" asp-action="Conversa" asp-route-idPessoa="@Model.IdPessoa" aria-label="Voltar para as conversas">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+                    </a>
+                    <div>
+                        <h1>@Model.NomeDestinatario</h1>
+                        @if (!string.IsNullOrWhiteSpace(Model.NomeImovel))
+                        {
+                            <p>@Model.NomeImovel</p>
+                        }
+                    </div>
+                </header>
+
+                <div class="conversa__historico" id="historico" data-rolar-fim tabindex="0" aria-label="Mensagens">
+                    @if (Model.Mensagens.Count == 0)
+                    {
+                        <p class="conversa__vazia">Nenhuma mensagem ainda. Envie a primeira.</p>
+                    }
+                    else
+                    {
+                        @foreach (var mensagem in Model.Mensagens)
+                        {
+                            <article class="mensagem @(mensagem.Enviada ? "mensagem--enviada" : "mensagem--recebida")">
+                                <span class="visually-hidden">@(mensagem.Enviada ? "Enviada" : "Recebida"): </span>
+                                <p>@mensagem.Texto</p>
+                                <time datetime="@mensagem.DataEnvio.ToString("s")">@Horario(mensagem.DataEnvio, true)</time>
+                            </article>
+                        }
+                    }
+                </div>
+
+                <form asp-action="Create" class="conversa__envio" data-envio-unico>
+                    <div asp-validation-summary="ModelOnly"></div>
+                    <input type="hidden" asp-for="NovaMensagem.IdPessoaRecebeu" />
+                    @if (Model.IdImovel.HasValue)
+                    {
+                        <input type="hidden" name="idImovel" value="@Model.IdImovel" />
+                    }
+
+                    @if (Model.IdPessoa == 0)
+                    {
+                        <div class="conversa__remetente">
+                            <label asp-for="NovaMensagem.IdPessoaEnviou"></label>
+                            <input asp-for="NovaMensagem.IdPessoaEnviou" class="campo-numero" inputmode="numeric" />
+                            <span asp-validation-for="NovaMensagem.IdPessoaEnviou"></span>
+                        </div>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="NovaMensagem.IdPessoaEnviou" />
+                    }
+
+                    <div class="conversa__linha">
+                        <label class="visually-hidden" asp-for="NovaMensagem.Texto"></label>
+                        <input asp-for="NovaMensagem.Texto" class="conversa__campo" placeholder="Digite uma mensagem..." autocomplete="off" />
+                        <button type="submit" class="btn btn-primary conversa__enviar" aria-label="Enviar mensagem">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg>
+                        </button>
+                    </div>
+                    <span asp-validation-for="NovaMensagem.Texto" class="conversa__erro"></span>
+                </form>
+            }
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

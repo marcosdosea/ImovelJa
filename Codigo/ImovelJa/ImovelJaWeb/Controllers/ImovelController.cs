@@ -22,6 +22,16 @@ namespace ImovelJaWeb.Controllers
             return View(imoveisViewModel);
         }
 
+        // GET: ImovelController/Detalhes/5
+        public ActionResult Detalhes(uint id)
+        {
+            var imovel = imovelService.Get(id);
+            if (imovel == null || imovel.StatusValidacao != "A" || imovel.Status != "D")
+                return View(new ImovelViewModel());
+
+            return View(ImovelMapper.ToViewModel(imovel));
+        }
+
         // GET: ImovelController/Validar/5
         public ActionResult Validar(uint id)
         {
