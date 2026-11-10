@@ -1,0 +1,28 @@
+@model ImovelJaWeb.Models.ImovelViewModel
+
+@{
+    ViewData["Title"] = "Detalhes do imóvel";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var aluguel = Model.Finalidade == "A";
+}
+
+<h1>Detalhes do imóvel</h1>
+
+@if (Model.Id == 0)
+{
+    <p>Anúncio não encontrado.</p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Nome)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Nome)</dd>
+        <dt class="col-sm-2">Endereço</dt>
+        <dd class="col-sm-10">@Model.Bairro, @Model.Cidade - @Model.Estado</dd>
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Valor)</dt>
+        <dd class="col-sm-10">@Model.Valor.ToString("C", ptBR)@(aluguel ? "/mês" : "")</dd>
+    </dl>
+
+    <a class="btn btn-primary" asp-controller="Mensagem" asp-action="Conversa" asp-route-idImovel="@Model.Id">Entrar em contato</a>
+}
