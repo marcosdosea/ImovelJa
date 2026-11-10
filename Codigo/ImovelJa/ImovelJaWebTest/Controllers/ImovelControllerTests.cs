@@ -46,10 +46,10 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Pendentes_QuandoExistemAnunciosPendentes_DeveRetornarViewComOsPendentes()
+    public void Analise_QuandoExistemAnunciosPendentes_DeveRetornarViewComOsPendentes()
     {
         // Act
-        var resultado = controller.Pendentes();
+        var resultado = controller.Analise();
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -71,7 +71,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Pendentes_QuandoNaoExistemAnunciosPendentes_DeveRetornarViewComColecaoVazia()
+    public void Analise_QuandoNaoExistemAnunciosPendentes_DeveRetornarViewComColecaoVazia()
     {
         // Arrange
         imovelServiceMock
@@ -79,7 +79,7 @@ public class ImovelControllerTests
             .Returns(Array.Empty<Imovel>());
 
         // Act
-        var resultado = controller.Pendentes();
+        var resultado = controller.Analise();
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -138,7 +138,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Approve_QuandoAprovado_DeveAprovarAnuncioERedirecionarParaPendentes()
+    public void Approve_QuandoAprovado_DeveAprovarAnuncioERedirecionarParaAnalise()
     {
         // Arrange
         var modelo = new ImovelViewModel { Id = 1 };
@@ -147,7 +147,7 @@ public class ImovelControllerTests
         var resultado = controller.Approve(modelo, true);
 
         // Assert
-        VerificarRedirecionamentoParaPendentes(resultado);
+        VerificarRedirecionamentoParaAnalise(resultado);
 
         imovelServiceMock.Verify(
             service => service.Approve(1, true),
@@ -155,7 +155,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Approve_QuandoReprovado_DeveReprovarAnuncioERedirecionarParaPendentes()
+    public void Approve_QuandoReprovado_DeveReprovarAnuncioERedirecionarParaAnalise()
     {
         // Arrange
         var modelo = new ImovelViewModel { Id = 2 };
@@ -164,7 +164,7 @@ public class ImovelControllerTests
         var resultado = controller.Approve(modelo, false);
 
         // Assert
-        VerificarRedirecionamentoParaPendentes(resultado);
+        VerificarRedirecionamentoParaAnalise(resultado);
 
         imovelServiceMock.Verify(
             service => service.Approve(2, false),
@@ -395,14 +395,14 @@ public class ImovelControllerTests
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
     }
 
-    private static void VerificarRedirecionamentoParaPendentes(ActionResult resultado)
+    private static void VerificarRedirecionamentoParaAnalise(ActionResult resultado)
     {
         var redirectResult =
             Assert.IsInstanceOfType<RedirectToActionResult>(resultado);
 
         Assert.IsNull(redirectResult.ControllerName);
         Assert.AreEqual(
-            nameof(ImovelController.Pendentes),
+            nameof(ImovelController.Analise),
             redirectResult.ActionName);
     }
 

@@ -15,8 +15,8 @@ namespace ImovelJaWeb.Controllers
             this.imovelService = imovelService;
         }
 
-        // GET: ImovelController/Pendentes
-        public ActionResult Pendentes()
+        // GET: ImovelController/Analise
+        public ActionResult Analise()
         {
             var imoveis = imovelService.GetByValidacao("P");
             var imoveisViewModel = ImovelMapper.ToViewModel(imoveis);
@@ -50,7 +50,7 @@ namespace ImovelJaWeb.Controllers
                 return View(nameof(Validar), modelo);
             }
 
-            return RedirectToAction(nameof(Pendentes));
+            return RedirectToAction(nameof(Analise));
         }
 
         // GET: ImovelController/Buscar?Termo=casa&ValorMaximo=2000
