@@ -3,6 +3,7 @@ using Core.Service;
 using ImovelJaWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Core.DTO;
 
 namespace ImovelJaWeb.Controllers.Tests;
 
@@ -28,6 +29,18 @@ public class ImovelControllerTests
         imovelServiceMock
             .Setup(service => service.Get(999))
             .Returns((Imovel?)null);
+
+        imovelServiceMock
+            .Setup(service => service.Get(3))
+            .Returns(ObterImovelPublico(3));
+
+        imovelServiceMock
+            .Setup(service => service.Get(4))
+            .Returns(ObterImovelPublico(4, statusValidacao: "R"));
+
+        imovelServiceMock
+            .Setup(service => service.Get(5))
+            .Returns(ObterImovelPublico(5, status: "A"));
 
         controller = new ImovelController(imovelServiceMock.Object);
     }
@@ -216,6 +229,171 @@ public class ImovelControllerTests
         Assert.AreEqual(mensagem, erros[0].ErrorMessage);
     }
 
+    [TestMethod]
+    public void Buscar_QuandoExistemResultados_DeveRetornarViewComOsImoveisEncontrados()
+    {
+        // Arrange
+        imovelServiceMock
+            .Setup(service => service.GetByFiltro(
+                It.Is<ImovelFiltroDTO>(f => f.Termo == "casa" && f.ValorMaximo == 2000m)))
+            .Returns([ObterImovelPublico(3), ObterImovelPublico(6)]);
+
+        var filtro = new ImovelFiltroViewModel { Termo = "casa", ValorMaximo = 2000m };
+
+        // Act
+        var resultado = controller.Buscar(filtro);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(
+            viewResult.ViewData.Model);
+
+        Assert.HasCount(2, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
+        Assert.AreEqual("Casa com quintal no Centro", imoveis.First().Nome);
+        Assert.IsTrue(controller.ModelState.IsValid);
+
+        imovelServiceMock.Verify(
+            service => service.GetByFiltro(It.IsAny<ImovelFiltroDTO>()),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public void Buscar_QuandoNaoHaResultados_DeveRetornarViewComColecaoVazia()
+    {
+        // Arrange
+        imovelServiceMock
+            .Setup(service => service.GetByFiltro(It.IsAny<ImovelFiltroDTO>()))
+            .Returns(Array.Empty<Imovel>());
+
+        // Act
+        var resultado = controller.Buscar(new ImovelFiltroViewModel { Termo = "castelo" });
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(
+            viewResult.ViewData.Model);
+
+        Assert.IsEmpty(imoveis);
+        Assert.IsTrue(controller.ModelState.IsValid);
+    }
+
+    [TestMethod]
+    public void Buscar_QuandoValorMinimoMaiorQueMaximo_DeveRetornarViewComErroSemConsultarService()
+    {
+        // Arrange
+        var filtro = new ImovelFiltroViewModel { ValorMinimo = 2000m, ValorMaximo = 1000m };
+
+        // Act
+        var resultado = controller.Buscar(filtro);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(
+            viewResult.ViewData.Model);
+
+        Assert.IsEmpty(imoveis);
+        Assert.IsFalse(controller.ModelState.IsValid);
+        Assert.IsTrue(controller.ModelState.ContainsKey(nameof(ImovelFiltroViewModel.ValorMaximo)));
+
+        imovelServiceMock.Verify(
+            service => service.GetByFiltro(It.IsAny<ImovelFiltroDTO>()),
+            Times.Never);
+    }
+
+    [TestMethod]
+    public void Buscar_QuandoAreaMinimaMaiorQueMaxima_DeveRetornarViewComErroSemConsultarService()
+    {
+        // Arrange
+        var filtro = new ImovelFiltroViewModel { AreaMinima = 200m, AreaMaxima = 100m };
+
+        // Act
+        var resultado = controller.Buscar(filtro);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(
+            viewResult.ViewData.Model);
+
+        Assert.IsEmpty(imoveis);
+        Assert.IsFalse(controller.ModelState.IsValid);
+        Assert.IsTrue(controller.ModelState.ContainsKey(nameof(ImovelFiltroViewModel.AreaMaxima)));
+
+        imovelServiceMock.Verify(
+            service => service.GetByFiltro(It.IsAny<ImovelFiltroDTO>()),
+            Times.Never);
+    }
+
+    [TestMethod]
+    public void Buscar_QuandoModelStateJaPossuiErro_DeveRetornarViewVaziaSemConsultarService()
+    {
+        // Arrange
+        controller.ModelState.AddModelError(
+            nameof(ImovelFiltroViewModel.ValorMinimo),
+            "O campo Valor mínimo não pode ser negativo");
+
+        // Act
+        var resultado = controller.Buscar(new ImovelFiltroViewModel { ValorMinimo = -1m });
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(
+            viewResult.ViewData.Model);
+
+        Assert.IsEmpty(imoveis);
+
+        imovelServiceMock.Verify(
+            service => service.GetByFiltro(It.IsAny<ImovelFiltroDTO>()),
+            Times.Never);
+    }
+
+    [TestMethod]
+    public void Detalhes_QuandoImovelAprovadoEDisponivel_DeveRetornarViewComImovel()
+    {
+        // Act
+        var resultado = controller.Detalhes(3);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imovel = Assert.IsInstanceOfType<ImovelViewModel>(viewResult.ViewData.Model);
+
+        Assert.AreEqual(3u, imovel.Id);
+        Assert.AreEqual("Casa com quintal no Centro", imovel.Nome);
+        Assert.AreEqual("A", imovel.StatusValidacao);
+        Assert.AreEqual("D", imovel.Status);
+
+        imovelServiceMock.Verify(
+            service => service.Get(3),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public void Detalhes_QuandoImovelNaoExiste_DeveRetornarNotFound()
+    {
+        // Act
+        var resultado = controller.Detalhes(999);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+
+        imovelServiceMock.Verify(
+            service => service.Get(999),
+            Times.Once);
+    }
+
+    [TestMethod]
+    [DataRow(1u)] // pendente
+    [DataRow(4u)] // reprovado
+    [DataRow(5u)] // aprovado, mas alugado
+    public void Detalhes_QuandoImovelNaoAprovadoOuIndisponivel_DeveRetornarNotFound(uint id)
+    {
+        // Act
+        var resultado = controller.Detalhes(id);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
     private static void VerificarRedirecionamentoParaPendentes(ActionResult resultado)
     {
         var redirectResult =
@@ -280,4 +458,30 @@ public class ImovelControllerTests
             }
         ];
     }
+
+    private static Imovel ObterImovelPublico(uint id, string status = "D", string statusValidacao = "A")
+    {
+        return new Imovel
+        {
+            Id = id,
+            Nome = "Casa com quintal no Centro",
+            Descricao = "Casa térrea com quintal amplo.",
+            Tipo = "C",
+            AreaTotal = 150m,
+            QuantidadeBanheiros = 2,
+            QuantidadeQuartos = 3,
+            QuantidadeVagasGaragem = 1,
+            Rua = "Rua Sete de Setembro, 245",
+            Bairro = "Centro",
+            Cep = "49500000",
+            Cidade = "Itabaiana",
+            Estado = "Sergipe",
+            Valor = 1500m,
+            Finalidade = "A",
+            Status = status,
+            StatusValidacao = statusValidacao,
+            IdPessoaProprietario = 1
+        };
+    }
+
 }
