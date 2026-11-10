@@ -6,12 +6,12 @@ namespace ImovelJaWeb.Models
     {
         [Display(Name = "Termo de busca")]
         [StringLength(100, ErrorMessage = "O campo {0} deve ter no máximo {1} caracteres")]
-        [RegularExpression(@"^[\p{L}\p{N}\s]*$", ErrorMessage = "O campo {0} deve conter apenas letras, números e espaços")]
+        [RegularExpression(@"^[\p{L}\p{N}\s-,.]*$", ErrorMessage = "O campo {0} deve conter apenas letras, números, espaços, hífens, vírgulas e pontos")]
         public string? Termo { get; set; }
 
         [Display(Name = "Localização")]
         [StringLength(100, ErrorMessage = "O campo {0} deve ter no máximo {1} caracteres")]
-        [RegularExpression(@"^[\p{L}\p{N}\s]*$", ErrorMessage = "O campo {0} deve conter apenas letras, números e espaços")]
+        [RegularExpression(@"^[\p{L}\p{N}\s-,.]*$", ErrorMessage = "O campo {0} deve conter apenas letras, números, espaços, hífens, vírgulas e pontos")]
         public string? Localizacao { get; set; }
 
         [Display(Name = "Tipos de imóvel")]
