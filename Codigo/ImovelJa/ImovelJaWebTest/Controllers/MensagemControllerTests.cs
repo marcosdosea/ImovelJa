@@ -11,6 +11,7 @@ public class MensagemControllerTests
 {
     private Mock<IMensagemService> mensagemServiceMock = null!;
     private Mock<IImovelService> imovelServiceMock = null!;
+    private Mock<IPessoaService> pessoaServiceMock = null!;
     private MensagemController controller = null!;
 
     [TestInitialize]
@@ -18,6 +19,7 @@ public class MensagemControllerTests
     {
         mensagemServiceMock = new Mock<IMensagemService>();
         imovelServiceMock = new Mock<IImovelService>();
+        pessoaServiceMock = new Mock<IPessoaService>();
 
         imovelServiceMock
             .Setup(service => service.Get(1))
@@ -27,16 +29,31 @@ public class MensagemControllerTests
             .Setup(service => service.GetByPessoa(It.IsAny<uint>()))
             .Returns(ObterMensagens());
 
+        mensagemServiceMock
+            .Setup(service => service.GetConversa(It.IsAny<uint>(), It.IsAny<uint>()))
+            .Returns(ObterConversa());
+
+        pessoaServiceMock
+            .Setup(service => service.Get(1))
+            .Returns(new Pessoa { Id = 1, Nome = "Maria José Santos" });
+        pessoaServiceMock
+            .Setup(service => service.Get(2))
+            .Returns(new Pessoa { Id = 2, Nome = "João da Conceição" });
+        pessoaServiceMock
+            .Setup(service => service.Get(3))
+            .Returns(new Pessoa { Id = 3, Nome = "Ana Souza" });
+
         controller = new MensagemController(
             mensagemServiceMock.Object,
-            imovelServiceMock.Object);
+            imovelServiceMock.Object,
+            pessoaServiceMock.Object);
     }
 
     [TestMethod]
-    public void Conversa_QuandoAbrePeloAnuncio_DeveDestinarAoProprietario()
+    public void Get_QuandoAbrePeloAnuncio_DeveDestinarAoProprietario()
     {
         // Act
-        var resultado = controller.Conversa(1, 2);
+        var resultado = controller.Get(1, 2);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -54,6 +71,22 @@ public class MensagemControllerTests
         Assert.IsTrue(historico[0].Enviada);
         Assert.IsFalse(historico[1].Enviada);
         Assert.IsTrue(historico[0].DataEnvio < historico[1].DataEnvio);
+        Assert.IsFalse(historico.Any(item => item.Texto.Contains("Ana")));
+
+        var conversas = Assert.IsInstanceOfType<List<ConversaItemViewModel>>(
+            viewResult.ViewData[MensagemController.ChaveConversas]);
+
+        Assert.HasCount(2, conversas);
+        Assert.AreEqual("Maria José Santos", conversas[0].Nome);
+        Assert.IsTrue(conversas[0].Ativa);
+        Assert.AreEqual("Apartamento 2 Quartos – Centro", conversas[0].NomeImovel);
+        Assert.AreEqual("Ana Souza", conversas[1].Nome);
+        Assert.IsNull(conversas[1].NomeImovel);
+
+        mensagemServiceMock.Verify(
+            service => service.GetConversa(2, 1),
+            Times.Once);
+        pessoaServiceMock.Verify(service => service.GetAll(), Times.Never);
     }
 
     [TestMethod]
@@ -77,7 +110,7 @@ public class MensagemControllerTests
         // Assert
         var redirectResult = Assert.IsInstanceOfType<RedirectToActionResult>(resultado);
 
-        Assert.AreEqual(nameof(MensagemController.Conversa), redirectResult.ActionName);
+        Assert.AreEqual(nameof(MensagemController.Get), redirectResult.ActionName);
         Assert.AreEqual(1u, Convert.ToUInt32(redirectResult.RouteValues!["idImovel"]));
         Assert.AreEqual(2u, Convert.ToUInt32(redirectResult.RouteValues["idPessoa"]));
 
@@ -108,7 +141,7 @@ public class MensagemControllerTests
         var mensagem = Assert.IsInstanceOfType<MensagemViewModel>(
             viewResult.ViewData.Model);
 
-        Assert.AreEqual(nameof(MensagemController.Conversa), viewResult.ViewName);
+        Assert.AreEqual(nameof(MensagemController.Get), viewResult.ViewName);
         Assert.AreEqual("   ", mensagem.Texto);
 
         var erros = controller.ModelState.Values
@@ -148,7 +181,7 @@ public class MensagemControllerTests
         var mensagem = Assert.IsInstanceOfType<MensagemViewModel>(
             viewResult.ViewData.Model);
 
-        Assert.AreEqual(nameof(MensagemController.Conversa), viewResult.ViewName);
+        Assert.AreEqual(nameof(MensagemController.Get), viewResult.ViewName);
         Assert.AreEqual("Posso visitar amanhã?", mensagem.Texto);
 
         var erros = controller.ModelState.Values
@@ -186,16 +219,20 @@ public class MensagemControllerTests
 
     private static IEnumerable<Mensagem> ObterMensagens()
     {
+        return ObterConversa().Append(new Mensagem
+        {
+            Id = 3,
+            Texto = "Oi, João. Sou a Ana.",
+            DataEnvio = new DateTime(2026, 11, 9, 15, 0, 0),
+            IdPessoaEnviou = 3,
+            IdPessoaRecebeu = 2
+        });
+    }
+
+    private static IEnumerable<Mensagem> ObterConversa()
+    {
         return
         [
-            new Mensagem
-            {
-                Id = 2,
-                Texto = "Oi, João, obrigado pelo interesse! Sim, ainda está disponível.",
-                DataEnvio = new DateTime(2026, 11, 9, 14, 15, 0),
-                IdPessoaEnviou = 1,
-                IdPessoaRecebeu = 2
-            },
             new Mensagem
             {
                 Id = 1,
@@ -203,6 +240,14 @@ public class MensagemControllerTests
                 DataEnvio = new DateTime(2026, 11, 9, 14, 10, 0),
                 IdPessoaEnviou = 2,
                 IdPessoaRecebeu = 1
+            },
+            new Mensagem
+            {
+                Id = 2,
+                Texto = "Oi, João, obrigado pelo interesse! Sim, ainda está disponível.",
+                DataEnvio = new DateTime(2026, 11, 9, 14, 15, 0),
+                IdPessoaEnviou = 1,
+                IdPessoaRecebeu = 2
             }
         ];
     }
