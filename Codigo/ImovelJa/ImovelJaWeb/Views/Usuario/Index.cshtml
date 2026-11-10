@@ -25,16 +25,24 @@
 {
     <div class="alert alert-danger" role="alert">@erro</div>
 }
-
+<div class="mb-4">
+    <input type="search" class="form-control rounded-pill"
+           style="max-width: 360px;"
+           placeholder="Filtrar por nome ou CPF..."
+           aria-label="Filtrar por nome ou CPF" />
+</div>
 @if (quantidade == 0)
 {
     <p class="lista-vazia">Nenhum usuário cadastrado no momento.</p>
 }
 else
 {
-    <div class="lista-anuncios__cabecalho" aria-hidden="true">
-        <span>Usuário</span>
-        <span>Situação</span>
+    var colunas = "display: grid; grid-template-columns: 3fr 1.5fr 1fr auto; align-items: center; column-gap: 1rem;";
+
+    <div class="lista-anuncios__cabecalho" style="@colunas" aria-hidden="true">
+        <span>Nome</span>
+        <span>CPF</span>
+        <span>Status</span>
         <span></span>
     </div>
 
@@ -45,29 +53,32 @@ else
             var situacao = ativo
                 ? ("Ativo", "selo--aprovado")
                 : ("Bloqueado", "selo--reprovado");
-            var tipo = item.Tipo == "F" ? "Pessoa física" : "Pessoa jurídica";
-
+            var documento = item.Tipo == "F"
+                ? (item.Cpf is { Length: 11 }
+                    ? $"{item.Cpf[..3]}.{item.Cpf[3..6]}.{item.Cpf[6..9]}-{item.Cpf[9..]}"
+                    : item.Cpf)
+                : (item.Cnpj is { Length: 14 }
+                    ? $"{item.Cnpj[..2]}.{item.Cnpj[2..5]}.{item.Cnpj[5..8]}/{item.Cnpj[8..12]}-{item.Cnpj[12..]}"
+                    : item.Cnpj);
             <li>
-                <article class="anuncio" aria-labelledby="usuario-@item.Id">
-                    <div class="anuncio__dados">
-                        <div class="miniatura" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
-                        </div>
-                        <div>
-                            <h2 class="anuncio__nome" id="usuario-@item.Id">@item.Nome</h2>
-                            <p class="anuncio__local">@item.Email</p>
-                            <p class="anuncio__valores">
-                                <span class="selo selo--pequeno">@tipo</span>
-                            </p>
-                        </div>
+                <article class="anuncio" style="@colunas" aria-labelledby="usuario-@item.Id">
+                    <div>
+                        <h2 class="anuncio__nome" id="usuario-@item.Id">@item.Nome</h2>
+                        <p class="anuncio__local m-0">@item.Email</p>
                     </div>
-                    <p class="anuncio__situacao m-0">
+
+                    <p class="m-0">
+                        <span class="visually-hidden">Documento: </span>@documento
+                    </p>
+
+                    <p class="m-0">
                         <span class="visually-hidden">Situação: </span>
                         <span class="selo @situacao.Item2">@situacao.Item1</span>
                     </p>
-                    <div class="anuncio__acao">
+
+                    <div class="d-flex flex-row flex-nowrap align-items-center justify-content-end gap-2">
                         <a class="btn btn-primary" asp-action="Details" asp-route-id="@item.Id">
-                            Ver detalhes<span class="visually-hidden"> de @item.Nome</span>
+                            Detalhes<span class="visually-hidden"> de @item.Nome</span>
                         </a>
 
                         @if (ativo)
