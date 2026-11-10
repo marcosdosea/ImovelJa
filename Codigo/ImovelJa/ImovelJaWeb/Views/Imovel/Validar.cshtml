@@ -52,6 +52,7 @@
             <p class="detalhe-anuncio__selos">
                 <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
                 <span class="selo selo--pequeno">@tipo</span>
+                <span class="selo selo--pequeno">Enviado em <time datetime="@Model.DataCadastro.ToString("yyyy-MM-ddTHH:mm")">@Model.DataCadastro.ToString("dd/MM/yyyy")</time></span>
                 <span class="visually-hidden">Status: </span>
                 <span class="selo @situacao.Item2">@situacao.Item1</span>
             </p>

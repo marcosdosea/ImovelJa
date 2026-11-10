@@ -63,6 +63,7 @@ public class ImovelControllerTests
         Assert.AreEqual(1u, primeiroImovel.Id);
         Assert.AreEqual("Casa com 3 quartos no Centro", primeiroImovel.Nome);
         Assert.AreEqual("P", primeiroImovel.StatusValidacao);
+        Assert.AreEqual(new DateTime(2026, 7, 21, 14, 30, 0), primeiroImovel.DataCadastro);
 
         imovelServiceMock.Verify(
             service => service.GetByValidacao("P"),
@@ -426,6 +427,7 @@ public class ImovelControllerTests
             Finalidade = "A",
             Status = "D",
             StatusValidacao = "P",
+            DataCadastro = new DateTime(2026, 7, 21, 14, 30, 0),
             IdPessoaProprietario = 1
         };
     }

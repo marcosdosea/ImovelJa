@@ -547,6 +547,21 @@ h1 {
     grid-area: acao;
 }
 
+/* Lista com a data de envio (Tela_016): no celular a data fica numa linha
+   própria; no computador vira a coluna "Enviado em" */
+.anuncio--com-envio {
+    grid-template-areas:
+        "dados dados"
+        "envio envio"
+        "situacao acao";
+}
+
+.anuncio__envio {
+    grid-area: envio;
+    color: var(--cor-texto-suave);
+    font-size: 0.875rem;
+}
+
 .lista-vazia {
     padding: 2rem 1rem;
     border-radius: var(--raio);
@@ -565,6 +580,7 @@ h1 {
 
     .lista-anuncios__cabecalho {
         display: grid;
+        column-gap: 1rem;
     }
 
     .anuncio {
@@ -574,6 +590,25 @@ h1 {
 
     .anuncio__acao {
         justify-self: end;
+    }
+
+    .lista-anuncios__cabecalho--com-envio,
+    .anuncio--com-envio {
+        grid-template-columns: minmax(0, 1fr) 8rem 9rem 9rem;
+    }
+
+    .anuncio--com-envio {
+        grid-template-areas: "dados envio situacao acao";
+    }
+
+    /* O título da coluna já diz "Enviado em": o rótulo fica só para leitor de tela */
+    .anuncio__rotulo {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
     }
 }
 
