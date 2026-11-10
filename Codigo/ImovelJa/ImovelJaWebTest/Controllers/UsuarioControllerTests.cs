@@ -22,7 +22,11 @@ public class UsuarioControllerTests
         imovelServiceMock = new Mock<IImovelService>();
 
         pessoaServiceMock
+<<<<<<< HEAD
             .Setup(service => service.GetUsuarios())
+=======
+            .Setup(service => service.GetUsuario())
+>>>>>>> 84836e2 (Ajuste e implementação das view)
             .Returns(ObterPessoasDeTeste());
 
         pessoaServiceMock
@@ -68,7 +72,11 @@ public class UsuarioControllerTests
         Assert.AreEqual("A", primeiraPessoa.Status);
 
         pessoaServiceMock.Verify(
+<<<<<<< HEAD
             service => service.GetUsuarios(),
+=======
+            service => service.GetUsuario(),
+>>>>>>> 84836e2 (Ajuste e implementação das view)
             Times.Once);
     }
 
@@ -77,7 +85,11 @@ public class UsuarioControllerTests
     {
         // Arrange
         pessoaServiceMock
+<<<<<<< HEAD
             .Setup(service => service.GetUsuarios())
+=======
+            .Setup(service => service.GetUsuario())
+>>>>>>> 84836e2 (Ajuste e implementação das view)
             .Returns(Array.Empty<Pessoa>());
 
         // Act
@@ -91,7 +103,11 @@ public class UsuarioControllerTests
         Assert.IsEmpty(pessoas);
 
         pessoaServiceMock.Verify(
+<<<<<<< HEAD
             service => service.GetUsuarios(),
+=======
+            service => service.GetUsuario(),
+>>>>>>> 84836e2 (Ajuste e implementação das view)
             Times.Once);
     }
 
