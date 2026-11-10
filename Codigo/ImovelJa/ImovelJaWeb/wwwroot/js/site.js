@@ -6,6 +6,10 @@
        manda dois pedidos, e o segundo falha porque o anúncio já foi validado. */
     function ligarEnvioUnico(formulario) {
         formulario.addEventListener("submit", function (evento) {
+            if (typeof formulario.checkValidity === "function" && !formulario.checkValidity()) {
+                return;
+            }
+
             var botao = evento.submitter;
 
             /* Botão desativado não é enviado: o valor dele (aprovado=true ou
@@ -48,4 +52,9 @@
 
     document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
     window.addEventListener("pageshow", reativarFormularios);
+
+    /* A conversa abre já no fim do histórico, na mensagem mais recente. */
+    document.querySelectorAll("[data-rolar-fim]").forEach(function (painel) {
+        painel.scrollTop = painel.scrollHeight;
+    });
 })();
