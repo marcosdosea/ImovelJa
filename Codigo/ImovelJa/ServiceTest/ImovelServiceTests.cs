@@ -1,7 +1,6 @@
 using Core;
 using Core.Service;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
 using Core.DTO;
 
 namespace Service.Tests;
