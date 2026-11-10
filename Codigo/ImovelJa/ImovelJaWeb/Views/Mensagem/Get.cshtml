@@ -1,0 +1,56 @@
+@model ImovelJaWeb.Models.MensagemViewModel
+
+@{
+    ViewData["Title"] = "Conversa";
+
+    var historico = ViewData["Historico"] as IEnumerable<ImovelJaWeb.Models.MensagemViewModel>
+        ?? Enumerable.Empty<ImovelJaWeb.Models.MensagemViewModel>();
+    var nomeImovel = ViewData["NomeImovel"] as string;
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+}
+
+<h1>Conversa</h1>
+
+@if (!string.IsNullOrWhiteSpace(nomeImovel))
+{
+    <p>@nomeImovel</p>
+}
+
+@if (!historico.Any())
+{
+    <p>Nenhuma mensagem ainda.</p>
+}
+else
+{
+    <ul class="list-group mb-4">
+        @foreach (var mensagem in historico)
+        {
+            <li class="list-group-item">
+                <p class="mb-1">@mensagem.Texto</p>
+                <small>@(mensagem.Enviada ? "Enviada" : "Recebida") em @mensagem.DataEnvio.ToString("dd/MM/yyyy HH:mm", ptBR)</small>
+            </li>
+        }
+    </ul>
+}
+
+<form asp-action="Create">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="IdPessoaRecebeu" />
+    <input type="hidden" name="idImovel" value="@ViewData["IdImovel"]" />
+
+    <div class="mb-3">
+        <label asp-for="IdPessoaEnviou" class="form-label"></label>
+        <input asp-for="IdPessoaEnviou" class="form-control campo-numero" />
+        <span asp-validation-for="IdPessoaEnviou" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Texto" class="form-label"></label>
+        <textarea asp-for="Texto" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Texto" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Enviar</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
