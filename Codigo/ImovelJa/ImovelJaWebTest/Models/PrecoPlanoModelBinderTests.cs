@@ -10,14 +10,17 @@ public class PrecoPlanoModelBinderTests
     [TestMethod]
     public async Task BindModelAsync_QuandoPrecoUsaPontoEmCulturaPtBr_DeveManterOsCentavos()
     {
+        // Arrange
         var culturaAnterior = CultureInfo.CurrentCulture;
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("pt-BR");
         try
         {
             var contexto = CriarContexto("59.90");
 
+            // Act
             await new PrecoPlanoModelBinder().BindModelAsync(contexto);
 
+            // Assert
             Assert.AreEqual(59.90m, contexto.Result.Model);
             Assert.IsEmpty(contexto.ModelState["Valor"]!.Errors);
         }
@@ -30,10 +33,13 @@ public class PrecoPlanoModelBinderTests
     [TestMethod]
     public async Task BindModelAsync_QuandoPrecoNaoENumero_DeveInvalidarOCampo()
     {
+        // Arrange
         var contexto = CriarContexto("abc");
 
+        // Act
         await new PrecoPlanoModelBinder().BindModelAsync(contexto);
 
+        // Assert
         Assert.IsFalse(contexto.Result.IsModelSet);
         Assert.IsFalse(contexto.ModelState.IsValid);
     }
