@@ -28,7 +28,7 @@
 }
 
 <div class="titulo-pagina">
-    <a class="voltar" asp-action="Pendentes" aria-label="Voltar para a análise de anúncios">
+    <a class="voltar" asp-action="Analise" aria-label="Voltar para a análise de anúncios">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
     </a>
     <h1>Validar Anúncio</h1>
@@ -52,6 +52,7 @@
             <p class="detalhe-anuncio__selos">
                 <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
                 <span class="selo selo--pequeno">@tipo</span>
+                <span class="selo selo--pequeno">Enviado em <time datetime="@Model.DataCadastro.ToString("yyyy-MM-ddTHH:mm")">@Model.DataCadastro.ToString("dd/MM/yyyy")</time></span>
                 <span class="visually-hidden">Status: </span>
                 <span class="selo @situacao.Item2">@situacao.Item1</span>
             </p>

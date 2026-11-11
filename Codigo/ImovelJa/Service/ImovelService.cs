@@ -18,7 +18,8 @@ namespace Service
         }
 
         /// <summary>
-        /// Cadastra um novo anúncio de imóvel, que fica pendente de validação pelo administrador
+        /// Cadastra um novo anúncio de imóvel, que fica pendente de validação pelo administrador,
+        /// registrando a data e a hora do envio
         /// </summary>
         /// <param name="imovel">dados do imóvel</param>
         /// <returns>id do imóvel criado</returns>
@@ -35,6 +36,7 @@ namespace Service
 
             imovel.Status = "D";
             imovel.StatusValidacao = "P";
+            imovel.DataCadastro = DateTime.Now;
 
             context.Add(imovel);
             context.SaveChanges();
@@ -42,7 +44,7 @@ namespace Service
         }
 
         /// <summary>
-        /// Edita os dados do anúncio, mantendo o proprietário e a situação de validação
+        /// Edita os dados do anúncio, mantendo o proprietário, a situação de validação e a data de envio
         /// </summary>
         /// <param name="imovel">dados do imóvel</param>
         /// <exception cref="ServiceException">imóvel não encontrado</exception>
@@ -53,6 +55,7 @@ namespace Service
 
             imovel.IdPessoaProprietario = atual.IdPessoaProprietario;
             imovel.StatusValidacao = atual.StatusValidacao;
+            imovel.DataCadastro = atual.DataCadastro;
 
             context.Update(imovel);
             context.SaveChanges();

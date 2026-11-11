@@ -139,6 +139,10 @@ public partial class ImovelJaContext : DbContext
             entity.Property(e => e.Cidade)
                 .HasMaxLength(100)
                 .HasColumnName("cidade");
+            entity.Property(e => e.DataCadastro)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("dataCadastro");
             entity.Property(e => e.Descricao)
                 .HasColumnType("text")
                 .HasColumnName("descricao");

@@ -34,6 +34,28 @@ public class ImovelServiceTests
             Status = "A"
         });
 
+        contexto.Pessoas.Add(new Pessoa
+        {
+            Id = 2,
+            Tipo = "F",
+            Nome = "João da Conceição",
+            Email = "joao.conceicao@gmail.com",
+            Telefone = "79998887766",
+            Cpf = "39053344705",
+            DataNascimento = new DateTime(1992, 8, 21),
+            Status = "A"
+        });
+
+        contexto.Planos.Add(new Plano
+        {
+            Id = 1,
+            Nome = "Básico",
+            Valor = 0m,
+            LimiteImoveisAnunciados = 1,
+            Beneficios = "Anúncio de 1 imóvel",
+            Status = "A"
+        });
+
         contexto.Imovels.AddRange(
             new Imovel
             {
@@ -54,6 +76,7 @@ public class ImovelServiceTests
                 Finalidade = "A",
                 Status = "D",
                 StatusValidacao = "P",
+                DataCadastro = new DateTime(2026, 7, 21, 14, 30, 0),
                 IdPessoaProprietario = 1
             },
             new Imovel
@@ -75,6 +98,7 @@ public class ImovelServiceTests
                 Finalidade = "A",
                 Status = "D",
                 StatusValidacao = "P",
+                DataCadastro = new DateTime(2026, 7, 22, 9, 15, 0),
                 IdPessoaProprietario = 1
             },
             new Imovel
@@ -228,6 +252,65 @@ public class ImovelServiceTests
 
         // Assert
         Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void Create_QuandoDadosSaoValidos_DeveGravarComoPendenteComADataDeEnvio()
+    {
+        // Arrange
+        var antes = DateTime.Now;
+        var imovel = new Imovel
+        {
+            Id = 7,
+            Nome = "Kitnet mobiliada no Centro",
+            Descricao = "Kitnet com cozinha planejada, a duas quadras do mercado municipal.",
+            Tipo = "S",
+            AreaTotal = 28m,
+            QuantidadeBanheiros = 1,
+            QuantidadeQuartos = 1,
+            Rua = "Rua Capitão Mendes, 120",
+            Bairro = "Centro",
+            Cep = "49500003",
+            Cidade = "Itabaiana",
+            Estado = "Sergipe",
+            Valor = 550m,
+            Finalidade = "A",
+            IdPessoaProprietario = 2
+        };
+
+        // Act
+        var id = servicoImovel.Create(imovel);
+
+        // Assert
+        var criado = servicoImovel.Get(id);
+
+        Assert.IsNotNull(criado);
+        Assert.AreEqual("P", criado.StatusValidacao);
+        Assert.AreEqual("D", criado.Status);
+        Assert.IsTrue(criado.DataCadastro >= antes);
+        Assert.IsTrue(criado.DataCadastro <= DateTime.Now);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoImovelExiste_DeveManterADataDeEnvioOriginal()
+    {
+        // Arrange
+        var imovel = servicoImovel.Get(1);
+
+        Assert.IsNotNull(imovel);
+
+        imovel.Nome = "Casa com 3 quartos e quintal no Centro";
+        imovel.DataCadastro = new DateTime(2026, 11, 10, 8, 0, 0);
+
+        // Act
+        servicoImovel.Edit(imovel);
+
+        // Assert
+        var editado = servicoImovel.Get(1);
+
+        Assert.IsNotNull(editado);
+        Assert.AreEqual("Casa com 3 quartos e quintal no Centro", editado.Nome);
+        Assert.AreEqual(new DateTime(2026, 7, 21, 14, 30, 0), editado.DataCadastro);
     }
 
     [TestMethod]
