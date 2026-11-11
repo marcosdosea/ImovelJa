@@ -1,0 +1,32 @@
+@model IEnumerable<ImovelJaWeb.Models.PlanoViewModel>
+
+@{
+    ViewData["Title"] = "Planos da Plataforma";
+    ViewData["Perfil"] = "Administrador";
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-controller="Home" asp-action="Index" aria-label="Voltar ao painel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Planos da Plataforma</h1>
+        <p>Gerencie preços e benefícios dos planos disponíveis</p>
+    </div>
+</div>
+
+<div asp-validation-summary="ModelOnly"></div>
+
+@if (!Model.Any())
+{
+    <p class="lista-vazia">Nenhum plano cadastrado.</p>
+}
+else
+{
+    <ul class="lista-planos">
+        @foreach (var item in Model)
+        {
+            <partial name="_Card" model="item" />
+        }
+    </ul>
+}
