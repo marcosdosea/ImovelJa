@@ -6,10 +6,18 @@
     ViewData["Perfil"] = "Administrador";
 
     var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
-    var imoveis = ViewBag.imoveis as IEnumerable<ImovelViewModel>
-        ?? Enumerable.Empty<ImovelViewModel>();
+    var imoveis = (ViewBag.imoveis as IEnumerable<ImovelViewModel>
+        ?? Enumerable.Empty<ImovelViewModel>()).ToList();
     var ativo = Model.Status == "A";
-    var tipo = Model.Tipo == "F" ? "Pessoa física" : "Pessoa jurídica";
+
+    var documentoRotulo = Model.Tipo == "F" ? "CPF" : "CNPJ";
+    var documento = Model.Tipo == "F"
+        ? (Model.Cpf is { Length: 11 }
+        ? $"{Model.Cpf[..3]}.{Model.Cpf[3..6]}.{Model.Cpf[6..9]}-{Model.Cpf[9..]}"
+        : Model.Cpf)
+        : (Model.Cnpj is { Length: 14 }
+        ? $"{Model.Cnpj[..2]}.{Model.Cnpj[2..5]}.{Model.Cnpj[5..8]}/{Model.Cnpj[8..12]}-{Model.Cnpj[12..]}"
+        : Model.Cnpj);
 }
 
 <div class="titulo-pagina">
@@ -17,65 +25,81 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
     </a>
     <div>
-        <h1>@Model.Nome</h1>
-        <p>
-            @tipo
-            <span class="selo selo--pequeno @(ativo ? "selo--aprovado" : "selo--reprovado")">@(ativo ? "Ativo" : "Bloqueado")</span>
-        </p>
+        <h1>Detalhes do Usuário</h1>
     </div>
 </div>
 
-@if (Model.FotoPerfil is { Length: > 0 })
-{
-    <img src="data:image/*;base64,@Convert.ToBase64String(Model.FotoPerfil)"
-         alt="Foto de perfil de @Model.Nome"
-         class="img-thumbnail mb-3"
-         style="max-width: 150px;" />
-}
+<section class="detalhe-anuncio detalhe-anuncio__corpo mb-4" aria-labelledby="usuario-nome">
+    <div class="d-flex justify-content-between align-items-start gap-3 pb-3 border-bottom">
+        <div class="d-flex align-items-center gap-3">
+            @if (Model.FotoPerfil is { Length: > 0 })
+            {
+                <img src="data:image/*;base64,@Convert.ToBase64String(Model.FotoPerfil)"
+                     alt="Foto de perfil de @Model.Nome"
+                     class="avatar" />
+            }
+            else
+            {
+                <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                </div>
+            }
+            <div>
+                <h2 class="h5 m-0" id="usuario-nome">@Model.Nome</h2>
+                <p class="m-0 text-muted">@(Model.Tipo == "F" ? "Pessoa física" : "Pessoa jurídica")</p>
+            </div>
+        </div>
+        <span class="selo @(ativo ? "selo--aprovado" : "selo--reprovado")">@(ativo ? "Ativo" : "Bloqueado")</span>
+    </div>
 
-<dl class="row">
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.Email)</dd>
+    <dl class="row py-3 m-0 border-bottom">
+        <div class="col-md-4 mb-3">
+            <dt class="small text-muted fw-normal">@documentoRotulo</dt>
+            <dd class="m-0">@documento</dd>
+        </div>
+        <div class="col-md-4 mb-3">
+            <dt class="small text-muted fw-normal">@Html.DisplayNameFor(model => model.Email)</dt>
+            <dd class="m-0">@Model.Email</dd>
+        </div>
+        <div class="col-md-4 mb-3">
+            <dt class="small text-muted fw-normal">@Html.DisplayNameFor(model => model.Telefone)</dt>
+            <dd class="m-0">@Model.Telefone</dd>
+        </div>
+        @if (Model.Tipo == "F")
+        {
+            <div class="col-md-4 mb-3">
+                <dt class="small text-muted fw-normal">@Html.DisplayNameFor(model => model.DataNascimento)</dt>
+                <dd class="m-0">@Model.DataNascimento?.ToString("dd/MM/yyyy")</dd>
+            </div>
+        }
+        <div class="col-md-4 mb-3">
+            <dt class="small text-muted fw-normal">Imóveis anunciados</dt>
+            <dd class="m-0">@imoveis.Count</dd>
+        </div>
+    </dl>
 
-    <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Telefone)</dt>
-    <dd class="col-sm-9">@Html.DisplayFor(model => model.Telefone)</dd>
+    <div class="pt-3">
+        @if (ativo)
+        {
+            <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="d-inline"
+                  data-confirm-nome="@Model.Nome">
+                <input type="hidden" name="ativo" value="false" />
+                <button type="submit" class="btn btn-outline-danger">Bloquear conta</button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="d-inline">
+                <input type="hidden" name="ativo" value="true" />
+                <button type="submit" class="btn btn-outline-success">Ativar conta</button>
+            </form>
+        }
+    </div>
+</section>
 
-    @if (Model.Tipo == "F")
-    {
-        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Cpf)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.Cpf)</dd>
+<h2 class="h5">Imóveis anunciados <span class="text-muted">(@imoveis.Count)</span></h2>
 
-        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.DataNascimento)</dt>
-        <dd class="col-sm-9">@Model.DataNascimento?.ToString("dd/MM/yyyy")</dd>
-    }
-    else
-    {
-        <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Cnpj)</dt>
-        <dd class="col-sm-9">@Html.DisplayFor(model => model.Cnpj)</dd>
-    }
-</dl>
-
-<div class="mb-4">
-    @if (ativo)
-    {
-        <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="d-inline"
-              data-confirm-nome="@Model.Nome">
-            <input type="hidden" name="ativo" value="false" />
-            <button type="submit" class="btn btn-outline-danger">Bloquear</button>
-        </form>
-    }
-    else
-    {
-        <form asp-action="Activate" asp-route-id="@Model.Id" method="post" class="d-inline">
-            <input type="hidden" name="ativo" value="true" />
-            <button type="submit" class="btn btn-outline-success">Ativar</button>
-        </form>
-    }
-</div>
-
-<h2>Imóveis anunciados</h2>
-
-@if (!imoveis.Any())
+@if (imoveis.Count == 0)
 {
     <p class="lista-vazia">Este usuário não possui imóveis anunciados.</p>
 }
@@ -102,14 +126,14 @@ else
                             <h3 class="anuncio__nome" id="imovel-@item.Id">@item.Nome</h3>
                             <p class="anuncio__local">@item.Bairro, @item.Cidade - @item.Estado</p>
                             <p class="anuncio__valores">
-                                <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
                                 <span class="preco">@item.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</span>
+                                <span class="visually-hidden">Validação: </span>
+                                <span class="selo selo--pequeno @situacao.Item2">@situacao.Item1</span>
                             </p>
                         </div>
                     </div>
                     <p class="anuncio__situacao m-0">
-                        <span class="visually-hidden">Validação: </span>
-                        <span class="selo @situacao.Item2">@situacao.Item1</span>
+                        <span class="selo">@(aluguel ? "Aluguel" : "Venda")</span>
                     </p>
                 </article>
             </li>

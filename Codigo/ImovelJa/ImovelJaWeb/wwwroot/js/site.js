@@ -84,4 +84,46 @@
     });
     document.querySelectorAll("form[data-confirm-nome]").forEach(ligarConfirmacao);
 
+    /* Filtro de lista: o campo com data-filtro-lista="id da lista" mostra só
+       os itens cujo data-filtro-texto contém o que foi digitado, sem diferença
+       de maiúsculas e acentos. Para CPF/CNPJ, a pontuação digitada é ignorada.
+       Se nenhum item combinar, aparece o aviso data-filtro-vazio da lista. */
+    function normalizar(texto) {
+        return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    function ligarFiltro(campo) {
+        var lista = document.getElementById(campo.getAttribute("data-filtro-lista"));
+        if (!lista) {
+            return;
+        }
+
+        var itens = lista.querySelectorAll("[data-filtro-texto]");
+        var aviso = document.querySelector("[data-filtro-vazio='" + lista.id + "']");
+
+        campo.addEventListener("input", function () {
+            var termo = normalizar(campo.value.trim());
+            var soDocumento = /^[0-9.\-\/\s]+$/.test(termo);
+            var digitos = termo.replace(/[^0-9]/g, "");
+            var visiveis = 0;
+
+            itens.forEach(function (item) {
+                var texto = normalizar(item.getAttribute("data-filtro-texto"));
+                var combina = termo === "" ||
+                    (soDocumento ? texto.indexOf(digitos) !== -1 : texto.indexOf(termo) !== -1);
+
+                item.hidden = !combina;
+                if (combina) {
+                    visiveis++;
+                }
+            });
+
+            if (aviso) {
+                aviso.hidden = visiveis !== 0;
+            }
+        });
+    }
+
+    document.querySelectorAll("[data-filtro-lista]").forEach(ligarFiltro);
+
 })();

@@ -25,49 +25,61 @@
 {
     <div class="alert alert-danger" role="alert">@erro</div>
 }
-
 @if (quantidade == 0)
 {
     <p class="lista-vazia">Nenhum usuário cadastrado no momento.</p>
 }
 else
 {
-    <div class="lista-anuncios__cabecalho" aria-hidden="true">
-        <span>Usuário</span>
-        <span>Situação</span>
+    <div class="mb-4">
+        <label class="visually-hidden" for="filtro-usuarios">Filtrar por nome, CPF ou CNPJ</label>
+        <input id="filtro-usuarios" type="search" class="form-control rounded-pill campo-curto"
+               placeholder="Filtrar por nome ou CPF..." autocomplete="off"
+               data-filtro-lista="lista-usuarios" />
+    </div>
+
+    <div class="lista-anuncios__cabecalho lista-anuncios__cabecalho--usuario" aria-hidden="true">
+        <span>Nome</span>
+        <span>CPF/CNPJ</span>
+        <span>Status</span>
         <span></span>
     </div>
 
-    <ul class="lista-anuncios">
+    <ul class="lista-anuncios" id="lista-usuarios">
         @foreach (var item in Model)
         {
             var ativo = item.Status == "A";
             var situacao = ativo
                 ? ("Ativo", "selo--aprovado")
                 : ("Bloqueado", "selo--reprovado");
-            var tipo = item.Tipo == "F" ? "Pessoa física" : "Pessoa jurídica";
-
-            <li>
-                <article class="anuncio" aria-labelledby="usuario-@item.Id">
+            var documento = item.Tipo == "F"
+                ? (item.Cpf is { Length: 11 }
+                    ? $"{item.Cpf[..3]}.{item.Cpf[3..6]}.{item.Cpf[6..9]}-{item.Cpf[9..]}"
+                    : item.Cpf)
+                : (item.Cnpj is { Length: 14 }
+                    ? $"{item.Cnpj[..2]}.{item.Cnpj[2..5]}.{item.Cnpj[5..8]}/{item.Cnpj[8..12]}-{item.Cnpj[12..]}"
+                    : item.Cnpj);
+            <li data-filtro-texto="@item.Nome @item.Cpf@item.Cnpj">
+                <article class="anuncio anuncio--usuario" aria-labelledby="usuario-@item.Id">
                     <div class="anuncio__dados">
-                        <div class="miniatura" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
-                        </div>
                         <div>
                             <h2 class="anuncio__nome" id="usuario-@item.Id">@item.Nome</h2>
-                            <p class="anuncio__local">@item.Email</p>
-                            <p class="anuncio__valores">
-                                <span class="selo selo--pequeno">@tipo</span>
-                            </p>
+                            <p class="anuncio__local m-0">@item.Email</p>
                         </div>
                     </div>
+
+                    <p class="anuncio__documento m-0">
+                        <span class="anuncio__rotulo">@(item.Tipo == "F" ? "CPF" : "CNPJ"): </span>@documento
+                    </p>
+
                     <p class="anuncio__situacao m-0">
                         <span class="visually-hidden">Situação: </span>
                         <span class="selo @situacao.Item2">@situacao.Item1</span>
                     </p>
-                    <div class="anuncio__acao">
+
+                    <div class="anuncio__acao anuncio__acoes">
                         <a class="btn btn-primary" asp-action="Details" asp-route-id="@item.Id">
-                            Ver detalhes<span class="visually-hidden"> de @item.Nome</span>
+                            Detalhes<span class="visually-hidden"> de @item.Nome</span>
                         </a>
 
                         @if (ativo)
@@ -94,4 +106,8 @@ else
             </li>
         }
     </ul>
+
+    <p class="lista-vazia mt-3" role="status" data-filtro-vazio="lista-usuarios" hidden>
+        Nenhum usuário encontrado para o filtro informado.
+    </p>
 }
