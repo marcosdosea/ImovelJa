@@ -1,8 +1,11 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Início";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Encontre seu imóvel</h1>
+
+<form method="get" asp-controller="Imovel" asp-action="Buscar" class="d-flex gap-2">
+    <input type="search" name="Termo" maxlength="100" class="form-control"
+           placeholder="Buscar imóvel" aria-label="Buscar imóvel" />
+    <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
