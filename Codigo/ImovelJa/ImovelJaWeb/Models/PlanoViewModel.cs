@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ImovelJaWeb.Models
 {
@@ -19,6 +20,7 @@ namespace ImovelJaWeb.Models
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         [Range(0, 99999999.99, ErrorMessage = "O campo {0} deve estar entre {1} e {2}")]
         [DisplayFormat(DataFormatString = "{0:0.00}", ApplyFormatInEditMode = true)]
+        [ModelBinder(BinderType = typeof(PrecoPlanoModelBinder))]
         public decimal Valor { get; set; }
 
         [Display(Name = "Limite de imóveis anunciados")]

@@ -12,7 +12,11 @@ namespace ImovelJaWeb
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(options =>
+            {
+                options.ModelBindingMessageProvider.SetValueMustBeANumberAccessor(
+                    nome => $"O campo {nome} deve ser um número.");
+            });
 
             builder.Services.AddDbContext<ImovelJaContext>(options =>
                 options.UseMySQL(builder.Configuration.GetConnectionString("ImovelJaDatabase") ?? throw new InvalidOperationException("Conexão com o banco de dados não foi possível. Favor entrar em contato com o Administrador.")));
