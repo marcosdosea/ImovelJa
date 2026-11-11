@@ -29,21 +29,19 @@
     </div>
 </div>
 
-<section class="card p-4 mb-4" aria-labelledby="usuario-nome">
+<section class="detalhe-anuncio detalhe-anuncio__corpo mb-4" aria-labelledby="usuario-nome">
     <div class="d-flex justify-content-between align-items-start gap-3 pb-3 border-bottom">
         <div class="d-flex align-items-center gap-3">
             @if (Model.FotoPerfil is { Length: > 0 })
             {
                 <img src="data:image/*;base64,@Convert.ToBase64String(Model.FotoPerfil)"
                      alt="Foto de perfil de @Model.Nome"
-                     class="rounded-circle"
-                     style="width: 64px; height: 64px; object-fit: cover;" />
+                     class="avatar" />
             }
             else
             {
-                <div class="rounded-circle border d-flex align-items-center justify-content-center"
-                     style="width: 64px; height: 64px;" aria-hidden="true">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
+                <div class="avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></svg>
                 </div>
             }
             <div>

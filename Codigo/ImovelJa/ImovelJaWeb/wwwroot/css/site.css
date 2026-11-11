@@ -562,6 +562,28 @@ h1 {
     font-size: 0.875rem;
 }
 
+/* Lista de usuários (Tela_014): no celular o CPF/CNPJ fica numa linha
+   própria; no computador vira a coluna "CPF/CNPJ" */
+.anuncio--usuario {
+    grid-template-areas:
+        "dados dados"
+        "documento documento"
+        "situacao acao";
+}
+
+.anuncio__documento {
+    grid-area: documento;
+    color: var(--cor-texto-suave);
+    font-size: 0.875rem;
+}
+
+.anuncio__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
 .lista-vazia {
     padding: 2rem 1rem;
     border-radius: var(--raio);
@@ -601,6 +623,22 @@ h1 {
         grid-template-areas: "dados envio situacao acao";
     }
 
+    /* Lista de usuários: no tablet ainda cabe em duas colunas */
+    .lista-anuncios__cabecalho--usuario {
+        display: none;
+    }
+
+    .anuncio--usuario {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "dados situacao"
+            "documento acao";
+    }
+
+    .anuncio--usuario .anuncio__situacao {
+        justify-self: end;
+    }
+
     /* O título da coluna já diz "Enviado em": o rótulo fica só para leitor de tela */
     .anuncio__rotulo {
         position: absolute;
@@ -609,6 +647,29 @@ h1 {
         overflow: hidden;
         clip: rect(0, 0, 0, 0);
         white-space: nowrap;
+    }
+}
+
+/* Lista de usuários (Tela_014): as quatro colunas só a partir do computador,
+   porque os dois botões de ação ocupam mais espaço */
+@media (min-width: 992px) {
+
+    .lista-anuncios__cabecalho--usuario,
+    .anuncio--usuario {
+        grid-template-columns: minmax(0, 1fr) 11rem 7rem 14rem;
+    }
+
+    .lista-anuncios__cabecalho--usuario {
+        display: grid;
+    }
+
+    .anuncio--usuario {
+        grid-template-areas: "dados documento situacao acao";
+    }
+
+    .anuncio__documento {
+        color: var(--cor-texto);
+        font-size: 0.9375rem;
     }
 }
 
@@ -751,6 +812,27 @@ h1 {
     .detalhe-anuncio__corpo {
         padding: 1.75rem 1.75rem 2rem;
     }
+}
+
+/* Foto de perfil (Tela_015): sem foto cadastrada, mostra o ícone de pessoa */
+
+.avatar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+    border: 2px solid var(--cor-primaria);
+    border-radius: 50%;
+    background-color: var(--cor-primaria-clara);
+    color: var(--cor-primaria);
+    object-fit: cover;
+}
+
+.avatar svg {
+    width: 1.75rem;
+    height: 1.75rem;
 }
 
 /* Mensagens de erro do serviço */

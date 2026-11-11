@@ -25,28 +25,27 @@
 {
     <div class="alert alert-danger" role="alert">@erro</div>
 }
-<div class="mb-4">
-    <input type="search" class="form-control rounded-pill"
-           style="max-width: 360px;"
-           placeholder="Filtrar por nome ou CPF..."
-           aria-label="Filtrar por nome ou CPF" />
-</div>
 @if (quantidade == 0)
 {
     <p class="lista-vazia">Nenhum usuário cadastrado no momento.</p>
 }
 else
 {
-    var colunas = "display: grid; grid-template-columns: 3fr 1.5fr 1fr auto; align-items: center; column-gap: 1rem;";
+    <div class="mb-4">
+        <label class="visually-hidden" for="filtro-usuarios">Filtrar por nome, CPF ou CNPJ</label>
+        <input id="filtro-usuarios" type="search" class="form-control rounded-pill campo-curto"
+               placeholder="Filtrar por nome ou CPF..." autocomplete="off"
+               data-filtro-lista="lista-usuarios" />
+    </div>
 
-    <div class="lista-anuncios__cabecalho" style="@colunas" aria-hidden="true">
+    <div class="lista-anuncios__cabecalho lista-anuncios__cabecalho--usuario" aria-hidden="true">
         <span>Nome</span>
-        <span>CPF</span>
+        <span>CPF/CNPJ</span>
         <span>Status</span>
         <span></span>
     </div>
 
-    <ul class="lista-anuncios">
+    <ul class="lista-anuncios" id="lista-usuarios">
         @foreach (var item in Model)
         {
             var ativo = item.Status == "A";
@@ -60,23 +59,25 @@ else
                 : (item.Cnpj is { Length: 14 }
                     ? $"{item.Cnpj[..2]}.{item.Cnpj[2..5]}.{item.Cnpj[5..8]}/{item.Cnpj[8..12]}-{item.Cnpj[12..]}"
                     : item.Cnpj);
-            <li>
-                <article class="anuncio" style="@colunas" aria-labelledby="usuario-@item.Id">
-                    <div>
-                        <h2 class="anuncio__nome" id="usuario-@item.Id">@item.Nome</h2>
-                        <p class="anuncio__local m-0">@item.Email</p>
+            <li data-filtro-texto="@item.Nome @item.Cpf@item.Cnpj">
+                <article class="anuncio anuncio--usuario" aria-labelledby="usuario-@item.Id">
+                    <div class="anuncio__dados">
+                        <div>
+                            <h2 class="anuncio__nome" id="usuario-@item.Id">@item.Nome</h2>
+                            <p class="anuncio__local m-0">@item.Email</p>
+                        </div>
                     </div>
 
-                    <p class="m-0">
-                        <span class="visually-hidden">Documento: </span>@documento
+                    <p class="anuncio__documento m-0">
+                        <span class="anuncio__rotulo">@(item.Tipo == "F" ? "CPF" : "CNPJ"): </span>@documento
                     </p>
 
-                    <p class="m-0">
+                    <p class="anuncio__situacao m-0">
                         <span class="visually-hidden">Situação: </span>
                         <span class="selo @situacao.Item2">@situacao.Item1</span>
                     </p>
 
-                    <div class="d-flex flex-row flex-nowrap align-items-center justify-content-end gap-2">
+                    <div class="anuncio__acao anuncio__acoes">
                         <a class="btn btn-primary" asp-action="Details" asp-route-id="@item.Id">
                             Detalhes<span class="visually-hidden"> de @item.Nome</span>
                         </a>
@@ -105,4 +106,8 @@ else
             </li>
         }
     </ul>
+
+    <p class="lista-vazia mt-3" role="status" data-filtro-vazio="lista-usuarios" hidden>
+        Nenhum usuário encontrado para o filtro informado.
+    </p>
 }
