@@ -64,11 +64,24 @@
     } else {
         agendar();
     }
+      /* Confirmação: nos formulários marcados com data-confirm-nome, pede
+    confirmação antes de bloquear. O nome vem de um atributo, lido como
+    texto puro, e nunca é montado dentro de código JavaScript. */
+    function ligarConfirmacao(formulario) {
+        formulario.addEventListener("submit", function (evento) {
+            var nome = formulario.getAttribute("data-confirm-nome");
 
+            if (!window.confirm("Deseja realmente bloquear o usuário " + nome + "?")) {
+                evento.preventDefault();
+            }
+        });
+    }
     window.addEventListener("pageshow", reativarFormularios);
 
     /* A conversa abre já no fim do histórico, na mensagem mais recente. */
     document.querySelectorAll("[data-rolar-fim]").forEach(function (painel) {
         painel.scrollTop = painel.scrollHeight;
     });
+    document.querySelectorAll("form[data-confirm-nome]").forEach(ligarConfirmacao);
+
 })();
