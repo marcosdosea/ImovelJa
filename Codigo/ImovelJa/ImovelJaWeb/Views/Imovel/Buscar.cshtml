@@ -33,20 +33,20 @@
         </div>
         <div class="col-6 col-md-3">
             <label for="ValorMinimo" class="form-label">Valor mínimo</label>
-            <input id="ValorMinimo" name="ValorMinimo" value="@filtro.ValorMinimo" type="number" step="0.01" min="0" class="form-control" />
+            <input id="ValorMinimo" name="ValorMinimo" value="@filtro.ValorMinimo?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
         </div>
         <div class="col-6 col-md-3">
             <label for="ValorMaximo" class="form-label">Valor máximo</label>
-            <input id="ValorMaximo" name="ValorMaximo" value="@filtro.ValorMaximo" type="number" step="0.01" min="0" class="form-control" />
+            <input id="ValorMaximo" name="ValorMaximo" value="@filtro.ValorMaximo?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
         </div>
         <div class="col-6 col-md-2">
             <label for="AreaMinima" class="form-label">Área mínima</label>
-            <input id="AreaMinima" name="AreaMinima" value="@filtro.AreaMinima" type="number" step="0.01" min="0" class="form-control" />
+            <input id="AreaMinima" name="AreaMinima" value="@filtro.AreaMinima?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
         </div>
         <div class="col-6 col-md-2">
             <label for="AreaMaxima" class="form-label">Área máxima</label>
-            <input id="AreaMaxima" name="AreaMaxima" value="@filtro.AreaMaxima" type="number" step="0.01" min="0" class="form-control" />
-        </div>
+            <input id="AreaMaxima" name="AreaMaxima" value="@filtro.AreaMaxima?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
+             </div>
         <div class="col-12 col-md-2">
             <label for="QuantidadeQuartos" class="form-label">Quartos</label>
             <input id="QuantidadeQuartos" name="QuantidadeQuartos" value="@filtro.QuantidadeQuartos" type="number" min="0" max="100" class="form-control" />
