@@ -2,10 +2,14 @@
     ViewData["Title"] = "Início";
 }
 
-<h1>Encontre seu imóvel</h1>
+<section class="hero">
+    <h1>Encontre o imóvel <span>perfeito para você</span></h1>
+    <p>Milhares de imóveis para comprar, alugar e anunciar em todo o Brasil.</p>
 
-<form method="get" asp-controller="Imovel" asp-action="Buscar" class="d-flex gap-2">
-    <input type="search" name="Termo" maxlength="100" class="form-control"
-           placeholder="Buscar imóvel" aria-label="Buscar imóvel" />
-    <button type="submit" class="btn btn-primary">Buscar</button>
-</form>
+    <form method="get" asp-controller="Imovel" asp-action="Buscar" class="busca-campo" role="search">
+        <svg class="busca-campo__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <input type="search" name="Termo" maxlength="100" class="busca-campo__entrada"
+               placeholder="Buscar por cidade, bairro ou tipo de imóvel..." aria-label="Buscar imóvel" />
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+</section>

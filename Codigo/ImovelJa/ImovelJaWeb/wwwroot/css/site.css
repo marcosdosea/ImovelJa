@@ -1321,4 +1321,206 @@ h1 {
     .conversa__voltar {
         display: none;
     }
+
+    /* Campo de busca (Tela_001 e Tela_004) */
+
+    .busca-campo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.375rem 0.375rem 0.375rem 1rem;
+        border: 1px solid var(--cor-borda);
+        border-radius: var(--raio);
+        background-color: var(--cor-superficie);
+    }
+
+        .busca-campo:focus-within {
+            outline: 3px solid var(--bs-focus-ring-color);
+            outline-offset: 2px;
+        }
+
+    .busca-campo__icone {
+        flex-shrink: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--cor-icone);
+    }
+
+    .busca-campo__entrada {
+        flex: 1 1 auto;
+        min-width: 0;
+        padding: 0.5rem 0;
+        border: 0;
+        background: transparent;
+        color: var(--cor-texto);
+        font-size: 1rem;
+    }
+
+        .busca-campo__entrada:focus-visible {
+            outline: none;
+        }
+
+    /* Início: bloco do campo de busca (Tela_001) */
+
+    .hero {
+        padding: 2rem 1.25rem;
+        border-radius: var(--raio-grande);
+        background: linear-gradient(135deg, var(--cor-primaria), var(--cor-primaria-escura));
+        color: #FFFFFF;
+    }
+
+        .hero h1 {
+            margin-bottom: 0.5rem;
+            color: #FFFFFF;
+            font-size: 1.75rem;
+        }
+
+            .hero h1 span {
+                display: block;
+                color: #5BB0E0;
+            }
+
+        .hero p {
+            margin-bottom: 1.25rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .hero .busca-campo {
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(17, 24, 39, 0.2);
+        }
+
+    /* Resultados com painel de filtros (Tela_004) */
+
+    .busca__layout {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .busca__painel {
+        padding: 1.25rem;
+        border-radius: var(--raio-grande);
+        background-color: var(--cor-superficie);
+        box-shadow: var(--sombra);
+    }
+
+    .busca__grupo {
+        margin: 0 0 1.25rem;
+        padding: 0;
+        border: 0;
+    }
+
+    .busca__rotulo {
+        display: block;
+        float: none;
+        width: auto;
+        margin-bottom: 0.5rem;
+        color: var(--cor-texto);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .busca__par {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .busca__voltar {
+        display: block;
+        margin-top: 1rem;
+        color: var(--cor-texto-suave);
+        text-align: center;
+        text-decoration: none;
+    }
+
+    .busca__contagem {
+        margin-bottom: 1rem;
+        color: var(--cor-texto-suave);
+    }
+
+    .busca__lista {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: 1rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .card-imovel {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border-radius: var(--raio-grande);
+        background-color: var(--cor-superficie);
+        box-shadow: var(--sombra);
+    }
+
+    .card-imovel__foto {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        aspect-ratio: 16 / 10;
+        background-color: var(--cor-fundo);
+        color: var(--cor-icone);
+    }
+
+        .card-imovel__foto svg {
+            width: 3rem;
+            height: 3rem;
+        }
+
+    .card-imovel__corpo {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+        padding: 1rem;
+    }
+
+    .card-imovel__nome {
+        margin: 0.25rem 0 0;
+        font-size: 1.0625rem;
+    }
+
+    .card-imovel__local,
+    .card-imovel__dados {
+        margin: 0;
+        color: var(--cor-texto-suave);
+        font-size: 0.875rem;
+    }
+
+    .card-imovel__preco {
+        margin: 0.5rem 0 0.75rem;
+        font-size: 1.125rem;
+    }
+
+    .card-imovel .btn {
+        align-self: stretch;
+        margin-top: auto;
+    }
+
+    @media (min-width: 768px) {
+
+        .hero {
+            padding: 3rem 2.5rem;
+        }
+
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+    }
+
+    @media (min-width: 992px) {
+
+        .busca__layout {
+            grid-template-columns: 17rem minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+    }
 }
