@@ -22,7 +22,6 @@ namespace ImovelJaWeb
                 options.UseMySQL(builder.Configuration.GetConnectionString("ImovelJaDatabase") ?? throw new InvalidOperationException("Conexão com o banco de dados não foi possível. Favor entrar em contato com o Administrador.")));
 
             builder.Services.AddTransient<IImovelService, ImovelService>();
-            builder.Services.AddTransient<IPessoaService, PessoaService>();
             builder.Services.AddTransient<IMensagemService, MensagemService>();
             builder.Services.AddTransient<IPessoaService, PessoaService>();
             builder.Services.AddTransient<IPlanoService, PlanoService>();
