@@ -87,6 +87,15 @@ namespace Service
         }
 
         /// <summary>
+        /// Busca todas pessoas cadastradas e possui email
+        /// </summary>
+        /// <returns>lista de pessoas</returns>
+        public IEnumerable<Pessoa> GetUsuarios()
+        {
+            return context.Pessoas.AsNoTracking()
+                .Where(p => p.Email != null);
+        }
+        /// <summary>
         /// Busca uma pessoa pelo CPF ou CNPJ
         /// </summary>
         /// <param name="documento">CPF ou CNPJ, somente números</param>

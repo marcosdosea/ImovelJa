@@ -10,6 +10,7 @@ namespace Core.Service
         void Edit(Pessoa pessoa);
         Pessoa? Get(uint id);
         IEnumerable<Pessoa> GetAll();
+        IEnumerable<Pessoa> GetUsuarios();
         Pessoa? GetByDocumento(string documento);
         void Activate(uint id, bool ativo);
     }
