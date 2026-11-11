@@ -5,105 +5,132 @@
 
     var filtro = ViewData["Filtro"] as ImovelFiltroViewModel ?? new ImovelFiltroViewModel();
     var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
     var quantidade = Model.Count();
     var tipos = new Dictionary<string, string>
     {
-        ["C"] = "Casa",
         ["A"] = "Apartamento",
-        ["T"] = "Terreno",
-        ["S"] = "Studio",
+        ["C"] = "Casa",
         ["CO"] = "Comercial",
-        ["O"] = "Outro"
+        ["T"] = "Terreno",
+        ["S"] = "Kitnet / Studio"
     };
+
+    var resumo = quantidade == 1 ? "1 imóvel encontrado" : $"{quantidade} imóveis encontrados";
+    if (!string.IsNullOrWhiteSpace(filtro.Termo))
+    {
+        resumo += $" para \"{filtro.Termo}\"";
+    }
 }
 
-<h1>Buscar Imóvel</h1>
+<h1 class="visually-hidden">Buscar Imóvel</h1>
 
-<form method="get" asp-action="Buscar" class="mb-4">
-    <div asp-validation-summary="All" class="text-danger"></div>
-
-    <div class="row g-3">
-        <div class="col-12 col-md-6">
-            <label for="Termo" class="form-label">Termo de busca</label>
-            <input id="Termo" name="Termo" value="@filtro.Termo" class="form-control" maxlength="100" />
-        </div>
-        <div class="col-12 col-md-6">
-            <label for="Localizacao" class="form-label">Localização</label>
-            <input id="Localizacao" name="Localizacao" value="@filtro.Localizacao" class="form-control" maxlength="100" />
-        </div>
-        <div class="col-6 col-md-3">
-            <label for="ValorMinimo" class="form-label">Valor mínimo</label>
-            <input id="ValorMinimo" name="ValorMinimo" value="@filtro.ValorMinimo?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
-        </div>
-        <div class="col-6 col-md-3">
-            <label for="ValorMaximo" class="form-label">Valor máximo</label>
-            <input id="ValorMaximo" name="ValorMaximo" value="@filtro.ValorMaximo?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
-        </div>
-        <div class="col-6 col-md-2">
-            <label for="AreaMinima" class="form-label">Área mínima</label>
-            <input id="AreaMinima" name="AreaMinima" value="@filtro.AreaMinima?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
-        </div>
-        <div class="col-6 col-md-2">
-            <label for="AreaMaxima" class="form-label">Área máxima</label>
-            <input id="AreaMaxima" name="AreaMaxima" value="@filtro.AreaMaxima?.ToString(System.Globalization.CultureInfo.InvariantCulture)" type="number" step="0.01" min="0" class="form-control" />
-             </div>
-        <div class="col-12 col-md-2">
-            <label for="QuantidadeQuartos" class="form-label">Quartos</label>
-            <input id="QuantidadeQuartos" name="QuantidadeQuartos" value="@filtro.QuantidadeQuartos" type="number" min="0" max="100" class="form-control" />
-        </div>
-        <div class="col-12">
-            <span class="form-label d-block">Tipos de imóvel</span>
-            @foreach (var tipo in tipos)
-            {
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" name="Tipos" id="tipo-@tipo.Key"
-                           value="@tipo.Key" checked="@(filtro.Tipos?.Contains(tipo.Key) == true)" />
-                    <label class="form-check-label" for="tipo-@tipo.Key">@tipo.Value</label>
-                </div>
-            }
-        </div>
+<form method="get" asp-controller="Imovel" asp-action="Buscar">
+    <div class="busca-campo mb-3" role="search">
+        <svg class="busca-campo__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <input id="Termo" name="Termo" value="@filtro.Termo" type="search" maxlength="100"
+               class="busca-campo__entrada" placeholder="Buscar imóvel" aria-label="Termo de busca" />
+        <button type="submit" class="btn btn-primary">Buscar</button>
     </div>
 
-    <div class="mt-3 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Filtrar</button>
-        <a class="btn btn-outline-secondary" asp-action="Buscar">Limpar filtros</a>
+    <button class="btn btn-outline-primary w-100 mb-3 d-lg-none" type="button"
+            data-bs-toggle="collapse" data-bs-target="#painelFiltros"
+            aria-expanded="false" aria-controls="painelFiltros">
+        Filtros
+    </button>
+
+    <div class="busca__layout">
+        <aside id="painelFiltros" class="collapse d-lg-block" aria-label="Filtros">
+            <div class="busca__painel">
+                <div class="busca__grupo">
+                    <label for="Localizacao" class="busca__rotulo">Localização</label>
+                    <input id="Localizacao" name="Localizacao" value="@filtro.Localizacao" class="form-control" maxlength="100" />
+                </div>
+
+                <fieldset class="busca__grupo">
+                    <legend class="busca__rotulo">Tipo</legend>
+                    @foreach (var tipo in tipos)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="Tipos" id="tipo-@tipo.Key"
+                                   value="@tipo.Key" checked="@(filtro.Tipos?.Contains(tipo.Key) == true)" />
+                            <label class="form-check-label" for="tipo-@tipo.Key">@tipo.Value</label>
+                        </div>
+                    }
+                </fieldset>
+
+                <fieldset class="busca__grupo">
+                    <legend class="busca__rotulo">Valor (R$)</legend>
+                    <div class="busca__par">
+                        <input name="ValorMinimo" value="@filtro.ValorMinimo?.ToString(inv)" type="number" step="0.01" min="0"
+                               class="form-control" placeholder="Min" aria-label="Valor mínimo" />
+                        <input name="ValorMaximo" value="@filtro.ValorMaximo?.ToString(inv)" type="number" step="0.01" min="0"
+                               class="form-control" placeholder="Max" aria-label="Valor máximo" />
+                    </div>
+                </fieldset>
+
+                <div class="busca__grupo">
+                    <label for="QuantidadeQuartos" class="busca__rotulo">Quartos</label>
+                    <input id="QuantidadeQuartos" name="QuantidadeQuartos" value="@filtro.QuantidadeQuartos" type="number"
+                           min="0" max="100" class="form-control" />
+                </div>
+
+                <fieldset class="busca__grupo">
+                    <legend class="busca__rotulo">Tamanho (m²)</legend>
+                    <div class="busca__par">
+                        <input name="AreaMinima" value="@filtro.AreaMinima?.ToString(inv)" type="number" step="0.01" min="0"
+                               class="form-control" placeholder="Min" aria-label="Área mínima" />
+                        <input name="AreaMaxima" value="@filtro.AreaMaxima?.ToString(inv)" type="number" step="0.01" min="0"
+                               class="form-control" placeholder="Max" aria-label="Área máxima" />
+                    </div>
+                </fieldset>
+
+                <button type="submit" class="btn btn-primary w-100">Aplicar filtros</button>
+                <a class="busca__voltar" asp-controller="Home" asp-action="Index">&larr; Voltar ao início</a>
+            </div>
+        </aside>
+
+        <section>
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            @if (ViewData.ModelState.IsValid && quantidade == 0)
+            {
+                <p class="lista-vazia">Nenhum imóvel encontrado para os critérios informados</p>
+            }
+            else if (quantidade > 0)
+            {
+                <p class="busca__contagem">@resumo</p>
+
+                <ul class="busca__lista">
+                    @foreach (var item in Model)
+                    {
+                        var aluguel = item.Finalidade == "A";
+                        var caracteristicas = new List<string>();
+                        if (item.QuantidadeQuartos.HasValue)
+                        {
+                            caracteristicas.Add(item.QuantidadeQuartos == 1 ? "1 quarto" : $"{item.QuantidadeQuartos} quartos");
+                        }
+                        if (item.AreaTotal.HasValue)
+                        {
+                            caracteristicas.Add($"{item.AreaTotal.Value.ToString("0.##", ptBR)} m²");
+                        }
+
+                        <li class="card-imovel">
+                            <div class="card-imovel__foto" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="8.5" cy="10" r="1.5" /><path d="m21 15-5-4-8 8" /></svg>
+                            </div>
+                            <div class="card-imovel__corpo">
+                                <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
+                                <h2 class="card-imovel__nome">@item.Nome</h2>
+                                <p class="card-imovel__local">@item.Bairro, @item.Cidade/@item.Estado</p>
+                                <p class="card-imovel__dados">@string.Join(" · ", caracteristicas)</p>
+                                <p class="preco card-imovel__preco">@item.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</p>
+                                <a class="btn btn-primary" asp-action="Detalhes" asp-route-id="@item.Id">Ver detalhes</a>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
     </div>
 </form>
-
-@if (ViewData.ModelState.IsValid && quantidade == 0)
-{
-    <p>Nenhum imóvel encontrado para os critérios informados</p>
-}
-else if (quantidade > 0)
-{
-    <p>@(quantidade == 1 ? "1 imóvel encontrado" : $"{quantidade} imóveis encontrados")</p>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Imóvel</th>
-                <th>Local</th>
-                <th>Tipo</th>
-                <th>Quartos</th>
-                <th>Área</th>
-                <th>Valor</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                var aluguel = item.Finalidade != "V";
-                <tr>
-                    <td>@item.Nome</td>
-                    <td>@item.Bairro, @item.Cidade - @item.Estado</td>
-                    <td>@(tipos.GetValueOrDefault(item.Tipo, "Outro"))</td>
-                    <td>@item.QuantidadeQuartos</td>
-                    <td>@(item.AreaTotal.HasValue ? $"{item.AreaTotal.Value.ToString("0.##", ptBR)} m²" : "")</td>
-                    <td>@item.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</td>
-                    <td><a asp-action="Detalhes" asp-route-id="@item.Id">Ver detalhes</a></td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
