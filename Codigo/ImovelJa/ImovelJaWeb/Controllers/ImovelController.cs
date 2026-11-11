@@ -1,3 +1,4 @@
+using Core.DTO;
 using Core.Service;
 using ImovelJaWeb.Mappers;
 using ImovelJaWeb.Models;
@@ -14,8 +15,8 @@ namespace ImovelJaWeb.Controllers
             this.imovelService = imovelService;
         }
 
-        // GET: ImovelController/Pendentes
-        public ActionResult Pendentes()
+        // GET: ImovelController/Analise
+        public ActionResult Analise()
         {
             var imoveis = imovelService.GetByValidacao("P");
             var imoveisViewModel = ImovelMapper.ToViewModel(imoveis);
@@ -49,7 +50,52 @@ namespace ImovelJaWeb.Controllers
                 return View(nameof(Validar), modelo);
             }
 
-            return RedirectToAction(nameof(Pendentes));
+            return RedirectToAction(nameof(Analise));
+        }
+
+        // GET: ImovelController/Buscar?Termo=casa&ValorMaximo=2000
+        public ActionResult Buscar(ImovelFiltroViewModel filtro)
+        {
+            ValidarIntervalos(filtro);
+            ViewData["Filtro"] = filtro;
+
+            if (!ModelState.IsValid)
+            {
+                return View(Array.Empty<ImovelViewModel>());
+            }
+
+            var imoveis = imovelService.GetByFiltro(ImovelMapper.ToDTO(filtro));
+            return View(ImovelMapper.ToViewModel(imoveis));
+        }
+
+        // GET: ImovelController/Detalhes/5
+        public ActionResult Detalhes(uint id)
+        {
+            var imovel = imovelService.Get(id);
+
+            if (imovel == null || imovel.StatusValidacao != "A" || imovel.Status != "D")
+            {
+                return NotFound();
+            }
+
+            return View(ImovelMapper.ToViewModel(imovel));
+        }
+
+        private void ValidarIntervalos(ImovelFiltroViewModel filtro)
+        {
+            if (filtro.ValorMinimo > filtro.ValorMaximo)
+            {
+                ModelState.AddModelError(
+                    nameof(filtro.ValorMaximo),
+                    "O valor máximo deve ser maior ou igual ao valor mínimo");
+            }
+
+            if (filtro.AreaMinima > filtro.AreaMaxima)
+            {
+                ModelState.AddModelError(
+                    nameof(filtro.AreaMaxima),
+                    "A área máxima deve ser maior ou igual à área mínima");
+            }
         }
     }
 }

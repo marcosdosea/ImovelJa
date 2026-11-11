@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.DTO;
 using Core.Service;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,7 +18,8 @@ namespace Service
         }
 
         /// <summary>
-        /// Cadastra um novo anúncio de imóvel, que fica pendente de validação pelo administrador
+        /// Cadastra um novo anúncio de imóvel, que fica pendente de validação pelo administrador,
+        /// registrando a data e a hora do envio
         /// </summary>
         /// <param name="imovel">dados do imóvel</param>
         /// <returns>id do imóvel criado</returns>
@@ -34,6 +36,7 @@ namespace Service
 
             imovel.Status = "D";
             imovel.StatusValidacao = "P";
+            imovel.DataCadastro = DateTime.Now;
 
             context.Add(imovel);
             context.SaveChanges();
@@ -41,7 +44,7 @@ namespace Service
         }
 
         /// <summary>
-        /// Edita os dados do anúncio, mantendo o proprietário e a situação de validação
+        /// Edita os dados do anúncio, mantendo o proprietário, a situação de validação e a data de envio
         /// </summary>
         /// <param name="imovel">dados do imóvel</param>
         /// <exception cref="ServiceException">imóvel não encontrado</exception>
@@ -52,6 +55,7 @@ namespace Service
 
             imovel.IdPessoaProprietario = atual.IdPessoaProprietario;
             imovel.StatusValidacao = atual.StatusValidacao;
+            imovel.DataCadastro = atual.DataCadastro;
 
             context.Update(imovel);
             context.SaveChanges();
@@ -164,6 +168,62 @@ namespace Service
 
             return context.Planos.AsNoTracking().FirstOrDefault(p => p.Nome == "Básico")
                 ?? throw new ServiceException("Plano Básico não cadastrado.");
+        }
+
+        /// <summary>
+        /// Busca os imoveis disponíveis para aluguel ou venda, de acordo com os critérios informados no filtro, 
+        /// não incluindo imóveis que não estão aprovados ou que já foram alugados ou vendidos
+        /// </summary>
+        /// <param name="filtro">filtro de busca</param>
+        /// <returns>coleção de imóveis que atendem aos critérios</returns>
+        public IEnumerable<Imovel> GetByFiltro(ImovelFiltroDTO filtro)
+        {
+            var consulta = context.Imovels.Where(i => i.Status == "D" && i.StatusValidacao == "A");
+
+            if (!string.IsNullOrEmpty(filtro.Termo))
+            {
+                consulta = consulta.Where(i => i.Nome.Contains(filtro.Termo) || (i.Descricao != null && i.Descricao.Contains(filtro.Termo)));
+            }
+
+            var local = filtro.Localizacao?.Trim();
+            if (!string.IsNullOrWhiteSpace(local))
+            {
+                consulta = consulta.Where(i => i.Bairro.Contains(local)
+                                            || i.Cidade.Contains(local)
+                                            || i.Estado.Contains(local));
+            }
+
+            if (filtro.Tipos != null && filtro.Tipos.Any())
+            {
+                consulta = consulta.Where(i => filtro.Tipos.Contains(i.Tipo));
+            }
+
+            if (filtro.ValorMinimo.HasValue)
+            {
+                consulta = consulta.Where(i => i.Valor >= filtro.ValorMinimo.Value);
+            }
+
+            if (filtro.ValorMaximo.HasValue)
+            {
+                consulta = consulta.Where(i => i.Valor <= filtro.ValorMaximo.Value);
+            }
+
+            if (filtro.QuantidadeQuartos.HasValue)
+            {
+                consulta = consulta.Where(i => i.QuantidadeQuartos == filtro.QuantidadeQuartos.Value);
+            }
+            
+            if (filtro.AreaMinima.HasValue)
+            {
+                consulta = consulta.Where(i => i.AreaTotal >= filtro.AreaMinima.Value);
+            }
+
+            if (filtro.AreaMaxima.HasValue)
+            {
+                consulta = consulta.Where(i => i.AreaTotal <= filtro.AreaMaxima.Value);
+            }
+            
+            return consulta.AsNoTracking();
         }
     }
 }

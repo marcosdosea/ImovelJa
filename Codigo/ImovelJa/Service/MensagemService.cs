@@ -71,5 +71,24 @@ namespace Service
                 .OrderBy(m => m.DataEnvio)
                 .AsNoTracking();
         }
+
+        /// <summary>
+        /// Busca as mensagens trocadas entre duas pessoas, da mais antiga para a mais recente
+        /// </summary>
+        /// <param name="idPessoa">id de uma das pessoas</param>
+        /// <param name="idOutraPessoa">id da outra pessoa</param>
+        /// <returns>mensagens da conversa, ou vazia quando a conversa não pode existir</returns>
+        public IEnumerable<Mensagem> GetConversa(uint idPessoa, uint idOutraPessoa)
+        {
+            if (idPessoa == 0 || idOutraPessoa == 0 || idPessoa == idOutraPessoa)
+                return [];
+
+            return context.Mensagems
+                .Where(m =>
+                    (m.IdPessoaEnviou == idPessoa && m.IdPessoaRecebeu == idOutraPessoa)
+                    || (m.IdPessoaEnviou == idOutraPessoa && m.IdPessoaRecebeu == idPessoa))
+                .OrderBy(m => m.DataEnvio)
+                .AsNoTracking();
+        }
     }
 }

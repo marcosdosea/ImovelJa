@@ -89,6 +89,10 @@ namespace ImovelJaWeb.Models
         [RegularExpression("^(P|A|R)$", ErrorMessage = "O campo {0} deve ser P, A ou R")]
         public string StatusValidacao { get; set; } = "P";
 
+        [Display(Name = "Enviado em")]
+        [DataType(DataType.Date)]
+        public DateTime DataCadastro { get; set; }
+
         [Display(Name = "Proprietário")]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         public uint IdPessoaProprietario { get; set; }

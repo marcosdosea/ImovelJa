@@ -1,6 +1,7 @@
 using Core;
 using Core.Service;
 using Microsoft.EntityFrameworkCore;
+using Core.DTO;
 
 namespace Service.Tests;
 
@@ -33,6 +34,28 @@ public class ImovelServiceTests
             Status = "A"
         });
 
+        contexto.Pessoas.Add(new Pessoa
+        {
+            Id = 2,
+            Tipo = "F",
+            Nome = "João da Conceição",
+            Email = "joao.conceicao@gmail.com",
+            Telefone = "79998887766",
+            Cpf = "39053344705",
+            DataNascimento = new DateTime(1992, 8, 21),
+            Status = "A"
+        });
+
+        contexto.Planos.Add(new Plano
+        {
+            Id = 1,
+            Nome = "Básico",
+            Valor = 0m,
+            LimiteImoveisAnunciados = 1,
+            Beneficios = "Anúncio de 1 imóvel",
+            Status = "A"
+        });
+
         contexto.Imovels.AddRange(
             new Imovel
             {
@@ -53,6 +76,7 @@ public class ImovelServiceTests
                 Finalidade = "A",
                 Status = "D",
                 StatusValidacao = "P",
+                DataCadastro = new DateTime(2026, 7, 21, 14, 30, 0),
                 IdPessoaProprietario = 1
             },
             new Imovel
@@ -74,6 +98,7 @@ public class ImovelServiceTests
                 Finalidade = "A",
                 Status = "D",
                 StatusValidacao = "P",
+                DataCadastro = new DateTime(2026, 7, 22, 9, 15, 0),
                 IdPessoaProprietario = 1
             },
             new Imovel
@@ -114,7 +139,49 @@ public class ImovelServiceTests
                 Status = "D",
                 StatusValidacao = "R",
                 IdPessoaProprietario = 1
-            });
+            },
+
+
+            new Imovel
+            {
+                Id = 5,
+                Nome = "Apartamento 2 quartos nos Jardins",
+                Tipo = "A",
+                AreaTotal = 62.5m,
+                QuantidadeQuartos = 2,
+                Rua = "Rua Itabaianinha, 410",
+                Bairro = "Jardins",
+                Cep = "49025000",
+                Cidade = "Aracaju",
+                Estado = "Sergipe",
+                Valor = 1450.50m,
+                Finalidade = "A",
+                Status = "D",
+                StatusValidacao = "A",
+                IdPessoaProprietario = 1
+            },
+
+            new Imovel
+            {
+                Id = 6,
+                Nome = "Apartamento 3 quartos nos Jardins",
+                Descricao = "Apartamento no ultimo andar.",
+                Tipo = "A",
+                AreaTotal = 82.5m,
+                QuantidadeQuartos = 3,
+                Rua = "Rua Itabaianinha, 430",
+                Bairro = "Jardins",
+                Cep = "49025000",
+                Cidade = "Aracaju",
+                Estado = "Sergipe",
+                Valor = 1450.50m,
+                Finalidade = "A",
+                Status = "P",
+                StatusValidacao = "A",
+                IdPessoaProprietario = 1
+            }
+
+            );
 
         contexto.SaveChanges();
 
@@ -185,6 +252,65 @@ public class ImovelServiceTests
 
         // Assert
         Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void Create_QuandoDadosSaoValidos_DeveGravarComoPendenteComADataDeEnvio()
+    {
+        // Arrange
+        var antes = DateTime.Now;
+        var imovel = new Imovel
+        {
+            Id = 7,
+            Nome = "Kitnet mobiliada no Centro",
+            Descricao = "Kitnet com cozinha planejada, a duas quadras do mercado municipal.",
+            Tipo = "S",
+            AreaTotal = 28m,
+            QuantidadeBanheiros = 1,
+            QuantidadeQuartos = 1,
+            Rua = "Rua Capitão Mendes, 120",
+            Bairro = "Centro",
+            Cep = "49500003",
+            Cidade = "Itabaiana",
+            Estado = "Sergipe",
+            Valor = 550m,
+            Finalidade = "A",
+            IdPessoaProprietario = 2
+        };
+
+        // Act
+        var id = servicoImovel.Create(imovel);
+
+        // Assert
+        var criado = servicoImovel.Get(id);
+
+        Assert.IsNotNull(criado);
+        Assert.AreEqual("P", criado.StatusValidacao);
+        Assert.AreEqual("D", criado.Status);
+        Assert.IsTrue(criado.DataCadastro >= antes);
+        Assert.IsTrue(criado.DataCadastro <= DateTime.Now);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoImovelExiste_DeveManterADataDeEnvioOriginal()
+    {
+        // Arrange
+        var imovel = servicoImovel.Get(1);
+
+        Assert.IsNotNull(imovel);
+
+        imovel.Nome = "Casa com 3 quartos e quintal no Centro";
+        imovel.DataCadastro = new DateTime(2026, 11, 10, 8, 0, 0);
+
+        // Act
+        servicoImovel.Edit(imovel);
+
+        // Assert
+        var editado = servicoImovel.Get(1);
+
+        Assert.IsNotNull(editado);
+        Assert.AreEqual("Casa com 3 quartos e quintal no Centro", editado.Nome);
+        Assert.AreEqual(new DateTime(2026, 7, 21, 14, 30, 0), editado.DataCadastro);
     }
 
     [TestMethod]
@@ -293,5 +419,131 @@ public class ImovelServiceTests
 
         // Assert
         Assert.AreEqual("Imóvel não encontrado.", excecao.Message);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoNaoExistemFiltros_DeveRetornarColecaoComTodosImoveis()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO();
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+
+        // Assert
+        Assert.HasCount(2, imoveis);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriterios_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Termo = "Apartamento",
+            Localizacao = "Jardins",
+            Tipos = new List<string> { "A" },
+            ValorMinimo = 1000m,
+            ValorMaximo = 2000m,
+            QuantidadeQuartos = 2
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(5u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoNaoExistemImoveisQueAtendamOsCriterios_DeveRetornarColecaoVazia()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Termo = "Casa",
+            Localizacao = "Jardins",
+            Tipos = new List<string> { "A" },
+            ValorMinimo = 1000m,
+            ValorMaximo = 2000m,
+            QuantidadeQuartos = 2
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.IsNotNull(imoveis);
+        Assert.IsEmpty(imoveis);
+    }
+
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorArea_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            AreaMinima = 60m,
+            AreaMaxima = 90m
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        CollectionAssert.AreEquivalent(
+            new uint[] { 5 },
+            imoveis.Select(imovel => imovel.Id).ToList());
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorQuantidadeQuartos_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            QuantidadeQuartos = 1
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorValor_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            ValorMinimo = 600m,
+            ValorMaximo = 1000m
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorTipo_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Tipos = new List<string> { "A" }
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        CollectionAssert.AreEquivalent(
+            new uint[] { 5 },
+            imoveis.Select(imovel => imovel.Id).ToList());
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoExistemImoveisQueAtendamOsCriteriosPorTermo_DeveRetornarSomenteImoveisQueAtendam()
+    {
+        // Act
+        var filtro = new ImovelFiltroDTO
+        {
+            Termo = "Studio"
+        };
+        var imoveis = servicoImovel.GetByFiltro(filtro);
+        // Assert
+        Assert.HasCount(1, imoveis);
+        Assert.AreEqual(3u, imoveis.First().Id);
     }
 }
