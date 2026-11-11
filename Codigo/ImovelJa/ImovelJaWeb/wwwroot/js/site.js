@@ -82,7 +82,6 @@
     document.querySelectorAll("[data-rolar-fim]").forEach(function (painel) {
         painel.scrollTop = painel.scrollHeight;
     });
-    document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
     document.querySelectorAll("form[data-confirm-nome]").forEach(ligarConfirmacao);
 
 })();
