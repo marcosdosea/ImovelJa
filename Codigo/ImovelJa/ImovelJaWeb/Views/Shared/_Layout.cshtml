@@ -46,7 +46,7 @@
                 }
                 else if (usuario)
                 {
-                    <a class="cabecalho__icone" asp-area="" asp-controller="Home" asp-action="Index" aria-label="Conversas">
+                    <a class="cabecalho__icone" asp-area="" asp-controller="Mensagem" asp-action="Get" aria-label="Conversas">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                     </a>
                 }
@@ -73,7 +73,7 @@
             <ul class="menu-lateral__links">
                 <li><a asp-area="" asp-controller="Home" asp-action="Index">Perfil</a></li>
                 <li><a asp-area="" asp-controller="Home" asp-action="Index">Gestão de Imóveis</a></li>
-                <li><a asp-area="" asp-controller="Home" asp-action="Index">Conversas</a></li>
+                <li><a asp-area="" asp-controller="Mensagem" asp-action="Get">Conversas</a></li>
                 <li><a asp-area="" asp-controller="Home" asp-action="Index">Planos</a></li>
             </ul>
             <a class="btn menu-lateral__sair" asp-area="" asp-controller="Home" asp-action="Index">Sair</a>

@@ -2,10 +2,15 @@
     "use strict";
 
     /* Envio único: nos formulários marcados com data-envio-unico, desativa os
-       botões depois do primeiro clique. Sem isso, um clique duplo em "Aprovar"
-       manda dois pedidos, e o segundo falha porque o anúncio já foi validado. */
+       botões depois do primeiro clique válido. Sem isso, um clique duplo em
+       "Aprovar" manda dois pedidos, e o segundo falha porque o anúncio já foi
+       validado. Se a validação recusar o envio, os botões continuam ativos. */
     function ligarEnvioUnico(formulario) {
         formulario.addEventListener("submit", function (evento) {
+            if (evento.defaultPrevented || (typeof formulario.checkValidity === "function" && !formulario.checkValidity())) {
+                return;
+            }
+
             var botao = evento.submitter;
 
             /* Botão desativado não é enviado: o valor dele (aprovado=true ou
@@ -46,7 +51,20 @@
         });
     }
 
-    /* Confirmação: nos formulários marcados com data-confirm-nome, pede
+    function iniciar() {
+        document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
+    }
+
+    function agendar() {
+        window.setTimeout(iniciar, 0);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", agendar);
+    } else {
+        agendar();
+    }
+      /* Confirmação: nos formulários marcados com data-confirm-nome, pede
     confirmação antes de bloquear. O nome vem de um atributo, lido como
     texto puro, e nunca é montado dentro de código JavaScript. */
     function ligarConfirmacao(formulario) {
@@ -58,8 +76,13 @@
             }
         });
     }
+    window.addEventListener("pageshow", reativarFormularios);
 
+    /* A conversa abre já no fim do histórico, na mensagem mais recente. */
+    document.querySelectorAll("[data-rolar-fim]").forEach(function (painel) {
+        painel.scrollTop = painel.scrollHeight;
+    });
     document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
     document.querySelectorAll("form[data-confirm-nome]").forEach(ligarConfirmacao);
-    window.addEventListener("pageshow", reativarFormularios);
+
 })();

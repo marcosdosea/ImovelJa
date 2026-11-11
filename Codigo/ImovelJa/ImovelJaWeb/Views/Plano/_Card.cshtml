@@ -1,0 +1,62 @@
+@model ImovelJaWeb.Models.PlanoViewModel
+
+@{
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var gratuito = PlanoTexto.Gratuito(Model.Valor);
+    var inativo = PlanoTexto.Inativo(Model.Status);
+}
+
+<li>
+    <article class="plano" aria-labelledby="plano-@Model.Id">
+        <div class="plano__cabecalho">
+            <div class="plano__identidade">
+                <h2 class="plano__nome" id="plano-@Model.Id">@Model.Nome</h2>
+                @if (inativo)
+                {
+                    <span class="selo selo--inativo">Inativo</span>
+                }
+                <span class="plano__divisor" aria-hidden="true"></span>
+                <p class="plano__limite">@PlanoTexto.Limite(Model.LimiteImoveisAnunciados)</p>
+            </div>
+            <p class="preco plano__preco m-0">
+                @if (gratuito)
+                {
+                    <span>Grátis</span>
+                }
+                else
+                {
+                    @Model.Valor.ToString("C", ptBR)<span class="preco__periodo">/mês</span>
+                }
+            </p>
+            <div class="plano__acoes">
+                <a class="btn btn-editar" asp-action="Edit" asp-route-id="@Model.Id">
+                    Editar<span class="visually-hidden"> @Model.Nome</span>
+                </a>
+                <form asp-action="Activate" method="post" data-envio-unico>
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit"
+                            name="ativo"
+                            value="@(inativo ? "true" : "false")"
+                            class="btn @(inativo ? "btn-ativar" : "btn-desativar")">
+                        @(inativo ? "Ativar" : "Desativar")<span class="visually-hidden"> @Model.Nome</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        @{
+            var beneficios = PlanoTexto.Beneficios(Model.Beneficios);
+        }
+        @if (beneficios.Count > 0)
+        {
+            <ul class="plano__beneficios">
+                @foreach (var beneficio in beneficios)
+                {
+                    <li class="beneficio-chip">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+                        @beneficio
+                    </li>
+                }
+            </ul>
+        }
+    </article>
+</li>

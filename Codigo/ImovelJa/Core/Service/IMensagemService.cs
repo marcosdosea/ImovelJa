@@ -10,5 +10,6 @@ namespace Core.Service
         Mensagem? Get(uint id);
         IEnumerable<Mensagem> GetAll();
         IEnumerable<Mensagem> GetByPessoa(uint idPessoa);
+        IEnumerable<Mensagem> GetConversa(uint idPessoa, uint idOutraPessoa);
     }
 }
