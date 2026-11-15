@@ -15,26 +15,26 @@ namespace ImovelJaWeb.Controllers
             this.imovelService = imovelService;
         }
 
-        // GET: ImovelController/Analise
-        public ActionResult Analise()
+        // GET: ImovelController/Review
+        public ActionResult Review()
         {
             var imoveis = imovelService.GetByValidacao("P");
             var imoveisViewModel = ImovelMapper.ToViewModel(imoveis);
             return View(imoveisViewModel);
         }
 
-        // GET: ImovelController/Validar/5
-        public ActionResult Validar(uint id)
+        // GET: ImovelController/Validate/5
+        public ActionResult Validate(uint id)
         {
             var imovel = imovelService.Get(id);
             var imovelViewModel = imovel != null ? ImovelMapper.ToViewModel(imovel) : new ImovelViewModel();
             return View(imovelViewModel);
         }
 
-        // POST: ImovelController/Approve
+        // POST: ImovelController/Validate/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Approve(ImovelViewModel imovelViewModel, bool aprovado)
+        public ActionResult Validate(ImovelViewModel imovelViewModel, bool aprovado)
         {
             try
             {
@@ -47,14 +47,14 @@ namespace ImovelJaWeb.Controllers
 
                 var imovel = imovelService.Get(imovelViewModel.Id);
                 var modelo = imovel != null ? ImovelMapper.ToViewModel(imovel) : imovelViewModel;
-                return View(nameof(Validar), modelo);
+                return View(nameof(Validate), modelo);
             }
 
-            return RedirectToAction(nameof(Analise));
+            return RedirectToAction(nameof(Review));
         }
 
-        // GET: ImovelController/Buscar?Termo=casa&ValorMaximo=2000
-        public ActionResult Buscar(ImovelFiltroViewModel filtro)
+        // GET: ImovelController/Search?Termo=casa&ValorMaximo=2000
+        public ActionResult Search(ImovelFiltroViewModel filtro)
         {
             ValidarIntervalos(filtro);
             ViewData["Filtro"] = filtro;
@@ -68,8 +68,8 @@ namespace ImovelJaWeb.Controllers
             return View(ImovelMapper.ToViewModel(imoveis));
         }
 
-        // GET: ImovelController/Detalhes/5
-        public ActionResult Detalhes(uint id)
+        // GET: ImovelController/Details/5
+        public ActionResult Details(uint id)
         {
             var imovel = imovelService.Get(id);
 

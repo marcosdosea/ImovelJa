@@ -28,7 +28,7 @@
 }
 
 <div class="titulo-pagina">
-    <a class="voltar" asp-action="Analise" aria-label="Voltar para a análise de anúncios">
+    <a class="voltar" asp-action="Review" aria-label="Voltar para a análise de anúncios">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
     </a>
     <h1>Validar Anúncio</h1>
@@ -89,7 +89,7 @@
 
         <div asp-validation-summary="ModelOnly"></div>
 
-        <form asp-action="Approve" class="acoes-validacao" data-envio-unico>
+        <form asp-action="Validate" class="acoes-validacao" data-envio-unico>
             <input type="hidden" asp-for="Id" />
             <button type="submit" name="aprovado" value="false" class="btn btn-reprovar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>

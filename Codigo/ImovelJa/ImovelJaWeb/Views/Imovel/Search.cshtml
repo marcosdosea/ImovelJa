@@ -25,7 +25,7 @@
 
 <h1 class="visually-hidden">Buscar Imóvel</h1>
 
-<form method="get" asp-controller="Imovel" asp-action="Buscar">
+<form method="get" asp-controller="Imovel" asp-action="Search">
     <div class="busca-campo mb-3" role="search">
         <svg class="busca-campo__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         <input id="Termo" name="Termo" value="@filtro.Termo" type="search" maxlength="100"
@@ -125,7 +125,7 @@
                                 <p class="card-imovel__local">@item.Bairro, @item.Cidade/@item.Estado</p>
                                 <p class="card-imovel__dados">@string.Join(" · ", caracteristicas)</p>
                                 <p class="preco card-imovel__preco">@item.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</p>
-                                <a class="btn btn-primary" asp-action="Detalhes" asp-route-id="@item.Id">Ver detalhes</a>
+                                <a class="btn btn-primary" asp-action="Details" asp-route-id="@item.Id">Ver detalhes</a>
                             </div>
                         </li>
                     }

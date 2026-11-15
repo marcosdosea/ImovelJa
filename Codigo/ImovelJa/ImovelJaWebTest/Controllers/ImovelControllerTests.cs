@@ -46,10 +46,10 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Analise_QuandoExistemAnunciosPendentes_DeveRetornarViewComOsPendentes()
+    public void Review_QuandoExistemAnunciosPendentes_DeveRetornarViewComOsPendentes()
     {
         // Act
-        var resultado = controller.Analise();
+        var resultado = controller.Review();
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -71,7 +71,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Analise_QuandoNaoExistemAnunciosPendentes_DeveRetornarViewComColecaoVazia()
+    public void Review_QuandoNaoExistemAnunciosPendentes_DeveRetornarViewComColecaoVazia()
     {
         // Arrange
         imovelServiceMock
@@ -79,7 +79,7 @@ public class ImovelControllerTests
             .Returns(Array.Empty<Imovel>());
 
         // Act
-        var resultado = controller.Analise();
+        var resultado = controller.Review();
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -94,10 +94,10 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Validar_QuandoImovelExiste_DeveRetornarViewComImovel()
+    public void Validate_QuandoImovelExiste_DeveRetornarViewComImovel()
     {
         // Act
-        var resultado = controller.Validar(1);
+        var resultado = controller.Validate(1);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -119,10 +119,10 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Validar_QuandoImovelNaoExiste_DeveRetornarViewComModeloVazio()
+    public void Validate_QuandoImovelNaoExiste_DeveRetornarViewComModeloVazio()
     {
         // Act
-        var resultado = controller.Validar(999);
+        var resultado = controller.Validate(999);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -138,16 +138,16 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Approve_QuandoAprovado_DeveAprovarAnuncioERedirecionarParaAnalise()
+    public void Validate_QuandoAprovado_DeveAprovarAnuncioERedirecionarParaReview()
     {
         // Arrange
         var modelo = new ImovelViewModel { Id = 1 };
 
         // Act
-        var resultado = controller.Approve(modelo, true);
+        var resultado = controller.Validate(modelo, true);
 
         // Assert
-        VerificarRedirecionamentoParaAnalise(resultado);
+        VerificarRedirecionamentoParaReview(resultado);
 
         imovelServiceMock.Verify(
             service => service.Approve(1, true),
@@ -155,16 +155,16 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Approve_QuandoReprovado_DeveReprovarAnuncioERedirecionarParaAnalise()
+    public void Validate_QuandoReprovado_DeveReprovarAnuncioERedirecionarParaReview()
     {
         // Arrange
         var modelo = new ImovelViewModel { Id = 2 };
 
         // Act
-        var resultado = controller.Approve(modelo, false);
+        var resultado = controller.Validate(modelo, false);
 
         // Assert
-        VerificarRedirecionamentoParaAnalise(resultado);
+        VerificarRedirecionamentoParaReview(resultado);
 
         imovelServiceMock.Verify(
             service => service.Approve(2, false),
@@ -172,7 +172,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Approve_QuandoAnuncioNaoEstaPendente_DeveRetornarViewValidarComMensagemDeErro()
+    public void Validate_QuandoAnuncioNaoEstaPendente_DeveRetornarViewValidateComMensagemDeErro()
     {
         // Arrange
         const string mensagem = "Somente anúncios pendentes podem ser validados.";
@@ -182,14 +182,14 @@ public class ImovelControllerTests
             .Throws(new ServiceException(mensagem));
 
         // Act
-        var resultado = controller.Approve(new ImovelViewModel { Id = 1 }, true);
+        var resultado = controller.Validate(new ImovelViewModel { Id = 1 }, true);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
         var imovel = Assert.IsInstanceOfType<ImovelViewModel>(
             viewResult.ViewData.Model);
 
-        Assert.AreEqual(nameof(ImovelController.Validar), viewResult.ViewName);
+        Assert.AreEqual(nameof(ImovelController.Validate), viewResult.ViewName);
         Assert.AreEqual(1u, imovel.Id);
         Assert.AreEqual("Casa com 3 quartos no Centro", imovel.Nome);
 
@@ -202,7 +202,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Approve_QuandoImovelNaoExiste_DeveRetornarViewValidarComMensagemDeErro()
+    public void Validate_QuandoImovelNaoExiste_DeveRetornarViewValidateComMensagemDeErro()
     {
         // Arrange
         const string mensagem = "Imóvel não encontrado.";
@@ -212,14 +212,14 @@ public class ImovelControllerTests
             .Throws(new ServiceException(mensagem));
 
         // Act
-        var resultado = controller.Approve(new ImovelViewModel { Id = 999 }, true);
+        var resultado = controller.Validate(new ImovelViewModel { Id = 999 }, true);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
         var imovel = Assert.IsInstanceOfType<ImovelViewModel>(
             viewResult.ViewData.Model);
 
-        Assert.AreEqual(nameof(ImovelController.Validar), viewResult.ViewName);
+        Assert.AreEqual(nameof(ImovelController.Validate), viewResult.ViewName);
         Assert.AreEqual(999u, imovel.Id);
 
         var erros = controller.ModelState.Values
@@ -231,7 +231,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Buscar_QuandoExistemResultados_DeveRetornarViewComOsImoveisEncontrados()
+    public void Search_QuandoExistemResultados_DeveRetornarViewComOsImoveisEncontrados()
     {
         // Arrange
         imovelServiceMock
@@ -242,7 +242,7 @@ public class ImovelControllerTests
         var filtro = new ImovelFiltroViewModel { Termo = "casa", ValorMaximo = 2000m };
 
         // Act
-        var resultado = controller.Buscar(filtro);
+        var resultado = controller.Search(filtro);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -260,7 +260,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Buscar_QuandoNaoHaResultados_DeveRetornarViewComColecaoVazia()
+    public void Search_QuandoNaoHaResultados_DeveRetornarViewComColecaoVazia()
     {
         // Arrange
         imovelServiceMock
@@ -268,7 +268,7 @@ public class ImovelControllerTests
             .Returns(Array.Empty<Imovel>());
 
         // Act
-        var resultado = controller.Buscar(new ImovelFiltroViewModel { Termo = "castelo" });
+        var resultado = controller.Search(new ImovelFiltroViewModel { Termo = "castelo" });
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -280,13 +280,13 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Buscar_QuandoValorMinimoMaiorQueMaximo_DeveRetornarViewComErroSemConsultarService()
+    public void Search_QuandoValorMinimoMaiorQueMaximo_DeveRetornarViewComErroSemConsultarService()
     {
         // Arrange
         var filtro = new ImovelFiltroViewModel { ValorMinimo = 2000m, ValorMaximo = 1000m };
 
         // Act
-        var resultado = controller.Buscar(filtro);
+        var resultado = controller.Search(filtro);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -303,13 +303,13 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Buscar_QuandoAreaMinimaMaiorQueMaxima_DeveRetornarViewComErroSemConsultarService()
+    public void Search_QuandoAreaMinimaMaiorQueMaxima_DeveRetornarViewComErroSemConsultarService()
     {
         // Arrange
         var filtro = new ImovelFiltroViewModel { AreaMinima = 200m, AreaMaxima = 100m };
 
         // Act
-        var resultado = controller.Buscar(filtro);
+        var resultado = controller.Search(filtro);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -326,7 +326,7 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Buscar_QuandoModelStateJaPossuiErro_DeveRetornarViewVaziaSemConsultarService()
+    public void Search_QuandoModelStateJaPossuiErro_DeveRetornarViewVaziaSemConsultarService()
     {
         // Arrange
         controller.ModelState.AddModelError(
@@ -334,7 +334,7 @@ public class ImovelControllerTests
             "O campo Valor mínimo não pode ser negativo");
 
         // Act
-        var resultado = controller.Buscar(new ImovelFiltroViewModel { ValorMinimo = -1m });
+        var resultado = controller.Search(new ImovelFiltroViewModel { ValorMinimo = -1m });
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -349,10 +349,10 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Detalhes_QuandoImovelAprovadoEDisponivel_DeveRetornarViewComImovel()
+    public void Details_QuandoImovelAprovadoEDisponivel_DeveRetornarViewComImovel()
     {
         // Act
-        var resultado = controller.Detalhes(3);
+        var resultado = controller.Details(3);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
@@ -369,10 +369,10 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
-    public void Detalhes_QuandoImovelNaoExiste_DeveRetornarNotFound()
+    public void Details_QuandoImovelNaoExiste_DeveRetornarNotFound()
     {
         // Act
-        var resultado = controller.Detalhes(999);
+        var resultado = controller.Details(999);
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
@@ -386,23 +386,23 @@ public class ImovelControllerTests
     [DataRow(1u)] // pendente
     [DataRow(4u)] // reprovado
     [DataRow(5u)] // aprovado, mas alugado
-    public void Detalhes_QuandoImovelNaoAprovadoOuIndisponivel_DeveRetornarNotFound(uint id)
+    public void Details_QuandoImovelNaoAprovadoOuIndisponivel_DeveRetornarNotFound(uint id)
     {
         // Act
-        var resultado = controller.Detalhes(id);
+        var resultado = controller.Details(id);
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
     }
 
-    private static void VerificarRedirecionamentoParaAnalise(ActionResult resultado)
+    private static void VerificarRedirecionamentoParaReview(ActionResult resultado)
     {
         var redirectResult =
             Assert.IsInstanceOfType<RedirectToActionResult>(resultado);
 
         Assert.IsNull(redirectResult.ControllerName);
         Assert.AreEqual(
-            nameof(ImovelController.Analise),
+            nameof(ImovelController.Review),
             redirectResult.ActionName);
     }
 
