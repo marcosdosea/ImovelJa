@@ -1,4 +1,9 @@
-# ImóvelJá
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="Codigo/ImovelJa/ImovelJaWeb/wwwroot/img/logo-imovelja-2x.png">
+    <img src=".github/img/logo-imovelja-clara.png" alt="ImóvelJá" width="200" height="80">
+  </picture>
+</h1>
 
 > Anúncio, negociação e gestão de aluguéis em um só lugar.
 
@@ -50,11 +55,65 @@ Diferente das plataformas focadas apenas em classificados, o ImóvelJá acompanh
 
 ## 5. Equipe
 
-| Nome | Função |
-| --- | --- |
-| [Bernardo Santos](https://github.com/bernardonx20-dot) | Desenvolvedor |
-| [Gabriel Silva](https://github.com/vgabrielsilva) | Desenvolvedor |
-| [Igor Dias](https://github.com/iidias) | Desenvolvedor |
-| [Juliano Carlos](https://github.com/JulianoFVS) | Desenvolvedor |
-| [Yasmim Passos](https://github.com/yasmim-passos) | Desenvolvedora |
-| [Marcos Dósea](https://github.com/marcosdosea) | Product Owner |
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/Bernardonx20" target="_blank">
+        <img src="https://github.com/Bernardonx20.png?size=100" width="100" height="100" alt="Foto de Bernardo Santos no GitHub"/><br>
+        <sub>
+          <b>Bernardo Santos</b>
+          <p>Desenvolvedor</p>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/vgabrielsilva" target="_blank">
+        <img src="https://github.com/vgabrielsilva.png?size=100" width="100" height="100" alt="Foto de Gabriel Silva no GitHub"/><br>
+        <sub>
+          <b>Gabriel Silva</b>
+          <p>Desenvolvedor</p>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/iidias" target="_blank">
+        <img src="https://github.com/iidias.png?size=100" width="100" height="100" alt="Foto de Igor Dias no GitHub"/><br>
+        <sub>
+          <b>Igor Dias</b>
+          <p>Desenvolvedor</p>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/JulianoFVS" target="_blank">
+        <img src="https://github.com/JulianoFVS.png?size=100" width="100" height="100" alt="Foto de Juliano Carlos no GitHub"/><br>
+        <sub>
+          <b>Juliano Carlos</b>
+          <p>Desenvolvedor</p>
+        </sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/yasmim-passos" target="_blank">
+        <img src="https://github.com/yasmim-passos.png?size=100" width="100" height="100" alt="Foto de Yasmim Passos no GitHub"/><br>
+        <sub>
+          <b>Yasmim Passos</b>
+          <p>Desenvolvedora</p>
+        </sub>
+      </a>
+    </td>
+  </tr>
+</table>
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://github.com/marcosdosea" target="_blank">
+        <img src="https://github.com/marcosdosea.png?size=100" width="100" height="100" alt="Foto de Marcos Dósea no GitHub"/><br>
+        <sub>
+          <b>Marcos Dósea</b>
+          <p>Product Owner</p>
+        </sub>
+      </a>
+    </td>
+  </tr>
+</table>
