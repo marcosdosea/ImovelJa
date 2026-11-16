@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Util;
 
 namespace ImovelJaWeb.Models
 {
@@ -60,6 +61,7 @@ namespace ImovelJaWeb.Models
         [Display(Name = "CEP")]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         [RegularExpression("^[0-9]{8}$", ErrorMessage = "O campo {0} deve ter 8 dígitos, somente números")]
+        [Cep(ErrorMessage = "CEP inválido")]
         public string Cep { get; set; } = null!;
 
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
