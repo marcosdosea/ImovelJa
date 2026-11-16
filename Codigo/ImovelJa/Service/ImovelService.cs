@@ -90,6 +90,18 @@ namespace Service
         }
 
         /// <summary>
+        /// retorna um imóvel pelo id, apenas se estiver aprovado e disponível para aluguel ou venda 
+        /// </summary>
+        /// <param name="id">id do imóvel</param>
+        /// <returns>dados do imóvel ou nulo se não for encontrado</returns>
+        public Imovel? GetPublico(uint id)
+        {
+            return AnunciosPublicos()
+                .AsNoTracking()
+                .FirstOrDefault(i => i.Id == id);
+        }
+
+        /// <summary>
         /// Busca todos os imóveis cadastrados
         /// </summary>
         /// <returns>lista de imóveis</returns>
@@ -118,17 +130,6 @@ namespace Service
             return context.Imovels.Where(i => i.StatusValidacao == statusValidacao).AsNoTracking();
         }
 
-        /// <summary>
-        /// Busca pública de imóveis pelo nome: retorna apenas anúncios aprovados e disponíveis
-        /// </summary>
-        /// <param name="nome">termo de busca</param>
-        /// <returns>lista de imóveis encontrados</returns>
-        public IEnumerable<Imovel> GetByNome(string nome)
-        {
-            return context.Imovels
-                .Where(i => i.Nome.Contains(nome) && i.StatusValidacao == "A" && i.Status == "D")
-                .AsNoTracking();
-        }
 
         /// <summary>
         /// Aprova ou reprova um anúncio pendente de validação
@@ -170,6 +171,17 @@ namespace Service
                 ?? throw new ServiceException("Plano Básico não cadastrado.");
         }
 
+
+        /// <summary>
+        /// retorna apenas os anúncios aprovados e disponíveis, para uso interno do serviço
+        /// </summary>
+        /// <returns>coleção de imóveis aprovados e disponíveis</returns>
+        private IQueryable<Imovel> AnunciosPublicos()
+        {
+            return context.Imovels.Where(i => i.StatusValidacao == "A" && i.Status == "D");
+        }
+
+
         /// <summary>
         /// Busca os imoveis disponíveis para aluguel ou venda, de acordo com os critérios informados no filtro, 
         /// não incluindo imóveis que não estão aprovados ou que já foram alugados ou vendidos
@@ -178,7 +190,7 @@ namespace Service
         /// <returns>coleção de imóveis que atendem aos critérios</returns>
         public IEnumerable<Imovel> GetByFiltro(ImovelFiltroDTO filtro)
         {
-            var consulta = context.Imovels.Where(i => i.Status == "D" && i.StatusValidacao == "A");
+            var consulta = AnunciosPublicos();  
 
             if (!string.IsNullOrEmpty(filtro.Termo))
             {

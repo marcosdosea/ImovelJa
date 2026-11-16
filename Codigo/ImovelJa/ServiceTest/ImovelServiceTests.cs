@@ -359,7 +359,7 @@ public class ImovelServiceTests
         servicoImovel.Approve(1, true);
 
         // Assert
-        var imoveis = servicoImovel.GetByNome("Casa com 3 quartos").ToList();
+        var imoveis = servicoImovel.GetByFiltro(new ImovelFiltroDTO { Termo = "Casa com 3 quartos" }).ToList();
 
         Assert.HasCount(1, imoveis);
         Assert.AreEqual(1u, imoveis[0].Id);
@@ -372,7 +372,7 @@ public class ImovelServiceTests
         servicoImovel.Approve(2, false);
 
         // Assert
-        var imoveis = servicoImovel.GetByNome("Apartamento mobiliado").ToList();
+        var imoveis = servicoImovel.GetByFiltro(new ImovelFiltroDTO { Termo = "Apartamento mobiliado" }).ToList();
 
         Assert.IsNotNull(imoveis);
         Assert.IsEmpty(imoveis);
@@ -545,5 +545,73 @@ public class ImovelServiceTests
         // Assert
         Assert.HasCount(1, imoveis);
         Assert.AreEqual(3u, imoveis.First().Id);
+    }
+
+    [TestMethod]
+    public void GetPublico_QuandoImovelAprovadoEDisponivel_DeveRetornarImovel()
+    {
+        // Act
+        var imovel = servicoImovel.GetPublico(3);
+
+        // Assert
+        Assert.IsNotNull(imovel);
+        Assert.AreEqual(3u, imovel.Id);
+        Assert.AreEqual("A", imovel.StatusValidacao);
+        Assert.AreEqual("D", imovel.Status);
+    }
+
+    [TestMethod]
+    public void GetPublico_QuandoAnuncioPendente_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetPublico(1);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void GetPublico_QuandoAnuncioReprovado_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetPublico(4);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void GetPublico_QuandoImovelAprovadoMasAlugado_DeveRetornarNulo()
+    {
+        // Arrange
+        var alugado = contexto.Imovels.Find(5u)!;
+        alugado.Status = "A";
+        contexto.SaveChanges();
+
+        // Act
+        var imovel = servicoImovel.GetPublico(5);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void GetPublico_QuandoImovelAprovadoMasPausado_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetPublico(6);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void GetPublico_QuandoImovelNaoExiste_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetPublico(999);
+
+        // Assert
+        Assert.IsNull(imovel);
     }
 }
