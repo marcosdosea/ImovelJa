@@ -90,7 +90,7 @@ namespace Service
         }
 
         /// <summary>
-        /// retorna um imóvel pelo id, apenas se estiver aprovado e disponível para aluguel ou venda 
+        /// Retorna um imóvel pelo id, apenas se estiver aprovado e disponível para aluguel ou venda 
         /// </summary>
         /// <param name="id">id do imóvel</param>
         /// <returns>dados do imóvel ou nulo se não for encontrado</returns>
@@ -129,7 +129,6 @@ namespace Service
         {
             return context.Imovels.Where(i => i.StatusValidacao == statusValidacao).AsNoTracking();
         }
-
 
         /// <summary>
         /// Aprova ou reprova um anúncio pendente de validação
@@ -171,16 +170,14 @@ namespace Service
                 ?? throw new ServiceException("Plano Básico não cadastrado.");
         }
 
-
         /// <summary>
-        /// retorna apenas os anúncios aprovados e disponíveis, para uso interno do serviço
+        /// Retorna apenas os anúncios aprovados e disponíveis, para uso interno do serviço
         /// </summary>
         /// <returns>coleção de imóveis aprovados e disponíveis</returns>
         private IQueryable<Imovel> AnunciosPublicos()
         {
             return context.Imovels.Where(i => i.StatusValidacao == "A" && i.Status == "D");
         }
-
 
         /// <summary>
         /// Busca os imoveis disponíveis para aluguel ou venda, de acordo com os critérios informados no filtro, 
