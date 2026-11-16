@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Util;
 
 namespace ImovelJaWeb.Models
 {
@@ -30,10 +31,12 @@ namespace ImovelJaWeb.Models
 
         [Display(Name = "CPF")]
         [RegularExpression("^[0-9]{11}$", ErrorMessage = "O campo {0} deve ter 11 dígitos, somente números")]
+        [CPF(ErrorMessage = "CPF inválido")]
         public string? Cpf { get; set; }
 
         [Display(Name = "CNPJ")]
         [RegularExpression("^[0-9]{14}$", ErrorMessage = "O campo {0} deve ter 14 dígitos, somente números")]
+        [Cnpj(ErrorMessage = "CNPJ inválido")]
         public string? Cnpj { get; set; }
 
         [Display(Name = "Data de nascimento")]

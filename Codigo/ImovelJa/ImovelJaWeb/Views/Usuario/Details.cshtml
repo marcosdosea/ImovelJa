@@ -12,12 +12,8 @@
 
     var documentoRotulo = Model.Tipo == "F" ? "CPF" : "CNPJ";
     var documento = Model.Tipo == "F"
-        ? (Model.Cpf is { Length: 11 }
-        ? $"{Model.Cpf[..3]}.{Model.Cpf[3..6]}.{Model.Cpf[6..9]}-{Model.Cpf[9..]}"
-        : Model.Cpf)
-        : (Model.Cnpj is { Length: 14 }
-        ? $"{Model.Cnpj[..2]}.{Model.Cnpj[2..5]}.{Model.Cnpj[5..8]}/{Model.Cnpj[8..12]}-{Model.Cnpj[12..]}"
-        : Model.Cnpj);
+        ? (Model.Cpf is { Length: 11 } ? Methods.PatternCpf(Model.Cpf) : Model.Cpf)
+        : (Model.Cnpj is { Length: 14 } ? Methods.PatternCnpj(Model.Cnpj) : Model.Cnpj);
 }
 
 <div class="titulo-pagina">

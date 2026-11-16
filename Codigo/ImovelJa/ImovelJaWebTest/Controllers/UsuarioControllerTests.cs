@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Core;
 using Core.Service;
 using ImovelJaWeb.Models;
@@ -212,6 +213,87 @@ public class UsuarioControllerTests
 
         Assert.AreEqual("Usuário ativado com sucesso.", controller.TempData["Mensagem"]);
         Assert.IsNull(controller.TempData["Erro"]);
+    }
+
+    [TestMethod]
+    public void PessoaViewModel_QuandoCpfValido_DeveSerValido()
+    {
+        // Arrange
+        var modelo = new PessoaViewModel { Id = 1, Tipo = "F", Nome = "Maria José Santos", Cpf = "52998224725", Status = "A" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsFalse(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(PessoaViewModel.Cpf))));
+    }
+
+    [TestMethod]
+    public void PessoaViewModel_QuandoCpfComDigitoVerificadorErrado_DeveSerInvalido()
+    {
+        // Arrange
+        var modelo = new PessoaViewModel { Id = 1, Tipo = "F", Nome = "Maria José Santos", Cpf = "52998224724", Status = "A" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsTrue(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(PessoaViewModel.Cpf))
+            && resultado.ErrorMessage == "CPF inválido"));
+    }
+
+    [TestMethod]
+    public void PessoaViewModel_QuandoCpfComDigitosRepetidos_DeveSerInvalido()
+    {
+        // Arrange
+        var modelo = new PessoaViewModel { Id = 1, Tipo = "F", Nome = "Maria José Santos", Cpf = "11111111111", Status = "A" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsTrue(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(PessoaViewModel.Cpf))
+            && resultado.ErrorMessage == "CPF inválido"));
+    }
+
+    [TestMethod]
+    public void PessoaViewModel_QuandoCnpjValido_DeveSerValido()
+    {
+        // Arrange
+        var modelo = new PessoaViewModel { Id = 2, Tipo = "J", Nome = "Imobiliária Central", Cnpj = "11222333000181", Status = "A" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsFalse(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(PessoaViewModel.Cnpj))));
+    }
+
+    [TestMethod]
+    public void PessoaViewModel_QuandoCnpjComDigitoVerificadorErrado_DeveSerInvalido()
+    {
+        // Arrange
+        var modelo = new PessoaViewModel { Id = 2, Tipo = "J", Nome = "Imobiliária Central", Cnpj = "11222333000180", Status = "A" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsTrue(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(PessoaViewModel.Cnpj))
+            && resultado.ErrorMessage == "CNPJ inválido"));
+    }
+
+    private static List<ValidationResult> Validar(PessoaViewModel modelo)
+    {
+        var contexto = new ValidationContext(modelo);
+        var resultados = new List<ValidationResult>();
+        Validator.TryValidateObject(modelo, contexto, resultados, validateAllProperties: true);
+        return resultados;
     }
 
     private static void VerificarRedirecionamentoParaLista(ActionResult resultado)
