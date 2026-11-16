@@ -30,7 +30,12 @@
                     </button>
                 }
                 <a class="marca" asp-area="" asp-controller="Home" asp-action="Index">
-                    <img class="marca__logo" src="~/img/logo-imovelja.svg" alt="ImóvelJá" />
+                    @* Cada tamanho da logo tem o próprio arquivo, exibido no tamanho real;
+                       a versão 2x é para telas de alta densidade *@
+                    <picture>
+                        <source media="(min-width: 768px)" srcset="/img/logo-imovelja.png 1x, /img/logo-imovelja-2x.png 2x" width="100" height="40" />
+                        <img class="marca__logo" src="~/img/logo-imovelja-pequena.png" srcset="/img/logo-imovelja-pequena.png 1x, /img/logo-imovelja-pequena-2x.png 2x" width="80" height="32" alt="ImóvelJá" />
+                    </picture>
                 </a>
                 @if (administrador)
                 {
