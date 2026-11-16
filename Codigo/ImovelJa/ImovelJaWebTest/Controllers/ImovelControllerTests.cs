@@ -31,16 +31,12 @@ public class ImovelControllerTests
             .Returns((Imovel?)null);
 
         imovelServiceMock
-            .Setup(service => service.Get(3))
+            .Setup(service => service.GetPublico(3))
             .Returns(ObterImovelPublico(3));
 
         imovelServiceMock
-            .Setup(service => service.Get(4))
-            .Returns(ObterImovelPublico(4, statusValidacao: "R"));
-
-        imovelServiceMock
-            .Setup(service => service.Get(5))
-            .Returns(ObterImovelPublico(5, status: "A"));
+            .Setup(service => service.GetPublico(999))
+            .Returns((Imovel?)null);
 
         controller = new ImovelController(imovelServiceMock.Object);
     }
@@ -364,7 +360,7 @@ public class ImovelControllerTests
         Assert.AreEqual("D", imovel.Status);
 
         imovelServiceMock.Verify(
-            service => service.Get(3),
+            service => service.GetPublico(3),
             Times.Once);
     }
 
@@ -378,7 +374,7 @@ public class ImovelControllerTests
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
 
         imovelServiceMock.Verify(
-            service => service.Get(999),
+            service => service.GetPublico(999),
             Times.Once);
     }
 
@@ -386,13 +382,17 @@ public class ImovelControllerTests
     [DataRow(1u)] // pendente
     [DataRow(4u)] // reprovado
     [DataRow(5u)] // aprovado, mas alugado
-    public void Details_QuandoImovelNaoAprovadoOuIndisponivel_DeveRetornarNotFound(uint id)
+    public void Details_QuandoServiceNaoRetornaAnuncioPublico_DeveRetornarNotFound(uint id)
     {
-        // Act
+        // Act: o service retorna nulo (sem configuração no mock) para anúncios que não são públicos
         var resultado = controller.Details(id);
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
+
+        imovelServiceMock.Verify(
+            service => service.GetPublico(id),
+            Times.Once);
     }
 
     private static void VerificarRedirecionamentoParaReview(ActionResult resultado)

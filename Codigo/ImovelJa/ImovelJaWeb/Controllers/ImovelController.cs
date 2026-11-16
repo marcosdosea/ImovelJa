@@ -71,9 +71,9 @@ namespace ImovelJaWeb.Controllers
         // GET: ImovelController/Details/5
         public ActionResult Details(uint id)
         {
-            var imovel = imovelService.Get(id);
+            var imovel = imovelService.GetPublico(id);
 
-            if (imovel == null || imovel.StatusValidacao != "A" || imovel.Status != "D")
+            if (imovel == null)
             {
                 return NotFound();
             }
