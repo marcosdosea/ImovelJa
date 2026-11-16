@@ -210,8 +210,7 @@ h1 {
     flex-shrink: 0;
 }
 
-/* Logo em SVG: um arquivo vetorial serve o celular e o computador sem perder
-   qualidade nem baixar uma imagem maior que a necessária */
+/* Logo: o tamanho vem de cada arquivo de imagem (celular e computador), sem redimensionar */
 .marca {
     display: inline-flex;
     flex-shrink: 0;
@@ -226,16 +225,6 @@ h1 {
 
 .marca__logo {
     display: block;
-    width: auto;
-    height: 2rem;
-    aspect-ratio: 623 / 249;
-}
-
-@media (min-width: 768px) {
-
-    .marca__logo {
-        height: 2.5rem;
-    }
 }
 
 .cabecalho__perfil {
