@@ -53,12 +53,8 @@ else
                 ? ("Ativo", "selo--aprovado")
                 : ("Bloqueado", "selo--reprovado");
             var documento = item.Tipo == "F"
-                ? (item.Cpf is { Length: 11 }
-                    ? $"{item.Cpf[..3]}.{item.Cpf[3..6]}.{item.Cpf[6..9]}-{item.Cpf[9..]}"
-                    : item.Cpf)
-                : (item.Cnpj is { Length: 14 }
-                    ? $"{item.Cnpj[..2]}.{item.Cnpj[2..5]}.{item.Cnpj[5..8]}/{item.Cnpj[8..12]}-{item.Cnpj[12..]}"
-                    : item.Cnpj);
+                ? (item.Cpf is { Length: 11 } ? Methods.PatternCpf(item.Cpf) : item.Cpf)
+                : (item.Cnpj is { Length: 14 } ? Methods.PatternCnpj(item.Cnpj) : item.Cnpj);
             <li data-filtro-texto="@item.Nome @item.Cpf@item.Cnpj">
                 <article class="anuncio anuncio--usuario" aria-labelledby="usuario-@item.Id">
                     <div class="anuncio__dados">
