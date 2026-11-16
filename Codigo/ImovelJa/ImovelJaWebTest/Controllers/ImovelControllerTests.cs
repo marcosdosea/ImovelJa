@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Core;
 using Core.Service;
 using ImovelJaWeb.Models;
@@ -393,6 +394,42 @@ public class ImovelControllerTests
         imovelServiceMock.Verify(
             service => service.GetPublico(id),
             Times.Once);
+    }
+
+    [TestMethod]
+    public void ImovelViewModel_QuandoCepValido_DeveSerValido()
+    {
+        // Arrange
+        var modelo = new ImovelViewModel { Cep = "49500000" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsFalse(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(ImovelViewModel.Cep))));
+    }
+
+    [TestMethod]
+    public void ImovelViewModel_QuandoCepComQuantidadeDeDigitosErrada_DeveSerInvalido()
+    {
+        // Arrange
+        var modelo = new ImovelViewModel { Cep = "4950000" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsTrue(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(ImovelViewModel.Cep))));
+    }
+
+    private static List<ValidationResult> Validar(ImovelViewModel modelo)
+    {
+        var contexto = new ValidationContext(modelo);
+        var resultados = new List<ValidationResult>();
+        Validator.TryValidateObject(modelo, contexto, resultados, validateAllProperties: true);
+        return resultados;
     }
 
     private static void VerificarRedirecionamentoParaReview(ActionResult resultado)
