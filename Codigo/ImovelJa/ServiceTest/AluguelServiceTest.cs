@@ -206,8 +206,8 @@ public class AluguelServiceTests
             IdPessoaInquilinoNavigation = new Pessoa
             {
                 Tipo = "F",
-                Nome = "Nome digitado diferente",
-                Cpf = "39053344705" 
+                Nome = "Bernardo",
+                Cpf = "10934764510" 
             }
         };
 
