@@ -1,0 +1,41 @@
+@model ImovelJaWeb.Models.ImovelViewModel
+
+@{
+    ViewData["Title"] = "Excluir anúncio";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["NomeUsuario"] = "Proprietário";
+    ViewData["IdPessoa"] = Model.IdPessoaProprietario;
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var aluguel = Model.Finalidade != "V";
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Index" asp-route-idPessoa="@Model.IdPessoaProprietario" aria-label="Voltar para a gestão de imóveis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Excluir anúncio</h1>
+        <p>Confirme a exclusão do imóvel</p>
+    </div>
+</div>
+
+<div class="painel-formulario">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    @if (Model.Id == 0)
+    {
+        <p class="lista-vazia">Imóvel não encontrado.</p>
+    }
+    else
+    {
+        <p>Deseja excluir o anúncio <strong>@Model.Nome</strong>? Esta ação não pode ser desfeita.</p>
+        <p class="anuncio__local">@Model.Bairro, @Model.Cidade - @Model.Estado · @Model.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</p>
+
+        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="acoes-formulario" data-envio-unico>
+            <input type="hidden" name="idPessoa" value="@Model.IdPessoaProprietario" />
+            <button type="submit" class="btn btn-reprovar">Excluir</button>
+            <a class="btn btn-outline-primary" asp-action="Index" asp-route-idPessoa="@Model.IdPessoaProprietario">Cancelar</a>
+        </form>
+    }
+</div>

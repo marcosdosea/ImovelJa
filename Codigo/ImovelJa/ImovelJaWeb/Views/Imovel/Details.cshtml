@@ -3,9 +3,31 @@
 @{
     ViewData["Title"] = Model.Id == 0 ? "Anúncio" : Model.Nome;
 
+    var dono = ViewData["Dono"] as bool? == true;
+    if (dono)
+    {
+        ViewData["Perfil"] = "Usuario";
+        ViewData["NomeUsuario"] = "Proprietário";
+        ViewData["IdPessoa"] = Model.IdPessoaProprietario;
+    }
+
     var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
     var aluguel = Model.Finalidade == "A";
     var area = Model.AreaTotal.HasValue ? Model.AreaTotal.Value.ToString("0.##", ptBR) + "m²" : "-";
+    var cep = Model.Cep?.Length == 8 ? $"{Model.Cep[..5]}-{Model.Cep[5..]}" : Model.Cep;
+    var validacao = Model.StatusValidacao switch
+    {
+        "A" => ("Aprovado", "selo--aprovado"),
+        "R" => ("Reprovado", "selo--reprovado"),
+        _ => ("Pendente", "selo--pendente")
+    };
+    var situacao = Model.Status switch
+    {
+        "A" => ("Alugado", ""),
+        "V" => ("Vendido", ""),
+        "P" => ("Pausado", "selo--pendente"),
+        _ => ("Disponível", "selo--aprovado")
+    };
 }
 
 @if (Model.Id == 0)
@@ -16,7 +38,7 @@ else
 {
     <div class="detalhe-publico">
         <div class="titulo-pagina">
-            <a class="voltar" asp-controller="Home" asp-action="Index" aria-label="Voltar ao início">
+            <a class="voltar" asp-controller="@(dono ? "Imovel" : "Home")" asp-action="Index" asp-route-idPessoa="@(dono ? Model.IdPessoaProprietario : null)" aria-label="@(dono ? "Voltar para a gestão de imóveis" : "Voltar ao início")">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
             </a>
         </div>
@@ -41,6 +63,16 @@ else
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
                         @Model.Bairro, @Model.Cidade - @Model.Estado
                     </p>
+                    @if (dono)
+                    {
+                        <p class="detalhe-anuncio__selos">
+                            <span class="visually-hidden">Situação: </span>
+                            <span class="selo @situacao.Item2">@situacao.Item1</span>
+                            <span class="visually-hidden">Validação: </span>
+                            <span class="selo @validacao.Item2">@validacao.Item1</span>
+                        </p>
+                        <p class="detalhe-anuncio__local">@Model.Rua, CEP @cep</p>
+                    }
                 </header>
 
                 <dl class="faixa-dados">
@@ -76,7 +108,28 @@ else
                     </p>
                 </div>
 
-                <partial name="_BotaoContato" />
+                @if (dono)
+                {
+                    <div class="acoes-formulario">
+                        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id" asp-route-idPessoa="@Model.IdPessoaProprietario">Editar</a>
+                        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id" asp-route-idPessoa="@Model.IdPessoaProprietario">Excluir</a>
+                        @if (Model.Status == "D" || Model.Status == "P")
+                        {
+                            var pausado = Model.Status == "P";
+                            <form asp-action="Pause" method="post" class="d-inline" data-envio-unico>
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <input type="hidden" name="idPessoa" value="@Model.IdPessoaProprietario" />
+                                <button type="submit" name="pausado" value="@(!pausado ? "true" : "false")" class="btn @(pausado ? "btn-primary" : "btn-outline-primary")">
+                                    @(pausado ? "Retomar" : "Pausar")
+                                </button>
+                            </form>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <partial name="_BotaoContato" />
+                }
             </div>
         </article>
     </div>
