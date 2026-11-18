@@ -1,3 +1,4 @@
+using Core;
 using Core.DTO;
 using Core.Service;
 using ImovelJaWeb.Mappers;
@@ -68,17 +69,208 @@ namespace ImovelJaWeb.Controllers
             return View(ImovelMapper.ToViewModel(imoveis));
         }
 
-        // GET: ImovelController/Details/5
-        public ActionResult Details(uint id)
+        // GET: Imovel/Index?idPessoa=1
+        public ActionResult Index(uint idPessoa)
         {
-            var imovel = imovelService.GetPublico(id);
+            ViewData["IdPessoa"] = idPessoa;
+            return View(Listar(idPessoa));
+        }
 
+        // GET: Imovel/Create?idPessoa=1
+        public ActionResult Create(uint idPessoa)
+        {
+            ViewData["IdPessoa"] = idPessoa;
+            return View(new ImovelViewModel { IdPessoaProprietario = idPessoa });
+        }
+
+        // POST: Imovel/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(ImovelViewModel imovelViewModel)
+        {
+            ViewData["IdPessoa"] = imovelViewModel.IdPessoaProprietario;
+
+            if (!ModelState.IsValid)
+            {
+                return View(imovelViewModel);
+            }
+
+            try
+            {
+                imovelService.Create(ImovelMapper.ToEntity(imovelViewModel));
+            }
+            catch (ServiceException ex)
+            {
+                ModelState.Clear();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(imovelViewModel);
+            }
+
+            return RedirectToAction(nameof(Index), new { idPessoa = imovelViewModel.IdPessoaProprietario });
+        }
+
+        // GET: Imovel/Edit/5?idPessoa=1
+        public ActionResult Edit(uint id, uint idPessoa)
+        {
+            ViewData["IdPessoa"] = idPessoa;
+            var imovel = ObterDoProprietario(id, idPessoa);
+            var imovelViewModel = imovel != null
+                ? ImovelMapper.ToViewModel(imovel)
+                : new ImovelViewModel { IdPessoaProprietario = idPessoa };
+            return View(imovelViewModel);
+        }
+
+        // POST: Imovel/Edit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(ImovelViewModel imovelViewModel)
+        {
+            ViewData["IdPessoa"] = imovelViewModel.IdPessoaProprietario;
+
+            if (!ModelState.IsValid)
+            {
+                return View(imovelViewModel);
+            }
+
+            if (ObterDoProprietario(imovelViewModel.Id, imovelViewModel.IdPessoaProprietario) == null)
+            {
+                ModelState.AddModelError(string.Empty, "Imóvel não encontrado.");
+                return View(imovelViewModel);
+            }
+
+            try
+            {
+                imovelService.Edit(ImovelMapper.ToEntity(imovelViewModel));
+            }
+            catch (ServiceException ex)
+            {
+                ModelState.Clear();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(imovelViewModel);
+            }
+
+            return RedirectToAction(nameof(Index), new { idPessoa = imovelViewModel.IdPessoaProprietario });
+        }
+
+        // GET: Imovel/Delete/5?idPessoa=1
+        public ActionResult Delete(uint id, uint idPessoa)
+        {
+            ViewData["IdPessoa"] = idPessoa;
+            var imovel = ObterDoProprietario(id, idPessoa);
+            var imovelViewModel = imovel != null
+                ? ImovelMapper.ToViewModel(imovel)
+                : new ImovelViewModel { IdPessoaProprietario = idPessoa };
+            return View(imovelViewModel);
+        }
+
+        // POST: Imovel/Delete/5
+        [HttpPost]
+        [ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(uint id, uint idPessoa)
+        {
+            ViewData["IdPessoa"] = idPessoa;
+
+            if (!ModelState.IsValid)
+            {
+                var invalido = ObterDoProprietario(id, idPessoa);
+                var modeloInvalido = invalido != null
+                    ? ImovelMapper.ToViewModel(invalido)
+                    : new ImovelViewModel { Id = id, IdPessoaProprietario = idPessoa };
+                return View(modeloInvalido);
+            }
+
+            var imovel = ObterDoProprietario(id, idPessoa);
             if (imovel == null)
+            {
+                ModelState.AddModelError(string.Empty, "Imóvel não encontrado.");
+                return View(new ImovelViewModel { IdPessoaProprietario = idPessoa });
+            }
+
+            try
+            {
+                imovelService.Delete(id);
+            }
+            catch (ServiceException ex)
+            {
+                ModelState.Clear();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(ImovelMapper.ToViewModel(imovel));
+            }
+
+            return RedirectToAction(nameof(Index), new { idPessoa });
+        }
+
+        // POST: Imovel/Pause
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Pause(uint id, bool pausado, uint idPessoa)
+        {
+            ViewData["IdPessoa"] = idPessoa;
+
+            if (!ModelState.IsValid)
+            {
+                return View(nameof(Index), Listar(idPessoa));
+            }
+
+            if (ObterDoProprietario(id, idPessoa) == null)
+            {
+                ModelState.AddModelError(string.Empty, "Imóvel não encontrado.");
+                return View(nameof(Index), Listar(idPessoa));
+            }
+
+            try
+            {
+                imovelService.Pause(id, pausado);
+            }
+            catch (ServiceException ex)
+            {
+                ModelState.Clear();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(nameof(Index), Listar(idPessoa));
+            }
+
+            return RedirectToAction(nameof(Index), new { idPessoa });
+        }
+
+        // GET: ImovelController/Details/5
+        public ActionResult Details(uint id, uint idPessoa = 0)
+        {
+            if (idPessoa != 0)
+            {
+                var imovel = imovelService.Get(id);
+                if (imovel != null && imovel.IdPessoaProprietario == idPessoa)
+                {
+                    ViewData["Dono"] = true;
+                    ViewData["IdPessoa"] = idPessoa;
+                    return View(ImovelMapper.ToViewModel(imovel));
+                }
+            }
+
+            var publico = imovelService.GetPublico(id);
+            if (publico == null)
             {
                 return NotFound();
             }
 
-            return View(ImovelMapper.ToViewModel(imovel));
+            return View(ImovelMapper.ToViewModel(publico));
+        }
+
+        private Imovel? ObterDoProprietario(uint id, uint idPessoa)
+        {
+            var imovel = imovelService.Get(id);
+            if (imovel == null || imovel.IdPessoaProprietario != idPessoa)
+            {
+                return null;
+            }
+
+            return imovel;
+        }
+
+        private IEnumerable<ImovelViewModel> Listar(uint idPessoa)
+        {
+            var imoveis = imovelService.GetByProprietario(idPessoa).OrderBy(imovel => imovel.Id);
+            return ImovelMapper.ToViewModel(imoveis);
         }
 
         private void ValidarIntervalos(ImovelFiltroViewModel filtro)
