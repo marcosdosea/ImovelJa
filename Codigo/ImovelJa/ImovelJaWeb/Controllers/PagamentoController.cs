@@ -1,82 +1,95 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Core.Service;
+using ImovelJaWeb.Mappers;
+using ImovelJaWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ImovelJaWeb.Controllers
 {
     public class PagamentoController : Controller
     {
-        // GET: PagamentoController
-        public ActionResult Index()
+
+        private readonly IPagamentoService pagamentoService;
+        private readonly IAluguelService aluguelService;
+
+        public PagamentoController(IPagamentoService pagamentoService, IAluguelService aluguelService)
         {
-            return View();
+            this.pagamentoService = pagamentoService;
+            this.aluguelService = aluguelService;
         }
 
-        // GET: PagamentoController/Details/5
-        public ActionResult Details(int id)
+        // GET: Pagamento/Create?idAluguel=1&mes=2026-11-01
+        public ActionResult Create(uint idAluguel, DateTime mes)
         {
-            return View();
+            var aluguel = aluguelService.Get(idAluguel);
+            if (aluguel == null)
+                return NotFound();
+
+            var pagamentoViewModel = new PagamentoViewModel
+            {
+                IdAluguel = idAluguel,
+                MesReferencia = new DateTime(mes.Year, mes.Month, 1),
+                ValorAluguel = aluguel.Valor
+            };
+            return View(pagamentoViewModel);
         }
 
-        // GET: PagamentoController/Create
-        public ActionResult Create()
+        // GET: Pagamento/Details/5
+        public ActionResult Details(uint id)
         {
-            return View();
+            var pagamento = pagamentoService.Get(id);
+            if (pagamento == null)
+                return NotFound();
+
+            return View(PagamentoMapper.ToViewModel(pagamento));
         }
 
-        // POST: PagamentoController/Create
+        // POST: Pagamento/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(PagamentoViewModel pagamentoViewModel)
         {
+            if (!ModelState.IsValid)
+                return View(pagamentoViewModel);
+
             try
             {
-                return RedirectToAction(nameof(Index));
+                var id = pagamentoService.Create(PagamentoMapper.ToEntity(pagamentoViewModel));
+                return RedirectToAction(nameof(Details), new { id });
             }
-            catch
+            catch (ServiceException ex)
             {
-                return View();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(pagamentoViewModel);
             }
         }
 
-        // GET: PagamentoController/Edit/5
-        public ActionResult Edit(int id)
+        // GET: Pagamento/Edit/5
+        public ActionResult Edit(uint id)
         {
-            return View();
+            var pagamento = pagamentoService.Get(id);
+            if (pagamento == null)
+                return NotFound();
+
+            return View(PagamentoMapper.ToViewModel(pagamento));
         }
 
-        // POST: PagamentoController/Edit/5
+        // POST: Pagamento/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public ActionResult Edit(PagamentoViewModel pagamentoViewModel)
         {
+            if (!ModelState.IsValid)
+                return View(pagamentoViewModel);
+
             try
             {
-                return RedirectToAction(nameof(Index));
+                pagamentoService.Edit(PagamentoMapper.ToEntity(pagamentoViewModel));
+                return RedirectToAction(nameof(Details), new { id = pagamentoViewModel.Id });
             }
-            catch
+            catch (ServiceException ex)
             {
-                return View();
-            }
-        }
-
-        // GET: PagamentoController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: PagamentoController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(pagamentoViewModel);
             }
         }
     }
