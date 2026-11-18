@@ -9,7 +9,9 @@
     var imovel = Model.Imovel;
     var inquilino = Model.Inquilino;
     var nomeImovel = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Imóvel" : imovel.Nome;
-    var local = imovel == null ? string.Empty : $"{imovel.Bairro} — {imovel.Cidade}";
+    var local = imovel == null
+        ? string.Empty
+        : string.Join(" — ", new[] { imovel.Bairro, imovel.Cidade }.Where(parte => !string.IsNullOrWhiteSpace(parte)));
     var documentoRotulo = inquilino?.Tipo == "J" ? "CNPJ" : "CPF";
     var documento = inquilino?.Tipo == "J"
         ? (inquilino.Cnpj is { Length: 14 } ? Methods.PatternCnpj(inquilino.Cnpj) : inquilino.Cnpj)
@@ -58,7 +60,7 @@
         <h1>Ver Aluguel</h1>
         @if (!string.IsNullOrWhiteSpace(local))
         {
-            <p>@nomeImovel — @imovel!.Cidade</p>
+            <p>@local</p>
         }
     </div>
 </div>
