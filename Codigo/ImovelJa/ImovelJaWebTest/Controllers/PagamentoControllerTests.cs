@@ -52,6 +52,26 @@ public class PagamentoControllerTests
     }
 
     [TestMethod]
+    public void Edit_QuandoONomeJaTrazACidade_DeveManterONome()
+    {
+        // Arrange
+        var pagamento = ObterPagamento();
+        pagamento.IdAluguelNavigation.IdImovelNavigation!.Nome = "Casa - Itabaiana";
+        pagamentoServiceMock
+            .Setup(service => service.Get(1))
+            .Returns(pagamento);
+
+        // Act
+        var resultado = controller.Edit(1, 2);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var modelo = Assert.IsInstanceOfType<PagamentoViewModel>(viewResult.ViewData.Model);
+
+        Assert.AreEqual("Casa - Itabaiana", modelo.NomeImovel);
+    }
+
+    [TestMethod]
     public void Edit_QuandoPagamentoNaoExiste_DeveRetornarNaoEncontrado()
     {
         // Act

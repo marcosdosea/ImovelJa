@@ -104,7 +104,8 @@ namespace ImovelJaWeb.Controllers
             if (imovel == null || string.IsNullOrWhiteSpace(imovel.Nome))
                 return string.Empty;
 
-            if (string.IsNullOrWhiteSpace(imovel.Cidade))
+            if (string.IsNullOrWhiteSpace(imovel.Cidade)
+                || imovel.Nome.Contains(imovel.Cidade, StringComparison.CurrentCultureIgnoreCase))
                 return imovel.Nome;
 
             return $"{imovel.Nome} — {imovel.Cidade}";
