@@ -1524,3 +1524,154 @@ h1 {
         align-items: start;
     }
 }
+
+/* Aluguel do inquilino (Tela_010.1, Tela_012.1 e Tela_012.2) */
+
+.aluguel-pagina {
+    display: grid;
+    gap: 1rem;
+}
+
+.aluguel-pagina__secao {
+    margin: 1.25rem 0 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--cor-borda);
+    font-size: 1rem;
+}
+
+.aluguel-pagina__dica {
+    margin: 0.75rem 0 0;
+    color: var(--cor-texto-suave);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.aluguel-pagina .form-control[readonly] {
+    background-color: var(--cor-fundo);
+}
+
+.historico {
+    display: grid;
+    gap: 0.75rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.historico__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio);
+    background-color: var(--cor-superficie);
+    color: var(--cor-texto);
+    text-decoration: none;
+}
+
+.historico__item:hover,
+.historico__item:focus {
+    border-color: var(--cor-primaria);
+    color: var(--cor-texto);
+}
+
+.historico__mes {
+    font-weight: 600;
+}
+
+.contrato {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    background-color: var(--cor-fundo);
+}
+
+.contrato__icone {
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    color: var(--cor-perigo);
+}
+
+.contrato__nome {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--cor-texto);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.formulario-pagamento {
+    max-width: 32rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--raio-grande);
+    background-color: var(--cor-superficie);
+    box-shadow: var(--sombra);
+}
+
+.formulario-pagamento .form-control[readonly] {
+    background-color: var(--cor-fundo);
+}
+
+.comprovante-envio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem;
+    border: 1px dashed var(--cor-borda);
+    border-radius: var(--raio);
+    background-color: var(--cor-fundo);
+    text-align: center;
+}
+
+.comprovante-envio label {
+    margin: 0;
+    font-weight: 600;
+}
+
+.comprovante-envio small {
+    color: var(--cor-texto-suave);
+    font-weight: 400;
+}
+
+.comprovante-envio input {
+    max-width: 100%;
+}
+
+.formulario-pagamento__acoes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.formulario-pagamento__acoes .btn {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+}
+
+@media (max-width: 399.98px) {
+
+    .formulario-pagamento {
+        padding: 1.25rem 1rem;
+    }
+
+    .formulario-pagamento__acoes {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 992px) {
+
+    .aluguel-pagina {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
+    }
+}

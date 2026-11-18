@@ -1,0 +1,147 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@{
+    ViewData["Title"] = "Ver Aluguel";
+    ViewData["Perfil"] = "Usuario";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : Model.IdPessoaInquilino;
+    var imovel = Model.Imovel;
+    var inquilino = Model.Inquilino;
+    var nomeImovel = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Imóvel" : imovel.Nome;
+    var local = imovel == null ? string.Empty : $"{imovel.Bairro} — {imovel.Cidade}";
+    var documentoRotulo = inquilino?.Tipo == "J" ? "CNPJ" : "CPF";
+    var documento = inquilino?.Tipo == "J"
+        ? (inquilino.Cnpj is { Length: 14 } ? Methods.PatternCnpj(inquilino.Cnpj) : inquilino.Cnpj)
+        : (inquilino?.Cpf is { Length: 11 } ? Methods.PatternCpf(inquilino.Cpf) : inquilino?.Cpf);
+    var telefone = FormatarTelefone(inquilino?.Telefone);
+    var vencimento = ProximoVencimento(Model.DataVencimentoProximo, Model.DiaPagamento);
+
+    string FormatarTelefone(string? valor)
+    {
+        if (string.IsNullOrWhiteSpace(valor))
+            return string.Empty;
+
+        var digitos = new string(valor.Where(char.IsDigit).ToArray());
+        if (digitos.Length == 11)
+            return "(" + digitos.Substring(0, 2) + ") " + digitos.Substring(2, 5) + "-" + digitos.Substring(7);
+        if (digitos.Length == 10)
+            return "(" + digitos.Substring(0, 2) + ") " + digitos.Substring(2, 4) + "-" + digitos.Substring(6);
+        return valor;
+    }
+
+    DateTime? ProximoVencimento(DateTime? informadoData, int diaPagamento)
+    {
+        if (informadoData.HasValue)
+            return informadoData;
+
+        if (diaPagamento < 1 || diaPagamento > 31)
+            return null;
+
+        var hoje = DateTime.Today;
+        var dia = Math.Min(diaPagamento, DateTime.DaysInMonth(hoje.Year, hoje.Month));
+        var data = new DateTime(hoje.Year, hoje.Month, dia);
+        return data < hoje ? data.AddMonths(1) : data;
+    }
+
+    string Mes(DateTime data)
+    {
+        return ptBR.TextInfo.ToTitleCase(data.ToString("MMM yyyy", ptBR).Replace(".", ""));
+    }
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Index" asp-route-idPessoa="@idPessoa" aria-label="Voltar para os imóveis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Ver Aluguel</h1>
+        @if (!string.IsNullOrWhiteSpace(local))
+        {
+            <p>@nomeImovel — @imovel!.Cidade</p>
+        }
+    </div>
+</div>
+
+<div asp-validation-summary="ModelOnly"></div>
+
+<div class="aluguel-pagina">
+    <section class="detalhe-anuncio" aria-labelledby="aluguel-imovel">
+        <div class="detalhe-anuncio__corpo">
+            <h2 id="aluguel-imovel">@nomeImovel</h2>
+            @if (!string.IsNullOrWhiteSpace(local))
+            {
+                <p class="detalhe-anuncio__local">@local</p>
+            }
+
+            <h3 class="aluguel-pagina__secao">Dados do inquilino</h3>
+
+            <div class="mb-3">
+                <label class="form-label" for="nome-inquilino">Nome completo</label>
+                <input id="nome-inquilino" class="form-control" value="@inquilino?.Nome" readonly />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="documento-inquilino">@documentoRotulo</label>
+                <input id="documento-inquilino" class="form-control campo-cpf" value="@documento" readonly />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="telefone-inquilino">Telefone</label>
+                <input id="telefone-inquilino" class="form-control campo-telefone" value="@telefone" readonly />
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="vencimento">Próximo vencimento</label>
+                <input id="vencimento" class="form-control campo-curto" value="@(vencimento?.ToString("dd/MM/yyyy"))" readonly />
+            </div>
+
+            <p class="form-label mb-2">Contrato</p>
+            @if (Model.PossuiContrato)
+            {
+                <div class="contrato">
+                    <svg class="contrato__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                    <span class="contrato__nome">contrato</span>
+                    <a class="btn btn-outline-primary btn-sm" asp-action="Contrato" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+                        Baixar
+                    </a>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted mb-0">Nenhum contrato anexado.</p>
+            }
+        </div>
+    </section>
+
+    <section class="detalhe-anuncio" aria-labelledby="historico-pagamentos">
+        <div class="detalhe-anuncio__corpo">
+            <h2 id="historico-pagamentos">Histórico de Pagamentos</h2>
+
+            @if (Model.Pagamentos.Count == 0)
+            {
+                <p class="lista-vazia mt-3">Nenhum pagamento registrado para este aluguel.</p>
+            }
+            else
+            {
+                <ul class="historico">
+                    @foreach (var item in Model.Pagamentos)
+                    {
+                        var situacao = item.Status switch
+                        {
+                            "PA" => ("Pago", "selo--aprovado"),
+                            "EA" => ("Em atraso", "selo--reprovado"),
+                            _ => ("Pendente", "selo--pendente")
+                        };
+
+                        <li>
+                            <a class="historico__item" asp-controller="Pagamento" asp-action="Edit" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                                <span class="historico__mes">@Mes(item.MesReferencia)</span>
+                                <span class="selo @situacao.Item2">@situacao.Item1</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+                <p class="aluguel-pagina__dica">Clique em um mês para registrar pagamento</p>
+            }
+        </div>
+    </section>
+</div>
