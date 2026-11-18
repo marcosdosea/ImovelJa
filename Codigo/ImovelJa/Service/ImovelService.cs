@@ -149,6 +149,36 @@ namespace Service
         }
 
         /// <summary>
+        /// Pausa um anúncio disponível ou retoma um anúncio pausado (RN18).
+        /// Pausado, o anúncio deixa de aparecer na busca pública
+        /// </summary>
+        /// <param name="id">id do imóvel</param>
+        /// <param name="pausado">verdadeiro para pausar, falso para retomar</param>
+        /// <exception cref="ServiceException">imóvel não encontrado ou em situação que não permite a ação</exception>
+        public void Pause(uint id, bool pausado)
+        {
+            var imovel = context.Imovels.Find(id)
+                ?? throw new ServiceException("Imóvel não encontrado.");
+
+            if (pausado)
+            {
+                if (imovel.Status != "D")
+                    throw new ServiceException("Não é possível pausar um imóvel nesta situação.");
+
+                imovel.Status = "P";
+            }
+            else
+            {
+                if (imovel.Status != "P")
+                    throw new ServiceException("Não é possível retomar um imóvel nesta situação.");
+
+                imovel.Status = "D";
+            }
+
+            context.SaveChanges();
+        }
+
+        /// <summary>
         /// Obtém o plano em vigor do proprietário: o da assinatura ativa, ou cancelada ainda dentro do período pago,
         /// e o plano Básico quando não houver assinatura em vigor
         /// </summary>

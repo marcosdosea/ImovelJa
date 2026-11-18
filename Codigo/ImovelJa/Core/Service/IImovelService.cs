@@ -17,5 +17,6 @@ namespace Core.Service
         IEnumerable<Imovel> GetByValidacao(string statusValidacao);
         IEnumerable<Imovel> GetByFiltro(ImovelFiltroDTO filtro);
         void Approve(uint id, bool aprovado);
+        void Pause(uint id, bool pausado);
     }
 }
