@@ -27,6 +27,8 @@ namespace ImovelJaWeb
             builder.Services.AddTransient<IPlanoService, PlanoService>();
             builder.Services.AddTransient<IAssinaturaService, AssinaturaService>();
             builder.Services.AddTransient<ICobrancaService, CobrancaSimuladaService>();
+            builder.Services.AddTransient<IAluguelService, AluguelService>();
+            builder.Services.AddTransient<IPagamentoService, PagamentoService>();
 
             var app = builder.Build();
 
