@@ -207,7 +207,7 @@ public class AluguelServiceTests
             {
                 Tipo = "F",
                 Nome = "Bernardo",
-                Cpf = "10934764510" 
+                Cpf = "39053344705"
             }
         };
 
