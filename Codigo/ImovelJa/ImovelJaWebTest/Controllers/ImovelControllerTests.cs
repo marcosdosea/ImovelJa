@@ -28,6 +28,10 @@ public class ImovelControllerTests
             .Returns(ObterImovelAlvo());
 
         imovelServiceMock
+            .Setup(service => service.GetDoProprietario(1, 1))
+            .Returns(ObterImovelAlvo());
+
+        imovelServiceMock
             .Setup(service => service.Get(999))
             .Returns((Imovel?)null);
 
@@ -581,7 +585,7 @@ public class ImovelControllerTests
         Assert.AreEqual("Casa com 3 quartos no Centro", imovel.Nome);
         Assert.AreEqual(1u, imovel.IdPessoaProprietario);
 
-        imovelServiceMock.Verify(service => service.Get(1), Times.Once);
+        imovelServiceMock.Verify(service => service.GetDoProprietario(1, 1), Times.Once);
     }
 
     [TestMethod]
@@ -883,7 +887,7 @@ public class ImovelControllerTests
     {
         // Arrange
         imovelServiceMock
-            .Setup(service => service.Get(5))
+            .Setup(service => service.GetDoProprietario(5, 1))
             .Returns(ObterImovelPublico(5, "A"));
 
         // Act
@@ -915,11 +919,6 @@ public class ImovelControllerTests
     [TestMethod]
     public void Details_QuandoIdPessoaNaoEhOProprietarioMasAnuncioEhPublico_DeveExibirOAnuncio()
     {
-        // Arrange
-        imovelServiceMock
-            .Setup(service => service.Get(3))
-            .Returns(ObterImovelPublico(3));
-
         // Act
         var resultado = controller.Details(3, 2);
 

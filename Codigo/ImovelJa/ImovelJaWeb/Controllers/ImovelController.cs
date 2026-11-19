@@ -113,7 +113,7 @@ namespace ImovelJaWeb.Controllers
         public ActionResult Edit(uint id, uint idPessoa)
         {
             ViewData["IdPessoa"] = idPessoa;
-            var imovel = ObterDoProprietario(id, idPessoa);
+            var imovel = imovelService.GetDoProprietario(id, idPessoa);
             var imovelViewModel = imovel != null
                 ? ImovelMapper.ToViewModel(imovel)
                 : new ImovelViewModel { IdPessoaProprietario = idPessoa };
@@ -132,7 +132,7 @@ namespace ImovelJaWeb.Controllers
                 return View(imovelViewModel);
             }
 
-            if (ObterDoProprietario(imovelViewModel.Id, imovelViewModel.IdPessoaProprietario) == null)
+            if (imovelService.GetDoProprietario(imovelViewModel.Id, imovelViewModel.IdPessoaProprietario) == null)
             {
                 ModelState.AddModelError(string.Empty, "Imóvel não encontrado.");
                 return View(imovelViewModel);
@@ -156,7 +156,7 @@ namespace ImovelJaWeb.Controllers
         public ActionResult Delete(uint id, uint idPessoa)
         {
             ViewData["IdPessoa"] = idPessoa;
-            var imovel = ObterDoProprietario(id, idPessoa);
+            var imovel = imovelService.GetDoProprietario(id, idPessoa);
             var imovelViewModel = imovel != null
                 ? ImovelMapper.ToViewModel(imovel)
                 : new ImovelViewModel { IdPessoaProprietario = idPessoa };
@@ -173,14 +173,14 @@ namespace ImovelJaWeb.Controllers
 
             if (!ModelState.IsValid)
             {
-                var invalido = ObterDoProprietario(id, idPessoa);
+                var invalido = imovelService.GetDoProprietario(id, idPessoa);
                 var modeloInvalido = invalido != null
                     ? ImovelMapper.ToViewModel(invalido)
                     : new ImovelViewModel { Id = id, IdPessoaProprietario = idPessoa };
                 return View(modeloInvalido);
             }
 
-            var imovel = ObterDoProprietario(id, idPessoa);
+            var imovel = imovelService.GetDoProprietario(id, idPessoa);
             if (imovel == null)
             {
                 ModelState.AddModelError(string.Empty, "Imóvel não encontrado.");
@@ -213,7 +213,7 @@ namespace ImovelJaWeb.Controllers
                 return View(nameof(Index), Listar(idPessoa));
             }
 
-            if (ObterDoProprietario(id, idPessoa) == null)
+            if (imovelService.GetDoProprietario(id, idPessoa) == null)
             {
                 ModelState.AddModelError(string.Empty, "Imóvel não encontrado.");
                 return View(nameof(Index), Listar(idPessoa));
@@ -238,12 +238,12 @@ namespace ImovelJaWeb.Controllers
         {
             if (idPessoa != 0)
             {
-                var imovel = imovelService.Get(id);
-                if (imovel != null && imovel.IdPessoaProprietario == idPessoa)
+                var doDono = imovelService.GetDoProprietario(id, idPessoa);
+                if (doDono != null)
                 {
                     ViewData["Dono"] = true;
                     ViewData["IdPessoa"] = idPessoa;
-                    return View(ImovelMapper.ToViewModel(imovel));
+                    return View(ImovelMapper.ToViewModel(doDono));
                 }
             }
 
@@ -254,17 +254,6 @@ namespace ImovelJaWeb.Controllers
             }
 
             return View(ImovelMapper.ToViewModel(publico));
-        }
-
-        private Imovel? ObterDoProprietario(uint id, uint idPessoa)
-        {
-            var imovel = imovelService.Get(id);
-            if (imovel == null || imovel.IdPessoaProprietario != idPessoa)
-            {
-                return null;
-            }
-
-            return imovel;
         }
 
         private IEnumerable<ImovelViewModel> Listar(uint idPessoa)
