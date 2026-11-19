@@ -27,18 +27,6 @@ namespace ImovelJaWeb.Controllers
             this.pessoaService = pessoaService;
         }
 
-        // GET: Aluguel?idPessoa=2
-        public ActionResult Index(uint idPessoa)
-        {
-            PrepararPessoa(idPessoa);
-
-            var alugueis = aluguelService.GetByInquilino(idPessoa)
-                .Select(aluguel => AluguelMapper.ToViewModel(aluguel, BuscarImovel(aluguel), null))
-                .ToList();
-
-            return View(alugueis);
-        }
-
         // GET: Aluguel/Details/5?idPessoa=2
         public ActionResult Details(uint id, uint idPessoa)
         {

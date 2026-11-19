@@ -12,12 +12,18 @@ namespace ImovelJaWeb.Controllers.Tests;
 public class ImovelControllerTests
 {
     private Mock<IImovelService> imovelServiceMock = null!;
+    private Mock<IAluguelService> aluguelServiceMock = null!;
     private ImovelController controller = null!;
 
     [TestInitialize]
     public void Inicializar()
     {
         imovelServiceMock = new Mock<IImovelService>();
+        aluguelServiceMock = new Mock<IAluguelService>();
+
+        aluguelServiceMock
+            .Setup(service => service.GetByInquilino(It.IsAny<uint>()))
+            .Returns(Array.Empty<Aluguel>());
 
         imovelServiceMock
             .Setup(service => service.GetByValidacao("P"))
@@ -47,7 +53,7 @@ public class ImovelControllerTests
             .Setup(service => service.GetByProprietario(It.IsAny<uint>()))
             .Returns(Array.Empty<Imovel>());
 
-        controller = new ImovelController(imovelServiceMock.Object);
+        controller = new ImovelController(imovelServiceMock.Object, aluguelServiceMock.Object);
     }
 
     [TestMethod]
@@ -474,6 +480,79 @@ public class ImovelControllerTests
 
         Assert.IsEmpty(imoveis);
         Assert.AreEqual(2u, controller.ViewData["IdPessoa"]);
+        Assert.IsEmpty(Alugueis(controller));
+    }
+
+    [TestMethod]
+    public void Index_QuandoPessoaSoEProprietaria_DeveListarOsAnunciosSemAluguel()
+    {
+        // Arrange
+        imovelServiceMock
+            .Setup(service => service.GetByProprietario(1))
+            .Returns(new List<Imovel> { ObterImovelAlvo() });
+
+        // Act
+        var resultado = controller.Index(1);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(viewResult.ViewData.Model);
+
+        Assert.HasCount(1, imoveis);
+        Assert.IsEmpty(Alugueis(controller));
+        aluguelServiceMock.Verify(service => service.GetByInquilino(1), Times.Once);
+    }
+
+    [TestMethod]
+    public void Index_QuandoPessoaSoEInquilina_DeveListarSomenteOAluguelAtivo()
+    {
+        // Arrange
+        aluguelServiceMock
+            .Setup(service => service.GetByInquilino(2))
+            .Returns(new List<Aluguel>
+            {
+                ObterAluguel(4, "A", ObterImovelAlvo()),
+                ObterAluguel(5, "C", ObterImovelAlvo())
+            });
+
+        // Act
+        var resultado = controller.Index(2);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(viewResult.ViewData.Model);
+        var alugueis = Alugueis(controller);
+
+        Assert.IsEmpty(imoveis);
+        Assert.HasCount(1, alugueis);
+        Assert.AreEqual(4u, alugueis[0].Id);
+        Assert.AreEqual("A", alugueis[0].Status);
+        Assert.AreEqual("Casa com 3 quartos no Centro", alugueis[0].Imovel?.Nome);
+    }
+
+    [TestMethod]
+    public void Index_QuandoPessoaEProprietariaEInquilina_DeveListarAnunciosEAluguel()
+    {
+        // Arrange
+        imovelServiceMock
+            .Setup(service => service.GetByProprietario(1))
+            .Returns(new List<Imovel> { ObterImovelAlvo() });
+        aluguelServiceMock
+            .Setup(service => service.GetByInquilino(1))
+            .Returns(new List<Aluguel> { ObterAluguel(8, "A", ObterImovelAlvo()) });
+
+        // Act
+        var resultado = controller.Index(1);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var imoveis = Assert.IsInstanceOfType<IEnumerable<ImovelViewModel>>(viewResult.ViewData.Model);
+        var alugueis = Alugueis(controller);
+
+        Assert.HasCount(1, imoveis);
+        Assert.HasCount(1, alugueis);
+        Assert.AreEqual(1u, imoveis.First().Id);
+        Assert.AreEqual(8u, alugueis[0].Id);
     }
 
     [TestMethod]
@@ -991,6 +1070,25 @@ public class ImovelControllerTests
         Assert.AreEqual(
             nameof(ImovelController.Review),
             redirectResult.ActionName);
+    }
+
+    private static List<AluguelViewModel> Alugueis(ImovelController controller)
+    {
+        return Assert.IsInstanceOfType<List<AluguelViewModel>>(controller.ViewBag.Alugueis);
+    }
+
+    private static Aluguel ObterAluguel(uint id, string status, Imovel imovel)
+    {
+        return new Aluguel
+        {
+            Id = id,
+            DiaPagamento = 10,
+            Valor = 1200m,
+            Status = status,
+            IdImovel = imovel.Id,
+            IdPessoaInquilino = 2,
+            IdImovelNavigation = imovel
+        };
     }
 
     private static Imovel ObterImovelAlvo()

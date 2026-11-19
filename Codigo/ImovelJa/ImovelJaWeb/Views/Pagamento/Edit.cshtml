@@ -48,7 +48,7 @@
             <input id="comprovante" name="comprovante" type="file" accept="image/*,application/pdf,.pdf" />
             @if (Model.PossuiComprovante)
             {
-                <a asp-action="Comprovante" asp-route-id="@Model.Id" target="_blank" rel="noopener">Ver comprovante</a>
+                <a asp-action="Comprovante" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" target="_blank" rel="noopener">Ver comprovante</a>
             }
         </div>
 

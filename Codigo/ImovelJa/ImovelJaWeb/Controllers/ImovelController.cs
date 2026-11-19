@@ -10,10 +10,12 @@ namespace ImovelJaWeb.Controllers
     public class ImovelController : Controller
     {
         private readonly IImovelService imovelService;
+        private readonly IAluguelService aluguelService;
 
-        public ImovelController(IImovelService imovelService)
+        public ImovelController(IImovelService imovelService, IAluguelService aluguelService)
         {
             this.imovelService = imovelService;
+            this.aluguelService = aluguelService;
         }
 
         // GET: ImovelController/Review
@@ -73,6 +75,7 @@ namespace ImovelJaWeb.Controllers
         public ActionResult Index(uint idPessoa)
         {
             ViewData["IdPessoa"] = idPessoa;
+            PrepararAlugueisDoInquilino(idPessoa);
             return View(Listar(idPessoa));
         }
 
@@ -207,6 +210,7 @@ namespace ImovelJaWeb.Controllers
         public ActionResult Pause(uint id, bool pausado, uint idPessoa)
         {
             ViewData["IdPessoa"] = idPessoa;
+            PrepararAlugueisDoInquilino(idPessoa);
 
             if (!ModelState.IsValid)
             {
@@ -260,6 +264,14 @@ namespace ImovelJaWeb.Controllers
         {
             var imoveis = imovelService.GetByProprietario(idPessoa).OrderBy(imovel => imovel.Id);
             return ImovelMapper.ToViewModel(imoveis);
+        }
+
+        private void PrepararAlugueisDoInquilino(uint idPessoa)
+        {
+            ViewBag.Alugueis = aluguelService.GetByInquilino(idPessoa)
+                .Where(aluguel => aluguel.Status == "A")
+                .Select(aluguel => AluguelMapper.ToViewModel(aluguel, aluguel.IdImovelNavigation, null))
+                .ToList();
         }
 
         private void ValidarIntervalos(ImovelFiltroViewModel filtro)
