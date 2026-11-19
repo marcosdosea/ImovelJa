@@ -788,10 +788,11 @@ public class AluguelControllerTests
         var resultados = Validar(modelo);
 
         // Assert
-        Assert.IsTrue(resultados.Any(resultado =>
-            resultado.MemberNames.Contains(nameof(AluguelViewModel.Contrato))));
+        Assert.HasCount(1, resultados);
+        Assert.AreEqual(
+            "O contrato deve ser um arquivo PDF, JPG ou PNG.",
+            resultados[0].ErrorMessage);
     }
-
     private static List<ValidationResult> Validar(AluguelViewModel modelo)
     {
         var contexto = new ValidationContext(modelo);

@@ -31,7 +31,7 @@ namespace ImovelJaWeb.Controllers
             if(erro != null)
             {
                 TempData["Erro"] = erro;
-                return RedirectToAction(nameof(Details), new { idImovel });
+                return RedirectToAction("Details", "Imovel", new { id = idImovel });
             }
 
             var model = new AluguelViewModel();
@@ -181,20 +181,16 @@ namespace ImovelJaWeb.Controllers
         }
 
 
-        public static string? VerificarImovel(Imovel imovel) 
+        public static string? VerificarImovel(Imovel imovel)
         {
-            if(imovel.Finalidade != "A")
-            {
-                return "O imóvel não é anunciado para aluguel";
-            }
-            if(imovel.Status != "A")
-            {
-                return "O imóvel não foi aprovado";
-            }
-            if(imovel.Status != "D")
-            {
-                return "O imóvel não está disponivel";
-            }
+            if (imovel.Finalidade != "A")
+                return "O imóvel não é anunciado para aluguel.";
+
+            if (imovel.StatusValidacao != "A")
+                return "O anúncio do imóvel ainda não foi aprovado.";
+
+            if (imovel.Status != "D")
+                return "O imóvel não está disponível para aluguel.";
 
             return null;
         }

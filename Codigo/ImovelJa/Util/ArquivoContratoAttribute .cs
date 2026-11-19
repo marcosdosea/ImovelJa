@@ -15,7 +15,9 @@ namespace Util
         {
             if (value is not IFormFile arquivo || arquivo.Length == 0)
                 return ValidationResult.Success;
-
+            var membros = validationContext.MemberName is null
+            ? null
+            : new[] { validationContext.MemberName };
             if (arquivo.Length > TamanhoMaximo)
                 return new ValidationResult("O contrato deve ter no máximo 5 MB.");
 
