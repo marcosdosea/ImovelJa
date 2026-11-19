@@ -14,8 +14,10 @@ namespace ImovelJaWeb.Controllers.Tests;
 public class AluguelControllerTests
 {
     private const uint IdInquilino = 20;
+    private const uint IdProprietario = 1;
 
     private Mock<IAluguelService> aluguelServiceMock = null!;
+    private Mock<IPagamentoService> pagamentoServiceMock = null!;
     private Mock<IImovelService> imovelServiceMock = null!;
     private Mock<IPessoaService> pessoaServiceMock = null!;
     private AluguelController controller = null!;
@@ -24,6 +26,7 @@ public class AluguelControllerTests
     public void Inicializar()
     {
         aluguelServiceMock = new Mock<IAluguelService>();
+        pagamentoServiceMock = new Mock<IPagamentoService>();
         imovelServiceMock = new Mock<IImovelService>();
         pessoaServiceMock = new Mock<IPessoaService>();
 
@@ -63,6 +66,26 @@ public class AluguelControllerTests
             .Setup(service => service.Create(It.IsAny<Aluguel>()))
             .Returns(99u);
 
+        aluguelServiceMock
+            .Setup(service => service.GetDoInquilino(1, 2))
+            .Returns(ObterAluguel());
+
+        aluguelServiceMock
+            .Setup(service => service.GetDoInquilino(999, 2))
+            .Returns((Aluguel?)null);
+
+        aluguelServiceMock
+            .Setup(service => service.GetDoProprietario(1, IdProprietario))
+            .Returns(ObterAluguel(1, "A"));
+
+        pagamentoServiceMock
+            .Setup(service => service.GetByAluguel(1))
+            .Returns(ObterPagamentos());
+
+        pessoaServiceMock
+            .Setup(service => service.Get(2))
+            .Returns(new Pessoa { Id = 2, Tipo = "F", Nome = "João da Conceição", Status = "A" });
+
         pessoaServiceMock
             .Setup(service => service.Get(IdInquilino))
             .Returns(new Pessoa { Id = IdInquilino, Nome = "Maria José Santos" });
@@ -71,6 +94,7 @@ public class AluguelControllerTests
 
         controller = new AluguelController(
             aluguelServiceMock.Object,
+            pagamentoServiceMock.Object,
             imovelServiceMock.Object,
             pessoaServiceMock.Object)
         {
@@ -79,6 +103,204 @@ public class AluguelControllerTests
                 httpContext,
                 Mock.Of<ITempDataProvider>())
         };
+    }
+
+    [TestMethod]
+    public void Details_QuandoAluguelPertenceAoInquilino_DeveExibirImovelInquilinoEHistorico()
+    {
+        // Act
+        var resultado = controller.Details(1, 2);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(viewResult.ViewData.Model);
+
+        Assert.AreEqual(1u, aluguel.Id);
+        Assert.AreEqual(700m, aluguel.Valor);
+        Assert.IsTrue(aluguel.PossuiContrato);
+        var imovel = aluguel.Imovel;
+        var inquilino = aluguel.Inquilino;
+        Assert.IsNotNull(imovel);
+        Assert.AreEqual("Casa - Itabaiana", imovel.Nome);
+        Assert.IsNotNull(inquilino);
+        Assert.AreEqual("João da Conceição", inquilino.Nome);
+        Assert.HasCount(2, aluguel.Pagamentos);
+        Assert.AreEqual(new DateTime(2026, 11, 1), aluguel.Pagamentos[0].MesReferencia);
+        Assert.AreEqual("PE", aluguel.Pagamentos[0].Status);
+        Assert.IsTrue(aluguel.Pagamentos[1].PossuiComprovante);
+        Assert.IsNull(aluguel.Pagamentos[1].Comprovante);
+
+        pagamentoServiceMock.Verify(service => service.GetByAluguel(1), Times.Once);
+    }
+
+    [TestMethod]
+    public void Details_QuandoAluguelNaoPertenceAoInquilino_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Details(1, 9);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+        aluguelServiceMock.Verify(service => service.GetDoInquilino(1, 9), Times.Once);
+        pagamentoServiceMock.Verify(service => service.GetByAluguel(It.IsAny<uint>()), Times.Never);
+    }
+
+    [TestMethod]
+    public void Details_QuandoAluguelNaoExiste_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Details(999, 2);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
+    [TestMethod]
+    public void Details_QuandoServicoLancaExcecao_DeveExibirAMensagem()
+    {
+        // Arrange
+        const string texto = "Aluguel não encontrado.";
+        aluguelServiceMock
+            .Setup(service => service.GetDoInquilino(1, 2))
+            .Throws(new ServiceException(texto));
+
+        // Act
+        var resultado = controller.Details(1, 2);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(viewResult.ViewData.Model);
+
+        Assert.AreEqual(1u, aluguel.Id);
+        Assert.AreEqual(2u, aluguel.IdPessoaInquilino);
+        var erros = controller.ModelState.Values.SelectMany(entrada => entrada.Errors).ToList();
+        Assert.HasCount(1, erros);
+        Assert.AreEqual(texto, erros[0].ErrorMessage);
+    }
+
+    [TestMethod]
+    public void Contrato_QuandoArquivoPertenceAoInquilino_DeveDevolverOPdf()
+    {
+        // Act
+        var resultado = controller.Contrato(1, 2);
+
+        // Assert
+        var arquivo = Assert.IsInstanceOfType<FileContentResult>(resultado);
+        CollectionAssert.AreEqual(new byte[] { 0x25, 0x50, 0x44, 0x46 }, arquivo.FileContents);
+        Assert.AreEqual("application/pdf", arquivo.ContentType);
+        Assert.AreEqual("contrato.pdf", arquivo.FileDownloadName);
+    }
+
+    [TestMethod]
+    public void Contrato_QuandoAluguelNaoPertenceAoInquilino_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Contrato(1, 9);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+        aluguelServiceMock.Verify(service => service.GetDoInquilino(1, 9), Times.Once);
+    }
+
+    [TestMethod]
+    public void Contrato_QuandoNaoHaArquivo_DeveRetornarNaoEncontrado()
+    {
+        // Arrange
+        var aluguel = ObterAluguel();
+        aluguel.ArquivoContrato = null;
+        aluguelServiceMock.Setup(service => service.GetDoInquilino(1, 2)).Returns(aluguel);
+
+        // Act
+        var resultado = controller.Contrato(1, 2);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
+    [TestMethod]
+    public void Contrato_QuandoServicoLancaExcecao_DeveRetornarNaoEncontrado()
+    {
+        // Arrange
+        aluguelServiceMock
+            .Setup(service => service.GetDoInquilino(1, 2))
+            .Throws(new ServiceException("Aluguel não encontrado."));
+
+        // Act
+        var resultado = controller.Contrato(1, 2);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
+    [TestMethod]
+    public void Details_QuandoInquilinoAcessa_NaoDeveMarcarComoDono()
+    {
+        // Act
+        controller.Details(1, 2);
+
+        // Assert
+        Assert.IsFalse((bool)controller.ViewData["Dono"]!);
+    }
+
+    [TestMethod]
+    public void Details_QuandoDonoDoImovelAcessa_DeveExibirOAluguelComoDono()
+    {
+        // Act
+        var resultado = controller.Details(1, IdProprietario);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(viewResult.ViewData.Model);
+
+        Assert.IsTrue((bool)controller.ViewData["Dono"]!);
+        Assert.AreEqual(1u, aluguel.Id);
+        Assert.AreEqual(1500m, aluguel.Valor);
+        Assert.IsTrue(aluguel.PossuiContrato);
+        Assert.AreEqual("Casa Azul", aluguel.Imovel?.Nome);
+        Assert.AreEqual("Maria José Santos", aluguel.Inquilino?.Nome);
+        Assert.HasCount(2, aluguel.Pagamentos);
+
+        aluguelServiceMock.Verify(service => service.GetDoProprietario(1, IdProprietario), Times.Once);
+    }
+
+    [TestMethod]
+    public void Details_QuandoInquilinoDoAluguelNaoEstaCadastrado_DeveExibirSemInquilino()
+    {
+        // Arrange
+        pessoaServiceMock
+            .Setup(service => service.Get(IdInquilino))
+            .Returns((Pessoa?)null);
+
+        // Act
+        var resultado = controller.Details(1, IdProprietario);
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(viewResult.ViewData.Model);
+
+        Assert.IsNull(aluguel.Inquilino);
+    }
+
+    [TestMethod]
+    public void Details_QuandoPessoaNaoEInquilinaNemDona_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Details(1, 9);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+        aluguelServiceMock.Verify(service => service.GetDoProprietario(1, 9), Times.Once);
+    }
+
+    [TestMethod]
+    public void Contrato_QuandoDonoDoImovelPede_DeveDevolverOArquivo()
+    {
+        // Act
+        var resultado = controller.Contrato(1, IdProprietario);
+
+        // Assert
+        var arquivo = Assert.IsInstanceOfType<FileContentResult>(resultado);
+        CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, arquivo.FileContents);
     }
 
     [TestMethod]
@@ -161,7 +383,7 @@ public class AluguelControllerTests
         var resultado = controller.Create(modelo);
 
         // Assert
-        VerificarRedirecionamentoParaDetails(resultado, 99);
+        VerificarRedirecionamentoParaDetails(resultado, 99, IdProprietario);
 
         aluguelServiceMock.Verify(
             service => service.Create(It.Is<Aluguel>(aluguel =>
@@ -348,61 +570,40 @@ public class AluguelControllerTests
     }
 
     [TestMethod]
-    public void Details_QuandoAluguelExiste_DeveRetornarViewComAluguelEInquilino()
+    public void EditGet_QuandoAluguelAtivo_DeveRetornarViewComOAluguel()
     {
         // Act
-        var resultado = controller.Details(1);
+        var resultado = controller.Edit(1);
 
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
-        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(
-            viewResult.ViewData.Model);
+        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(viewResult.ViewData.Model);
 
         Assert.AreEqual(1u, aluguel.Id);
         Assert.AreEqual(1500m, aluguel.Valor);
-        Assert.AreEqual("A", aluguel.Status);
-        Assert.IsTrue(aluguel.TemContrato);
-        Assert.AreEqual("Maria José Santos", aluguel.Inquilino!.Nome);
-
-        aluguelServiceMock.Verify(
-            service => service.Get(1),
-            Times.Once);
+        Assert.IsTrue(aluguel.PossuiContrato);
+        Assert.AreEqual("Maria José Santos", aluguel.Inquilino?.Nome);
     }
 
     [TestMethod]
-    public void Details_QuandoInquilinoNaoEncontrado_DeveRetornarViewSemInquilino()
-    {
-        // Arrange
-        pessoaServiceMock
-            .Setup(service => service.Get(IdInquilino))
-            .Returns((Pessoa?)null);
-
-        // Act
-        var resultado = controller.Details(1);
-
-        // Assert
-        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
-        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(
-            viewResult.ViewData.Model);
-
-        Assert.IsNull(aluguel.Inquilino);
-    }
-
-    [TestMethod]
-    public void Details_QuandoAluguelNaoExiste_DeveRetornarNotFound()
+    public void EditGet_QuandoAluguelNaoExiste_DeveRetornarNotFound()
     {
         // Act
-        var resultado = controller.Details(999);
+        var resultado = controller.Edit(999);
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
 
-        aluguelServiceMock.Verify(
-            service => service.Get(999),
-            Times.Once);
-        pessoaServiceMock.Verify(
-            service => service.Get(It.IsAny<uint>()),
-            Times.Never);
+    [TestMethod]
+    public void EditGet_QuandoAluguelCancelado_DeveRedirecionarParaDetailsComMensagemDeErro()
+    {
+        // Act
+        var resultado = controller.Edit(2);
+
+        // Assert
+        VerificarRedirecionamentoParaDetails(resultado, 2, IdProprietario);
+        Assert.AreEqual("Não é possível editar um aluguel cancelado.", controller.TempData["Erro"]);
     }
 
     [TestMethod]
@@ -418,7 +619,7 @@ public class AluguelControllerTests
         var resultado = controller.Edit(modelo);
 
         // Assert
-        VerificarRedirecionamentoParaDetails(resultado, 1);
+        VerificarRedirecionamentoParaDetails(resultado, 1, IdProprietario);
 
         aluguelServiceMock.Verify(
             service => service.Edit(It.Is<Aluguel>(aluguel =>
@@ -507,7 +708,7 @@ public class AluguelControllerTests
     }
 
     [TestMethod]
-    public void Edit_QuandoDadosInvalidos_DeveRetornarDetailsSemChamarServico()
+    public void Edit_QuandoDadosInvalidos_DeveRetornarViewSemChamarServico()
     {
         // Arrange
         controller.ModelState.AddModelError(
@@ -525,7 +726,7 @@ public class AluguelControllerTests
         var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(
             viewResult.ViewData.Model);
 
-        Assert.AreEqual("Details", viewResult.ViewName);
+        Assert.IsNull(viewResult.ViewName);
         Assert.AreEqual(1u, aluguel.Id);
         Assert.AreEqual("Maria José Santos", aluguel.Inquilino!.Nome);
 
@@ -535,7 +736,7 @@ public class AluguelControllerTests
     }
 
     [TestMethod]
-    public void Edit_QuandoAluguelCancelado_DeveRetornarDetailsComMensagemDeErro()
+    public void EditPost_QuandoAluguelCancelado_DeveRetornarViewComMensagemDeErro()
     {
         // Arrange
         var modelo = ObterModelo();
@@ -547,7 +748,7 @@ public class AluguelControllerTests
         // Assert
         var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
 
-        Assert.AreEqual("Details", viewResult.ViewName);
+        Assert.IsNull(viewResult.ViewName);
         Assert.AreEqual("Não é possível editar um aluguel cancelado.", ObterMensagemDeErro());
 
         aluguelServiceMock.Verify(
@@ -556,7 +757,7 @@ public class AluguelControllerTests
     }
 
     [TestMethod]
-    public void Edit_QuandoServicoRecusa_DeveRetornarDetailsComMensagemDeErro()
+    public void Edit_QuandoServicoRecusa_DeveRetornarViewComMensagemDeErro()
     {
         // Arrange
         const string mensagem = "Aluguel não encontrado.";
@@ -576,7 +777,7 @@ public class AluguelControllerTests
         var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(
             viewResult.ViewData.Model);
 
-        Assert.AreEqual("Details", viewResult.ViewName);
+        Assert.IsNull(viewResult.ViewName);
         Assert.AreEqual(1u, aluguel.Id);
         Assert.AreEqual(mensagem, ObterMensagemDeErro());
     }
@@ -793,6 +994,7 @@ public class AluguelControllerTests
             "O contrato deve ser um arquivo PDF, JPG ou PNG.",
             resultados[0].ErrorMessage);
     }
+
     private static List<ValidationResult> Validar(AluguelViewModel modelo)
     {
         var contexto = new ValidationContext(modelo);
@@ -811,7 +1013,7 @@ public class AluguelControllerTests
         return erros[0].ErrorMessage;
     }
 
-    private static void VerificarRedirecionamentoParaDetails(IActionResult resultado, uint id)
+    private static void VerificarRedirecionamentoParaDetails(IActionResult resultado, uint id, uint? idPessoa = null)
     {
         var redirectResult =
             Assert.IsInstanceOfType<RedirectToActionResult>(resultado);
@@ -820,6 +1022,9 @@ public class AluguelControllerTests
             nameof(AluguelController.Details),
             redirectResult.ActionName);
         Assert.AreEqual(id, Convert.ToUInt32(redirectResult.RouteValues!["id"]));
+
+        if (idPessoa != null)
+            Assert.AreEqual(idPessoa, Convert.ToUInt32(redirectResult.RouteValues!["idPessoa"]));
     }
 
     private static void VerificarRedirecionamentoParaImovel(IActionResult resultado, uint idImovel)
@@ -887,5 +1092,78 @@ public class AluguelControllerTests
             StatusValidacao = statusValidacao,
             IdPessoaProprietario = 1
         };
+    }
+
+    private static Aluguel ObterAluguel()
+    {
+        return new Aluguel
+        {
+            Id = 1,
+            DiaPagamento = 5,
+            DataVencimentoProximo = new DateTime(2026, 12, 5),
+            Valor = 700m,
+            Status = "A",
+            IdImovel = 1,
+            IdPessoaInquilino = 2,
+            ArquivoContrato = [0x25, 0x50, 0x44, 0x46],
+            IdImovelNavigation = ObterImovel(),
+            IdPessoaInquilinoNavigation = new Pessoa
+            {
+                Id = 2,
+                Tipo = "F",
+                Nome = "João da Conceição",
+                Cpf = "39053344705",
+                Telefone = "79998887766",
+                Status = "A"
+            }
+        };
+    }
+
+    private static Imovel ObterImovel()
+    {
+        return new Imovel
+        {
+            Id = 1,
+            Nome = "Casa - Itabaiana",
+            Descricao = "Casa térrea próxima ao Rotary Club.",
+            Tipo = "C",
+            AreaTotal = 38m,
+            QuantidadeBanheiros = 1,
+            QuantidadeQuartos = 1,
+            Rua = "Rua do Rotary, 120",
+            Bairro = "Rotary Club",
+            Cep = "49500000",
+            Cidade = "Itabaiana",
+            Estado = "SE",
+            Valor = 700m,
+            Finalidade = "A",
+            Status = "A",
+            StatusValidacao = "A",
+            IdPessoaProprietario = 1
+        };
+    }
+
+    private static List<Pagamento> ObterPagamentos()
+    {
+        return
+        [
+            new Pagamento
+            {
+                Id = 10,
+                MesReferencia = new DateTime(2026, 11, 1),
+                Status = "PE",
+                IdAluguel = 1
+            },
+            new Pagamento
+            {
+                Id = 11,
+                MesReferencia = new DateTime(2026, 10, 1),
+                Status = "PA",
+                ValorPago = 700m,
+                DataPagamento = new DateTime(2026, 10, 5),
+                Comprovante = [1, 2, 3],
+                IdAluguel = 1
+            }
+        ];
     }
 }

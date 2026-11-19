@@ -10,24 +10,27 @@ namespace Service
     public class AssinaturaService : IAssinaturaService
     {
         private readonly ImovelJaContext context;
+        private readonly ICobrancaService cobrancaService;
 
-        public AssinaturaService(ImovelJaContext context)
+        public AssinaturaService(ImovelJaContext context, ICobrancaService cobrancaService)
         {
             this.context = context;
+            this.cobrancaService = cobrancaService;
         }
 
         /// <summary>
-        /// Registra a primeira assinatura de um plano para a pessoa
+        /// Registra a primeira assinatura de um plano para a pessoa, depois de o pagamento ser autorizado
         /// </summary>
         /// <param name="assinatura">dados da assinatura</param>
         /// <returns>id da assinatura criada</returns>
-        /// <exception cref="ServiceException">pessoa já possui assinatura, plano não encontrado ou inativo</exception>
+        /// <exception cref="ServiceException">pessoa já possui assinatura, plano não encontrado ou inativo, ou pagamento não autorizado</exception>
         public uint Create(Assinatura assinatura)
         {
             if (context.Assinaturas.Any(a => a.IdPessoa == assinatura.IdPessoa))
                 throw new ServiceException("A pessoa já possui uma assinatura. Para trocar de plano, altere a assinatura.");
 
-            VerificarPlanoAtivo(assinatura.IdPlano);
+            var plano = ObterPlanoAtivo(assinatura.IdPlano);
+            Cobrar(assinatura.IdPessoa, plano);
             IniciarPeriodo(assinatura);
 
             context.Add(assinatura);
@@ -36,16 +39,19 @@ namespace Service
         }
 
         /// <summary>
-        /// Troca o plano da assinatura (upgrade ou downgrade) ou reativa uma assinatura cancelada
+        /// Troca o plano da assinatura (upgrade ou downgrade) ou reativa uma assinatura cancelada,
+        /// depois de o pagamento do novo período ser autorizado
         /// </summary>
         /// <param name="assinatura">dados da assinatura, com o novo plano</param>
-        /// <exception cref="ServiceException">assinatura não encontrada, plano não encontrado ou inativo</exception>
+        /// <exception cref="ServiceException">assinatura não encontrada, plano não encontrado ou inativo, ou pagamento não autorizado</exception>
         public void Edit(Assinatura assinatura)
         {
             var atual = context.Assinaturas.Find(assinatura.Id)
                 ?? throw new ServiceException("Assinatura não encontrada.");
 
-            VerificarPlanoAtivo(assinatura.IdPlano);
+            var plano = ObterPlanoAtivo(assinatura.IdPlano);
+            Cobrar(atual.IdPessoa, plano);
+
             atual.IdPlano = assinatura.IdPlano;
             IniciarPeriodo(atual);
 
@@ -99,17 +105,32 @@ namespace Service
         }
 
         /// <summary>
-        /// Verifica se o plano existe e está disponível para contratação
+        /// Busca o plano e verifica se ele está disponível para contratação (RN08)
         /// </summary>
         /// <param name="idPlano">id do plano</param>
+        /// <returns>dados do plano</returns>
         /// <exception cref="ServiceException">plano não encontrado ou inativo</exception>
-        private void VerificarPlanoAtivo(uint idPlano)
+        private Plano ObterPlanoAtivo(uint idPlano)
         {
             var plano = context.Planos.Find(idPlano)
                 ?? throw new ServiceException("Plano não encontrado.");
 
             if (plano.Status != "A")
                 throw new ServiceException("Este plano não está disponível para contratação.");
+
+            return plano;
+        }
+
+        /// <summary>
+        /// Cobra o valor do plano no gateway de pagamento; plano gratuito não gera cobrança
+        /// </summary>
+        /// <param name="idPessoa">id da pessoa cobrada</param>
+        /// <param name="plano">plano contratado</param>
+        /// <exception cref="ServiceException">pagamento não autorizado</exception>
+        private void Cobrar(uint idPessoa, Plano plano)
+        {
+            if (plano.Valor > 0 && !cobrancaService.Cobrar(idPessoa, plano.Valor))
+                throw new ServiceException("Pagamento não autorizado. Verifique os dados de pagamento e tente novamente.");
         }
 
         /// <summary>

@@ -12,10 +12,12 @@ namespace Core.Service
         void Delete(uint id);
         Imovel? Get(uint id);
         Imovel? GetPublico(uint id);
+        Imovel? GetDoProprietario(uint id, uint idPessoa);
         IEnumerable<Imovel> GetAll();
         IEnumerable<Imovel> GetByProprietario(uint idPessoa);
         IEnumerable<Imovel> GetByValidacao(string statusValidacao);
         IEnumerable<Imovel> GetByFiltro(ImovelFiltroDTO filtro);
         void Approve(uint id, bool aprovado);
+        void Pause(uint id, bool pausado);
     }
 }

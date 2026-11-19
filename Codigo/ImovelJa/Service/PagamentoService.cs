@@ -37,14 +37,18 @@ namespace Service
         }
 
         /// <summary>
-        /// Edita os dados do pagamento de um mês do aluguel
+        /// Edita os dados do pagamento de um mês do aluguel.
+        /// O comprovante já enviado é mantido quando nenhum arquivo novo é informado
         /// </summary>
         /// <param name="pagamento">dados do pagamento</param>
         /// <exception cref="ServiceException">pagamento ou aluguel não encontrado, mês já registrado ou dados do pagamento incompletos</exception>
         public void Edit(Pagamento pagamento)
         {
-            if (!context.Pagamentos.Any(p => p.Id == pagamento.Id))
-                throw new ServiceException("Pagamento não encontrado.");
+            var atual = context.Pagamentos.AsNoTracking().FirstOrDefault(p => p.Id == pagamento.Id)
+                ?? throw new ServiceException("Pagamento não encontrado.");
+
+            if (pagamento.Comprovante == null || pagamento.Comprovante.Length == 0)
+                pagamento.Comprovante = atual.Comprovante;
 
             var aluguel = context.Aluguels.Find(pagamento.IdAluguel)
                 ?? throw new ServiceException("Aluguel não encontrado.");

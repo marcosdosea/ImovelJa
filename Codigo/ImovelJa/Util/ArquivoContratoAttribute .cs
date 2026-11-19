@@ -15,11 +15,13 @@ namespace Util
         {
             if (value is not IFormFile arquivo || arquivo.Length == 0)
                 return ValidationResult.Success;
+
             var membros = validationContext.MemberName is null
-            ? null
-            : new[] { validationContext.MemberName };
+                ? null
+                : new[] { validationContext.MemberName };
+
             if (arquivo.Length > TamanhoMaximo)
-                return new ValidationResult("O contrato deve ter no máximo 5 MB.");
+                return new ValidationResult("O contrato deve ter no máximo 5 MB.", membros);
 
             var inicio = new byte[4];
             int lidos;
@@ -32,7 +34,7 @@ namespace Util
 
             return pdf || jpg || png
                 ? ValidationResult.Success
-                : new ValidationResult("O contrato deve ser um arquivo PDF, JPG ou PNG.");
+                : new ValidationResult("O contrato deve ser um arquivo PDF, JPG ou PNG.", membros);
         }
     }
 }
