@@ -1,0 +1,105 @@
+@model ImovelJaWeb.Models.AssinaturaViewModel
+
+@* Meu plano (Tela_009 e Tela_009.1) e confirmação de plano ativado (Tela_005.1.1) *@
+
+@{
+    ViewData["Title"] = "Meu plano";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["NomeUsuario"] = "Proprietário";
+    ViewData["IdPessoa"] = Model.IdPessoa;
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var plano = ViewBag.PlanoAtual as PlanoViewModel;
+    var planoAtivado = TempData["PlanoAtivado"] as string;
+    var dataCobranca = Model.DataProximaCobranca.ToString("dd/MM/yyyy", ptBR);
+    var dataIso = Model.DataProximaCobranca.ToString("yyyy-MM-dd");
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-controller="Imovel" asp-action="Index" asp-route-idPessoa="@Model.IdPessoa" aria-label="Voltar para a gestão de imóveis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Meu plano</h1>
+        <p>Acompanhe e gerencie a assinatura do seu plano</p>
+    </div>
+</div>
+
+<section class="meu-plano" aria-labelledby="meu-plano-titulo">
+    <h2 class="meu-plano__titulo" id="meu-plano-titulo">Meu Plano</h2>
+
+    @if (Model.Id != 0 && plano != null && Model.Status == "A" && !PlanoTexto.Gratuito(plano.Valor))
+    {
+        <div class="meu-plano__ativo">
+            <div>
+                <p class="meu-plano__rotulo">Plano ativo</p>
+                <p class="meu-plano__nome">@plano.Nome</p>
+            </div>
+            <div class="meu-plano__cobranca">
+                <p class="meu-plano__rotulo">Próxima cobrança</p>
+                <p class="meu-plano__data"><time datetime="@dataIso">@dataCobranca</time></p>
+            </div>
+        </div>
+
+        <div class="meu-plano__acoes">
+            <a class="btn btn-outline-primary" asp-action="Edit" asp-route-id="@Model.Id">Trocar o plano</a>
+            <a class="btn btn-reprovar" asp-action="Cancel" asp-route-id="@Model.Id">Cancelar o plano</a>
+        </div>
+    }
+    else if (Model.Id != 0 && plano != null && Model.Status == "C")
+    {
+        <div class="meu-plano__resumo">
+            <div>
+                <p class="meu-plano__plano">
+                    Plano @plano.Nome
+                    <span class="selo selo--pequeno selo--reprovado">Cancelado</span>
+                </p>
+                <p class="meu-plano__detalhe">
+                    @(Model.DataProximaCobranca >= DateTime.Today ? "Os benefícios continuam até" : "Os benefícios terminaram em")
+                    <time datetime="@dataIso">@dataCobranca</time>
+                </p>
+            </div>
+            <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Reativar plano</a>
+        </div>
+    }
+    else
+    {
+        <div class="meu-plano__resumo">
+            <div>
+                <p class="meu-plano__plano">Plano @(plano?.Nome ?? "Básico")</p>
+                <p class="meu-plano__detalhe">
+                    @(plano != null ? $"Gratuito · {PlanoTexto.Limite(plano.LimiteImoveisAnunciados)}" : "Gratuito")
+                </p>
+            </div>
+            @if (Model.Id != 0)
+            {
+                <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Fazer upgrade</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-action="Create" asp-route-idPessoa="@Model.IdPessoa">Fazer upgrade</a>
+            }
+        </div>
+    }
+</section>
+
+@if (!string.IsNullOrEmpty(planoAtivado))
+{
+    <div class="modal fade" id="plano-ativado" tabindex="-1" aria-labelledby="plano-ativado-titulo" aria-hidden="true" data-abrir-ao-carregar>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modal-plano modal-plano--sucesso">
+                <button type="button" class="btn-close modal-plano__fechar" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                <div class="modal-plano__icone-sucesso" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                </div>
+                <h2 class="modal-plano__titulo-sucesso" id="plano-ativado-titulo">Plano ativado!</h2>
+                <p class="modal-plano__boas-vindas">Bem-vindo ao plano <strong>@planoAtivado</strong>.</p>
+                <p class="modal-plano__nota">Você já pode anunciar seus imóveis e aproveitar todos os benefícios do plano.</p>
+                <div class="modal-plano__botoes">
+                    <a class="btn btn-primary" asp-controller="Imovel" asp-action="Create" asp-route-idPessoa="@Model.IdPessoa">Começar a anunciar</a>
+                    <a class="btn btn-outline-primary" asp-controller="Imovel" asp-action="Index" asp-route-idPessoa="@Model.IdPessoa">Ver meus imóveis</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

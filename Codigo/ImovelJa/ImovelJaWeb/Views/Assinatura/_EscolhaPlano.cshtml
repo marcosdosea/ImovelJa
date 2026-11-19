@@ -1,0 +1,135 @@
+@model ImovelJaWeb.Models.AssinaturaViewModel
+
+@* Planos disponíveis (Tela_005) e confirmação do plano escolhido (Tela_005.1).
+   A contratação (Create) e a troca de plano (Edit) usam a mesma tela. *@
+
+@{
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var acao = ViewData["Acao"] as string ?? "Create";
+    var troca = acao == "Edit";
+    var planos = (ViewBag.PlanosDisponiveis as IEnumerable<PlanoViewModel>)?.ToList() ?? new List<PlanoViewModel>();
+
+    string Preco(decimal valor) => valor.ToString(valor % 1 == 0 ? "C0" : "C", ptBR);
+}
+
+<a class="voltar" asp-action="Index" asp-route-idPessoa="@Model.IdPessoa" aria-label="Voltar para meu plano">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+</a>
+
+<header class="escolha-plano__cabecalho">
+    <h1>@(troca ? "Troque seu plano" : "Escolha seu plano")</h1>
+    <p>Anuncie seus imóveis e alcance mais compradores e locatários</p>
+</header>
+
+<div asp-validation-summary="ModelOnly"></div>
+
+@if (planos.Count == 0)
+{
+    <p class="lista-vazia">Nenhum plano disponível no momento.</p>
+}
+else
+{
+    <ul class="escolha-plano">
+        @foreach (var plano in planos)
+        {
+            var gratuito = PlanoTexto.Gratuito(plano.Valor);
+            var destaque = plano.Nome == "Profissional";
+            var atual = troca && Model.Status == "A" && plano.Id == Model.IdPlano;
+            var podeEscolher = !atual && (troca || !gratuito);
+            var variante = gratuito ? "oferta--gratuita" : destaque ? "oferta--destaque" : string.Empty;
+
+            <li>
+                <article class="oferta @variante" aria-labelledby="oferta-@plano.Id">
+                    <div class="oferta__topo">
+                        @if (destaque)
+                        {
+                            <span class="oferta__etiqueta">Mais popular</span>
+                        }
+                        <h2 class="oferta__nome" id="oferta-@plano.Id">@plano.Nome</h2>
+                        <p class="oferta__preco">
+                            @if (gratuito)
+                            {
+                                <span>Grátis</span>
+                            }
+                            else
+                            {
+                                @Preco(plano.Valor)<span class="oferta__periodo">/mês</span>
+                            }
+                        </p>
+                    </div>
+
+                    <div class="oferta__corpo">
+                        <partial name="_Beneficios" model="plano" />
+
+                        @if (atual)
+                        {
+                            <button type="button" class="btn btn-outline-primary oferta__botao" disabled>Plano atual</button>
+                        }
+                        else if (podeEscolher)
+                        {
+                            <button type="button" class="btn btn-primary oferta__botao" data-bs-toggle="modal" data-bs-target="#confirmar-plano-@plano.Id">
+                                Contratar<span class="visually-hidden"> o plano @plano.Nome</span>
+                            </button>
+                        }
+                    </div>
+                </article>
+            </li>
+        }
+    </ul>
+
+    @foreach (var plano in planos)
+    {
+        var gratuito = PlanoTexto.Gratuito(plano.Valor);
+        var atual = troca && Model.Status == "A" && plano.Id == Model.IdPlano;
+        if (atual || (!troca && gratuito))
+        {
+            continue;
+        }
+
+        <div class="modal fade" id="confirmar-plano-@plano.Id" tabindex="-1" aria-labelledby="confirmar-plano-@plano.Id-titulo" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content modal-plano">
+                    <div class="modal-plano__topo">
+                        <p class="modal-plano__rotulo">Você escolheu</p>
+                        <h2 class="modal-plano__nome" id="confirmar-plano-@plano.Id-titulo">Plano @plano.Nome</h2>
+                        <p class="modal-plano__preco">
+                            @if (gratuito)
+                            {
+                                <span>Grátis</span>
+                            }
+                            else
+                            {
+                                @Preco(plano.Valor)<span class="oferta__periodo">/mês</span>
+                            }
+                        </p>
+                        <button type="button" class="btn-close btn-close-white modal-plano__fechar" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+
+                    <div class="modal-plano__corpo">
+                        <partial name="_Beneficios" model="plano" />
+
+                        <p class="modal-plano__total">
+                            <span>Total mensal</span>
+                            <strong>@(gratuito ? "Grátis" : $"{Preco(plano.Valor)}/mês")</strong>
+                        </p>
+
+                        <form asp-action="@acao" method="post" data-envio-unico>
+                            @if (troca)
+                            {
+                                <input type="hidden" name="Id" value="@Model.Id" />
+                            }
+                            <input type="hidden" name="IdPessoa" value="@Model.IdPessoa" />
+                            <input type="hidden" name="IdPlano" value="@plano.Id" />
+                            <button type="submit" class="btn btn-primary modal-plano__confirmar">
+                                @(gratuito ? "Confirmar troca" : "Ir para pagamento")
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+                            </button>
+                        </form>
+
+                        <p class="modal-plano__nota">Cancele a qualquer momento. Sem fidelidade.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}

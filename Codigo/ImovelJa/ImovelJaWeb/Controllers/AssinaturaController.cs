@@ -49,6 +49,7 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 assinaturaService.Create(AssinaturaMapper.ToEntity(assinaturaViewModel));
+                InformarPlanoAtivado(assinaturaViewModel.IdPlano);
             }
             catch (ServiceException ex)
             {
@@ -85,6 +86,7 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 assinaturaService.Edit(AssinaturaMapper.ToEntity(assinaturaViewModel));
+                InformarPlanoAtivado(assinaturaViewModel.IdPlano);
             }
             catch (ServiceException ex)
             {
@@ -129,6 +131,15 @@ namespace ImovelJaWeb.Controllers
             }
 
             return RedirectToAction(nameof(Index), new { idPessoa = assinaturaViewModel.IdPessoa });
+        }
+
+        /// <summary>
+        /// Guarda o nome do plano contratado para a tela de meu plano exibir a confirmação de plano ativado (Tela_005.1.1)
+        /// </summary>
+        /// <param name="idPlano">id do plano contratado</param>
+        private void InformarPlanoAtivado(uint idPlano)
+        {
+            TempData["PlanoAtivado"] = planoService.Get(idPlano)?.Nome;
         }
 
         private void PrepararPlanoAtual(uint idPlano)

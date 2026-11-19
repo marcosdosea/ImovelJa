@@ -204,4 +204,12 @@
 
     document.querySelectorAll("[data-filtro-lista]").forEach(ligarFiltro);
 
+    /* Janela que abre sozinha ao carregar a página, como a confirmação de
+       plano ativado (Tela_005.1.1). O componente de janela é o do Bootstrap. */
+    document.querySelectorAll(".modal[data-abrir-ao-carregar]").forEach(function (janela) {
+        if (window.bootstrap) {
+            window.bootstrap.Modal.getOrCreateInstance(janela).show();
+        }
+    });
+
 })();
