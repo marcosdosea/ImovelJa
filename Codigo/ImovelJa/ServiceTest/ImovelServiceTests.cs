@@ -614,4 +614,337 @@ public class ImovelServiceTests
         // Assert
         Assert.IsNull(imovel);
     }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoImovelPertenceAPessoa_DeveRetornarImovel()
+    {
+        // Act
+        var imovel = servicoImovel.GetDoProprietario(6, 1);
+
+        // Assert
+        Assert.IsNotNull(imovel);
+        Assert.AreEqual(6u, imovel.Id);
+        Assert.AreEqual("P", imovel.Status);
+    }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoImovelNaoPertenceAPessoa_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetDoProprietario(6, 2);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoImovelNaoExiste_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetDoProprietario(999, 1);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void Create_QuandoLimiteDoPlanoFoiAtingido_DeveLancarServiceException()
+    {
+        // Arrange: Maria já tem 6 anúncios e o plano Básico permite 1 (RN06)
+        var quantidade = contexto.Imovels.Count();
+        var imovel = NovoImovel(1);
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Create(imovel));
+
+        // Assert
+        Assert.AreEqual("O plano Básico permite no máximo 1 imóvel(is) anunciado(s).", excecao.Message);
+        Assert.AreEqual(quantidade, contexto.Imovels.Count());
+    }
+
+    [TestMethod]
+    public void Create_QuandoAssinaturaAmpliaOLimite_DeveCadastrarAcimaDoPlanoBasico()
+    {
+        // Arrange: a assinatura em vigor vale mais que o Básico (RN06)
+        var profissional = new Plano
+        {
+            Id = 2,
+            Nome = "Profissional",
+            Valor = 49.90m,
+            LimiteImoveisAnunciados = 10,
+            Beneficios = "Até 10 imóveis anunciados",
+            Status = "A"
+        };
+        contexto.Planos.Add(profissional);
+        contexto.Assinaturas.Add(new Assinatura
+        {
+            Id = 1,
+            DataContratacao = DateTime.Today,
+            DataProximaCobranca = DateTime.Today.AddMonths(1),
+            Status = "A",
+            IdPessoa = 1,
+            IdPlano = 2,
+            IdPlanoNavigation = profissional
+        });
+        contexto.SaveChanges();
+
+        // Act
+        var id = servicoImovel.Create(NovoImovel(1));
+
+        // Assert
+        var criado = servicoImovel.Get(id);
+        Assert.IsNotNull(criado);
+        Assert.AreEqual(1u, criado.IdPessoaProprietario);
+        Assert.AreEqual("P", criado.StatusValidacao);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoDadosSaoAlterados_DeveGravarOsNovosDadosEManterProprietarioEValidacao()
+    {
+        // Arrange
+        var imovel = servicoImovel.Get(1);
+        Assert.IsNotNull(imovel);
+
+        imovel.Nome = "Casa reformada no Centro";
+        imovel.Descricao = "Casa com quintal e garagem coberta.";
+        imovel.Valor = 1500m;
+        imovel.Rua = "Rua Sete de Setembro, 300";
+        imovel.IdPessoaProprietario = 2;
+        imovel.Status = "V";
+        imovel.StatusValidacao = "A";
+
+        // Act
+        servicoImovel.Edit(imovel);
+
+        // Assert
+        var editado = servicoImovel.Get(1);
+        Assert.IsNotNull(editado);
+        Assert.AreEqual("Casa reformada no Centro", editado.Nome);
+        Assert.AreEqual("Casa com quintal e garagem coberta.", editado.Descricao);
+        Assert.AreEqual(1500m, editado.Valor);
+        Assert.AreEqual("Rua Sete de Setembro, 300", editado.Rua);
+        Assert.AreEqual(1u, editado.IdPessoaProprietario);
+        Assert.AreEqual("P", editado.StatusValidacao);
+        Assert.AreEqual("D", editado.Status);
+        Assert.AreEqual(new DateTime(2026, 7, 21, 14, 30, 0), editado.DataCadastro);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoStatusInformadoDiverge_DeveManterOStatusOriginal()
+    {
+        // Arrange: o anúncio 6 está pausado; a edição não pode retomá-lo (RN18)
+        var imovel = servicoImovel.Get(6);
+        Assert.IsNotNull(imovel);
+
+        imovel.Nome = "Apartamento reformado nos Jardins";
+        imovel.Status = "D";
+
+        // Act
+        servicoImovel.Edit(imovel);
+
+        // Assert
+        var editado = servicoImovel.Get(6);
+        Assert.IsNotNull(editado);
+        Assert.AreEqual("Apartamento reformado nos Jardins", editado.Nome);
+        Assert.AreEqual("P", editado.Status);
+        Assert.AreEqual("A", editado.StatusValidacao);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoImovelNaoExiste_DeveLancarServiceException()
+    {
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(
+            () => servicoImovel.Edit(new Imovel { Id = 999 }));
+
+        // Assert
+        Assert.AreEqual("Imóvel não encontrado.", excecao.Message);
+    }
+
+    [TestMethod]
+    public void Delete_QuandoNaoHaHistoricoDeAluguel_DeveExcluirOAnuncio()
+    {
+        // Act
+        servicoImovel.Delete(4);
+
+        // Assert
+        Assert.IsNull(servicoImovel.Get(4));
+    }
+
+    [TestMethod]
+    public void Delete_QuandoHaHistoricoDeAluguel_DeveLancarServiceExceptionEManterOAnuncio()
+    {
+        // Arrange
+        contexto.Aluguels.Add(new Aluguel
+        {
+            Id = 1,
+            DiaPagamento = 10,
+            Valor = 1200m,
+            Status = "A",
+            IdImovel = 1,
+            IdPessoaInquilino = 2
+        });
+        contexto.SaveChanges();
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Delete(1));
+
+        // Assert
+        Assert.AreEqual("Não é possível excluir um imóvel com histórico de aluguel.", excecao.Message);
+        Assert.IsNotNull(servicoImovel.Get(1));
+    }
+
+    [TestMethod]
+    public void GetByProprietario_QuandoProprietarioTemAnuncios_DeveRetornarSomenteOsDele()
+    {
+        // Act
+        var imoveis = servicoImovel.GetByProprietario(1).ToList();
+
+        // Assert
+        Assert.HasCount(6, imoveis);
+        Assert.IsTrue(imoveis.All(imovel => imovel.IdPessoaProprietario == 1));
+        CollectionAssert.AreEquivalent(
+            new uint[] { 1, 2, 3, 4, 5, 6 },
+            imoveis.Select(imovel => imovel.Id).ToList());
+    }
+
+    [TestMethod]
+    public void GetByProprietario_QuandoProprietarioNaoTemAnuncios_DeveRetornarColecaoVazia()
+    {
+        // Act
+        var imoveis = servicoImovel.GetByProprietario(2).ToList();
+
+        // Assert
+        Assert.IsNotNull(imoveis);
+        Assert.IsEmpty(imoveis);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoAnuncioDisponivel_DeveMudarStatusParaPausado()
+    {
+        // Act
+        servicoImovel.Pause(3, true);
+
+        // Assert
+        var imovel = servicoImovel.Get(3);
+        Assert.IsNotNull(imovel);
+        Assert.AreEqual("P", imovel.Status);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoAnuncioPausado_DeveVoltarParaDisponivel()
+    {
+        // Act
+        servicoImovel.Pause(6, false);
+
+        // Assert
+        var imovel = servicoImovel.Get(6);
+        Assert.IsNotNull(imovel);
+        Assert.AreEqual("D", imovel.Status);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoImovelNaoExiste_DeveLancarServiceException()
+    {
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Pause(999, true));
+
+        // Assert
+        Assert.AreEqual("Imóvel não encontrado.", excecao.Message);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoImovelAlugado_DeveLancarServiceExceptionEManterOStatus()
+    {
+        // Arrange
+        var alugado = contexto.Imovels.Find(5u)!;
+        alugado.Status = "A";
+        contexto.SaveChanges();
+
+        // Act
+        var aoPausar = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Pause(5, true));
+        var aoRetomar = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Pause(5, false));
+
+        // Assert
+        Assert.AreEqual("Não é possível pausar um imóvel nesta situação.", aoPausar.Message);
+        Assert.AreEqual("Não é possível retomar um imóvel nesta situação.", aoRetomar.Message);
+        Assert.AreEqual("A", servicoImovel.Get(5)!.Status);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoImovelVendido_DeveLancarServiceException()
+    {
+        // Arrange
+        var vendido = contexto.Imovels.Find(5u)!;
+        vendido.Status = "V";
+        contexto.SaveChanges();
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Pause(5, true));
+
+        // Assert
+        Assert.AreEqual("Não é possível pausar um imóvel nesta situação.", excecao.Message);
+        Assert.AreEqual("V", servicoImovel.Get(5)!.Status);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoAnuncioJaEstaPausado_DeveLancarServiceException()
+    {
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Pause(6, true));
+
+        // Assert
+        Assert.AreEqual("Não é possível pausar um imóvel nesta situação.", excecao.Message);
+        Assert.AreEqual("P", servicoImovel.Get(6)!.Status);
+    }
+
+    [TestMethod]
+    public void Pause_QuandoAnuncioDisponivelERetomado_DeveLancarServiceException()
+    {
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(() => servicoImovel.Pause(3, false));
+
+        // Assert
+        Assert.AreEqual("Não é possível retomar um imóvel nesta situação.", excecao.Message);
+        Assert.AreEqual("D", servicoImovel.Get(3)!.Status);
+    }
+
+    [TestMethod]
+    public void GetByFiltro_QuandoAnuncioEPausado_NaoDeveAparecerNaBuscaPublica()
+    {
+        // Arrange
+        var antes = servicoImovel.GetByFiltro(new ImovelFiltroDTO { Termo = "Apartamento 2 quartos" }).ToList();
+        Assert.HasCount(1, antes);
+        Assert.AreEqual(5u, antes[0].Id);
+
+        // Act
+        servicoImovel.Pause(5, true);
+
+        // Assert
+        var depois = servicoImovel.GetByFiltro(new ImovelFiltroDTO { Termo = "Apartamento 2 quartos" }).ToList();
+        Assert.IsNotNull(depois);
+        Assert.IsEmpty(depois);
+        Assert.IsNull(servicoImovel.GetPublico(5));
+    }
+
+    private static Imovel NovoImovel(uint idPessoa)
+    {
+        return new Imovel
+        {
+            Nome = "Kitnet mobiliada no Centro",
+            Descricao = "Kitnet com cozinha planejada.",
+            Tipo = "S",
+            AreaTotal = 28m,
+            QuantidadeBanheiros = 1,
+            QuantidadeQuartos = 1,
+            Rua = "Rua Capitão Mendes, 120",
+            Bairro = "Centro",
+            Cep = "49500003",
+            Cidade = "Itabaiana",
+            Estado = "Sergipe",
+            Valor = 550m,
+            Finalidade = "A",
+            IdPessoaProprietario = idPessoa
+        };
+    }
 }
