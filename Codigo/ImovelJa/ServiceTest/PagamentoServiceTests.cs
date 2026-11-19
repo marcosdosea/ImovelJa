@@ -12,6 +12,8 @@ public class PagamentoServiceTests
     private const string MensagemAluguelNaoEncontrado = "Aluguel não encontrado.";
     private const string MensagemPagamentoNaoEncontrado = "Pagamento não encontrado.";
 
+    private static readonly byte[] ComprovanteAnterior = [0x25, 0x50, 0x44, 0x46, 0x2D];
+
     private ImovelJaContext contexto = null!;
     private IPagamentoService servicoPagamento = null!;
 
@@ -516,5 +518,68 @@ public class PagamentoServiceTests
 
         // Assert
         Assert.HasCount(0, pagamentos);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoNenhumComprovanteNovoEInformado_DeveManterOAnterior()
+    {
+        // Arrange
+        var pagamento = NovoPagamento(1, MesFuturo, "PE", 100m, DateTime.Today);
+        pagamento.Comprovante = ComprovanteAnterior;
+        var id = Semear(pagamento);
+
+        var edicao = NovoPagamento(1, MesFuturo, "PE", 200m, DateTime.Today);
+        edicao.Id = id;
+
+        // Act
+        servicoPagamento.Edit(edicao);
+
+        // Assert
+        var gravado = Gravado(id);
+
+        CollectionAssert.AreEqual(ComprovanteAnterior, gravado.Comprovante);
+        Assert.AreEqual<decimal?>(200m, gravado.ValorPago);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoComprovanteNovoVemVazio_DeveManterOAnterior()
+    {
+        // Arrange
+        var pagamento = NovoPagamento(1, MesFuturo, "PE", 100m, DateTime.Today);
+        pagamento.Comprovante = ComprovanteAnterior;
+        var id = Semear(pagamento);
+
+        var edicao = NovoPagamento(1, MesFuturo, "PE", 200m, DateTime.Today);
+        edicao.Id = id;
+        edicao.Comprovante = [];
+
+        // Act
+        servicoPagamento.Edit(edicao);
+
+        // Assert
+        CollectionAssert.AreEqual(ComprovanteAnterior, Gravado(id).Comprovante);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoUmNovoComprovanteEEnviado_DeveSubstituirOAnterior()
+    {
+        // Arrange
+        var novo = new byte[] { 0x89, 0x50, 0x4E, 0x47 };
+        var pagamento = NovoPagamento(1, MesFuturo, "PE", 100m, DateTime.Today);
+        pagamento.Comprovante = ComprovanteAnterior;
+        var id = Semear(pagamento);
+
+        var edicao = NovoPagamento(1, MesFuturo, "PE", 200m, DateTime.Today);
+        edicao.Id = id;
+        edicao.Comprovante = novo;
+
+        // Act
+        servicoPagamento.Edit(edicao);
+
+        // Assert
+        var gravado = Gravado(id);
+
+        CollectionAssert.AreEqual(novo, gravado.Comprovante);
+        CollectionAssert.AreNotEqual(ComprovanteAnterior, gravado.Comprovante);
     }
 }

@@ -182,13 +182,16 @@ namespace Service
         }
 
         /// <summary>
-        /// Busca os aluguéis vinculados a um inquilino
+        /// Busca os aluguéis vinculados a um inquilino, com os dados do imóvel de cada aluguel
         /// </summary>
         /// <param name="idPessoa">id da pessoa inquilina</param>
         /// <returns>lista de aluguéis do inquilino</returns>
         public IEnumerable<Aluguel> GetByInquilino(uint idPessoa)
         {
-            return context.Aluguels.Where(a => a.IdPessoaInquilino == idPessoa).AsNoTracking();
+            return context.Aluguels
+                .Include(a => a.IdImovelNavigation)
+                .Where(a => a.IdPessoaInquilino == idPessoa)
+                .AsNoTracking();
         }
     }
 }
