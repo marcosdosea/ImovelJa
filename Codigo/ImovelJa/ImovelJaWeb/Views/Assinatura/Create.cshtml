@@ -1,0 +1,11 @@
+@model ImovelJaWeb.Models.AssinaturaViewModel
+
+@{
+    ViewData["Title"] = "Escolha seu plano";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["NomeUsuario"] = "Proprietário";
+    ViewData["IdPessoa"] = Model.IdPessoa;
+    ViewData["Acao"] = "Create";
+}
+
+<partial name="_EscolhaPlano" model="Model" />
