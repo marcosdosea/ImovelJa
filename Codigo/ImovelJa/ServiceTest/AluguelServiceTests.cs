@@ -209,6 +209,38 @@ public class AluguelServiceTests
     }
 
     [TestMethod]
+    public void GetDoInquilino_QuandoAluguelPertenceAoInquilino_DeveRetornarOAluguel()
+    {
+        // Act
+        var aluguel = servicoAluguel.GetDoInquilino(1, 2);
+
+        // Assert
+        Assert.IsNotNull(aluguel);
+        Assert.AreEqual(1u, aluguel.Id);
+        Assert.AreEqual(2u, aluguel.IdPessoaInquilino);
+    }
+
+    [TestMethod]
+    public void GetDoInquilino_QuandoAluguelNaoPertenceAoInquilino_DeveRetornarNulo()
+    {
+        // Act
+        var aluguel = servicoAluguel.GetDoInquilino(1, 3);
+
+        // Assert
+        Assert.IsNull(aluguel);
+    }
+
+    [TestMethod]
+    public void GetDoInquilino_QuandoAluguelNaoExiste_DeveRetornarNulo()
+    {
+        // Act
+        var aluguel = servicoAluguel.GetDoInquilino(999, 2);
+
+        // Assert
+        Assert.IsNull(aluguel);
+    }
+
+    [TestMethod]
     public void Create_QuandoPessoaJaCadastrada_DeveVincularAPessoaExistente()
     {
         // Arrange

@@ -150,6 +150,19 @@ namespace Service
         }
 
         /// <summary>
+        /// Busca um aluguel pelo id apenas se ele estiver vinculado ao inquilino informado
+        /// </summary>
+        /// <param name="id">id do aluguel</param>
+        /// <param name="idPessoa">id da pessoa inquilina</param>
+        /// <returns>dados do aluguel ou nulo se não for encontrado ou não pertencer ao inquilino</returns>
+        public Aluguel? GetDoInquilino(uint id, uint idPessoa)
+        {
+            return context.Aluguels
+                .AsNoTracking()
+                .FirstOrDefault(a => a.Id == id && a.IdPessoaInquilino == idPessoa);
+        }
+
+        /// <summary>
         /// Busca todos os aluguéis cadastrados
         /// </summary>
         /// <returns>lista de aluguéis</returns>
