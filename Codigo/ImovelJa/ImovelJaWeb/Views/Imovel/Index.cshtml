@@ -7,7 +7,8 @@
 
     var idPessoa = ViewData["IdPessoa"] is uint pessoa ? pessoa : 0u;
     var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
-    var quantidade = Model.Count();
+    var alugueis = ViewBag.Alugueis as List<AluguelViewModel> ?? new List<AluguelViewModel>();
+    var quantidade = Model.Count() + alugueis.Count;
 }
 
 <div class="titulo-pagina titulo-pagina--com-acao">
@@ -16,7 +17,7 @@
     </a>
     <div>
         <h1>Gestão de imóveis</h1>
-        <p>@(quantidade == 1 ? "1 anúncio" : $"{quantidade} anúncios")</p>
+        <p>@(quantidade == 1 ? "1 imóvel" : $"{quantidade} imóveis")</p>
     </div>
     <a class="btn btn-primary titulo-pagina__acao" asp-action="Create" asp-route-idPessoa="@idPessoa">Novo imóvel</a>
 </div>
@@ -29,13 +30,23 @@
 }
 else
 {
-    <div class="lista-anuncios__cabecalho lista-anuncios__cabecalho--gestao" aria-hidden="true">
-        <span>Anúncio</span>
-        <span>Situação</span>
-        <span></span>
+    <div class="busca-campo mb-4" role="search">
+        <svg class="busca-campo__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <label class="visually-hidden" for="filtro-imoveis">Filtrar imóveis</label>
+        <input id="filtro-imoveis" type="search" class="busca-campo__entrada" placeholder="Filtrar imóveis..."
+               autocomplete="off" data-filtro-lista="lista-imoveis" />
     </div>
 
-    <ul class="lista-anuncios">
+    @if (Model.Any())
+    {
+        <div class="lista-anuncios__cabecalho lista-anuncios__cabecalho--gestao" aria-hidden="true">
+            <span>Anúncio</span>
+            <span>Situação</span>
+            <span></span>
+        </div>
+    }
+
+    <ul class="lista-anuncios" id="lista-imoveis">
         @foreach (var item in Model)
         {
             var aluguel = item.Finalidade != "V";
@@ -53,7 +64,7 @@ else
                 _ => ("Disponível", "selo--aprovado")
             };
 
-            <li>
+            <li data-filtro-texto="@item.Nome @item.Bairro @item.Cidade">
                 <article class="anuncio anuncio--gestao" aria-labelledby="anuncio-@item.Id">
                     <div class="anuncio__dados">
                         <div class="miniatura" aria-hidden="true">
@@ -100,5 +111,47 @@ else
                 </article>
             </li>
         }
+        @foreach (var item in alugueis)
+        {
+            var imovel = item.Imovel;
+            var nome = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Imóvel" : imovel.Nome;
+            var local = imovel == null ? string.Empty : $"{imovel.Bairro}, {imovel.Cidade} - {imovel.Estado}";
+
+            <li data-filtro-texto="@nome @local">
+                <article class="anuncio anuncio--gestao" aria-labelledby="aluguel-@item.Id">
+                    <div class="anuncio__dados">
+                        <div class="miniatura" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+                        </div>
+                        <div>
+                            <h2 class="anuncio__nome" id="aluguel-@item.Id">@nome</h2>
+                            @if (!string.IsNullOrWhiteSpace(local))
+                            {
+                                <p class="anuncio__local">@local</p>
+                            }
+                            <p class="anuncio__valores">
+                                <span class="selo selo--pequeno">Aluguel</span>
+                                <span class="preco">@item.Valor.ToString("C0", ptBR)/mês</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="anuncio__situacao m-0">
+                        <span class="visually-hidden">Situação: </span>
+                        <span class="selo selo--neutro">Alugado</span>
+                    </p>
+
+                    <div class="anuncio__acao anuncio__acoes">
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Aluguel" asp-action="Details" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                            Ver aluguel<span class="visually-hidden"> de @nome</span>
+                        </a>
+                    </div>
+                </article>
+            </li>
+        }
     </ul>
+
+    <p class="lista-vazia mt-3" role="status" data-filtro-vazio="lista-imoveis" hidden>
+        Nenhum imóvel encontrado para o filtro informado.
+    </p>
 }

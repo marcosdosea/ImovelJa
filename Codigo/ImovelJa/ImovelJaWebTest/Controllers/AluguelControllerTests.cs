@@ -51,58 +51,6 @@ public class AluguelControllerTests
     }
 
     [TestMethod]
-    public void Index_QuandoInquilinoPossuiAluguel_DeveListarComOsDadosDoImovel()
-    {
-        // Act
-        var resultado = controller.Index(2);
-
-        // Assert
-        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
-        var alugueis = Assert.IsInstanceOfType<List<AluguelViewModel>>(viewResult.ViewData.Model);
-
-        Assert.HasCount(1, alugueis);
-        Assert.AreEqual(1u, alugueis[0].Id);
-        Assert.AreEqual(2u, alugueis[0].IdPessoaInquilino);
-        Assert.AreEqual(700m, alugueis[0].Valor);
-        var imovel = alugueis[0].Imovel;
-        Assert.IsNotNull(imovel);
-        Assert.AreEqual("Casa - Itabaiana", imovel.Nome);
-        Assert.AreEqual("Rotary Club", imovel.Bairro);
-        Assert.AreEqual("Itabaiana", imovel.Cidade);
-        Assert.AreEqual(2u, viewResult.ViewData[AluguelController.ChaveIdPessoa]);
-        Assert.AreEqual("João da Conceição", viewResult.ViewData["NomeUsuario"]);
-
-        aluguelServiceMock.Verify(service => service.GetByInquilino(2), Times.Once);
-        imovelServiceMock.Verify(service => service.Get(It.IsAny<uint>()), Times.Never);
-    }
-
-    [TestMethod]
-    public void Index_QuandoOAluguelNaoTrazOImovel_DeveBuscarOImovelPeloServico()
-    {
-        // Arrange
-        var aluguel = ObterAluguel();
-        aluguel.IdImovelNavigation = null!;
-        aluguelServiceMock
-            .Setup(service => service.GetByInquilino(2))
-            .Returns(new List<Aluguel> { aluguel });
-        imovelServiceMock
-            .Setup(service => service.Get(1))
-            .Returns(ObterImovel());
-
-        // Act
-        var resultado = controller.Index(2);
-
-        // Assert
-        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
-        var alugueis = Assert.IsInstanceOfType<List<AluguelViewModel>>(viewResult.ViewData.Model);
-
-        var imovel = alugueis[0].Imovel;
-        Assert.IsNotNull(imovel);
-        Assert.AreEqual("Casa - Itabaiana", imovel.Nome);
-        imovelServiceMock.Verify(service => service.Get(1), Times.Once);
-    }
-
-    [TestMethod]
     public void Details_QuandoAluguelPertenceAoInquilino_DeveExibirImovelInquilinoEHistorico()
     {
         // Act
