@@ -32,19 +32,11 @@ namespace ImovelJaWeb.Controllers
         {
             PrepararPessoa(idPessoa);
 
-            try
-            {
-                var alugueis = aluguelService.GetByInquilino(idPessoa)
-                    .Select(aluguel => AluguelMapper.ToViewModel(aluguel, BuscarImovel(aluguel), null))
-                    .ToList();
+            var alugueis = aluguelService.GetByInquilino(idPessoa)
+                .Select(aluguel => AluguelMapper.ToViewModel(aluguel, BuscarImovel(aluguel), null))
+                .ToList();
 
-                return View(alugueis);
-            }
-            catch (ServiceException ex)
-            {
-                ModelState.AddModelError(string.Empty, ex.Message);
-                return View(new List<AluguelViewModel>());
-            }
+            return View(alugueis);
         }
 
         // GET: Aluguel/Details/5?idPessoa=2
@@ -54,8 +46,8 @@ namespace ImovelJaWeb.Controllers
 
             try
             {
-                var aluguel = aluguelService.Get(id);
-                if (aluguel == null || aluguel.IdPessoaInquilino != idPessoa)
+                var aluguel = aluguelService.GetDoInquilino(id, idPessoa);
+                if (aluguel == null)
                     return NotFound();
 
                 var modelo = AluguelMapper.ToViewModel(aluguel, BuscarImovel(aluguel), BuscarInquilino(aluguel));
@@ -74,8 +66,8 @@ namespace ImovelJaWeb.Controllers
         {
             try
             {
-                var aluguel = aluguelService.Get(id);
-                if (aluguel == null || aluguel.IdPessoaInquilino != idPessoa)
+                var aluguel = aluguelService.GetDoInquilino(id, idPessoa);
+                if (aluguel == null)
                     return NotFound();
 
                 if (aluguel.ArquivoContrato == null || aluguel.ArquivoContrato.Length == 0)

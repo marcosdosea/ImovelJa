@@ -28,11 +28,11 @@ public class AluguelControllerTests
             .Returns(new List<Aluguel> { ObterAluguel() });
 
         aluguelServiceMock
-            .Setup(service => service.Get(1))
+            .Setup(service => service.GetDoInquilino(1, 2))
             .Returns(ObterAluguel());
 
         aluguelServiceMock
-            .Setup(service => service.Get(999))
+            .Setup(service => service.GetDoInquilino(999, 2))
             .Returns((Aluguel?)null);
 
         pagamentoServiceMock
@@ -103,28 +103,6 @@ public class AluguelControllerTests
     }
 
     [TestMethod]
-    public void Index_QuandoServicoLancaExcecao_DeveExibirAMensagemSemListar()
-    {
-        // Arrange
-        const string texto = "Não foi possível consultar os aluguéis.";
-        aluguelServiceMock
-            .Setup(service => service.GetByInquilino(2))
-            .Throws(new ServiceException(texto));
-
-        // Act
-        var resultado = controller.Index(2);
-
-        // Assert
-        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
-        var alugueis = Assert.IsInstanceOfType<List<AluguelViewModel>>(viewResult.ViewData.Model);
-
-        Assert.HasCount(0, alugueis);
-        var erros = controller.ModelState.Values.SelectMany(entrada => entrada.Errors).ToList();
-        Assert.HasCount(1, erros);
-        Assert.AreEqual(texto, erros[0].ErrorMessage);
-    }
-
-    [TestMethod]
     public void Details_QuandoAluguelPertenceAoInquilino_DeveExibirImovelInquilinoEHistorico()
     {
         // Act
@@ -160,6 +138,7 @@ public class AluguelControllerTests
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
+        aluguelServiceMock.Verify(service => service.GetDoInquilino(1, 9), Times.Once);
         pagamentoServiceMock.Verify(service => service.GetByAluguel(It.IsAny<uint>()), Times.Never);
     }
 
@@ -179,7 +158,7 @@ public class AluguelControllerTests
         // Arrange
         const string texto = "Aluguel não encontrado.";
         aluguelServiceMock
-            .Setup(service => service.Get(1))
+            .Setup(service => service.GetDoInquilino(1, 2))
             .Throws(new ServiceException(texto));
 
         // Act
@@ -217,6 +196,7 @@ public class AluguelControllerTests
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
+        aluguelServiceMock.Verify(service => service.GetDoInquilino(1, 9), Times.Once);
     }
 
     [TestMethod]
@@ -225,7 +205,7 @@ public class AluguelControllerTests
         // Arrange
         var aluguel = ObterAluguel();
         aluguel.ArquivoContrato = null;
-        aluguelServiceMock.Setup(service => service.Get(1)).Returns(aluguel);
+        aluguelServiceMock.Setup(service => service.GetDoInquilino(1, 2)).Returns(aluguel);
 
         // Act
         var resultado = controller.Contrato(1, 2);
@@ -239,7 +219,7 @@ public class AluguelControllerTests
     {
         // Arrange
         aluguelServiceMock
-            .Setup(service => service.Get(1))
+            .Setup(service => service.GetDoInquilino(1, 2))
             .Throws(new ServiceException("Aluguel não encontrado."));
 
         // Act
