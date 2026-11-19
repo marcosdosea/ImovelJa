@@ -194,6 +194,21 @@ public class AluguelServiceTests
     }
 
     [TestMethod]
+    public void GetByInquilino_QuandoInquilinoPossuiAluguel_DeveTrazerOsDadosDoImovel()
+    {
+        // Act
+        var alugueis = servicoAluguel.GetByInquilino(2).ToList();
+
+        // Assert
+        Assert.HasCount(1, alugueis);
+        Assert.IsNotNull(alugueis[0].IdImovelNavigation);
+        Assert.AreEqual("Casa com 3 quartos no Centro", alugueis[0].IdImovelNavigation.Nome);
+        Assert.AreEqual("Centro", alugueis[0].IdImovelNavigation.Bairro);
+        Assert.AreEqual("Itabaiana", alugueis[0].IdImovelNavigation.Cidade);
+        Assert.AreEqual(1200m, alugueis[0].IdImovelNavigation.Valor);
+    }
+
+    [TestMethod]
     public void Create_QuandoPessoaJaCadastrada_DeveVincularAPessoaExistente()
     {
         // Arrange
