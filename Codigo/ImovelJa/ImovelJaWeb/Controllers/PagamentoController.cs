@@ -25,7 +25,7 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 var pagamento = pagamentoService.Get(id);
-                if (pagamento == null || DeOutroInquilino(pagamento, idPessoa))
+                if (pagamento == null || !DoInquilino(pagamento, idPessoa))
                     return NotFound();
 
                 var modelo = PagamentoMapper.ToViewModel(pagamento);
@@ -57,8 +57,11 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 var atual = pagamentoService.Get(pagamentoViewModel.Id);
-                if (atual == null || DeOutroInquilino(atual, idPessoa))
+                if (atual == null || !DoInquilino(atual, idPessoa))
                     return NotFound();
+
+                pagamentoViewModel.IdAluguel = atual.IdAluguel;
+                pagamentoViewModel.MesReferencia = atual.MesReferencia;
 
                 if (comprovante != null && comprovante.Length > 0)
                     pagamentoViewModel.Comprovante = LerArquivo(comprovante);
@@ -71,16 +74,17 @@ namespace ImovelJaWeb.Controllers
                 return View(pagamentoViewModel);
             }
 
-            return RedirectToAction(nameof(AluguelController.Index), "Aluguel", new { idPessoa });
+            return RedirectToAction(nameof(AluguelController.Details), "Aluguel", new { id = pagamentoViewModel.IdAluguel, idPessoa });
         }
 
-        // GET: Pagamento/Comprovante/5
-        public ActionResult Comprovante(uint id)
+        // GET: Pagamento/Comprovante/5?idPessoa=2
+        public ActionResult Comprovante(uint id, uint idPessoa)
         {
             try
             {
                 var pagamento = pagamentoService.Get(id);
-                if (pagamento?.Comprovante == null || pagamento.Comprovante.Length == 0)
+                if (pagamento == null || !DoInquilino(pagamento, idPessoa)
+                    || pagamento.Comprovante == null || pagamento.Comprovante.Length == 0)
                     return NotFound();
 
                 return File(pagamento.Comprovante, TipoDoArquivo(pagamento.Comprovante));
@@ -111,13 +115,10 @@ namespace ImovelJaWeb.Controllers
             return $"{imovel.Nome} — {imovel.Cidade}";
         }
 
-        private static bool DeOutroInquilino(Pagamento pagamento, uint idPessoa)
+        private static bool DoInquilino(Pagamento pagamento, uint idPessoa)
         {
-            if (idPessoa == 0)
-                return false;
-
-            var inquilino = pagamento.IdAluguelNavigation?.IdPessoaInquilino ?? 0;
-            return inquilino != 0 && inquilino != idPessoa;
+            return pagamento.IdAluguelNavigation != null
+                && pagamento.IdAluguelNavigation.IdPessoaInquilino == idPessoa;
         }
 
         private static byte[] LerArquivo(IFormFile arquivo)

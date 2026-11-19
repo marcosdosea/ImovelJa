@@ -92,6 +92,16 @@ public class PagamentoControllerTests
     }
 
     [TestMethod]
+    public void Edit_QuandoPessoaNaoInformada_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Edit(1, 0);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
+    [TestMethod]
     public void Edit_QuandoServicoLancaExcecao_DeveExibirAMensagem()
     {
         // Arrange
@@ -114,7 +124,7 @@ public class PagamentoControllerTests
     }
 
     [TestMethod]
-    public void Edit_QuandoComprovanteEnviado_DeveGravarOArquivoEVoltarParaOsAlugueis()
+    public void Edit_QuandoComprovanteEnviado_DeveGravarOArquivoEVoltarParaOAluguel()
     {
         // Arrange
         var bytes = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D };
@@ -125,8 +135,9 @@ public class PagamentoControllerTests
 
         // Assert
         var redirect = Assert.IsInstanceOfType<RedirectToActionResult>(resultado);
-        Assert.AreEqual(nameof(AluguelController.Index), redirect.ActionName);
+        Assert.AreEqual(nameof(AluguelController.Details), redirect.ActionName);
         Assert.AreEqual("Aluguel", redirect.ControllerName);
+        Assert.AreEqual(4u, Convert.ToUInt32(redirect.RouteValues!["id"]));
         Assert.AreEqual(2u, Convert.ToUInt32(redirect.RouteValues!["idPessoa"]));
 
         pagamentoServiceMock.Verify(
@@ -196,6 +207,37 @@ public class PagamentoControllerTests
     }
 
     [TestMethod]
+    public void Edit_QuandoFormularioTrocaOAluguelEOMes_DeveManterOsDadosGravados()
+    {
+        // Arrange
+        var modelo = ObterModelo();
+        modelo.IdAluguel = 8;
+        modelo.MesReferencia = new DateTime(2027, 3, 1);
+
+        // Act
+        var resultado = controller.Edit(modelo, null, 2, false);
+
+        // Assert
+        Assert.IsInstanceOfType<RedirectToActionResult>(resultado);
+        pagamentoServiceMock.Verify(
+            service => service.Edit(It.Is<Pagamento>(pagamento =>
+                pagamento.IdAluguel == 4
+                && pagamento.MesReferencia == new DateTime(2026, 12, 1))),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoEnvioSemPessoaInformada_DeveRetornarNaoEncontradoSemGravar()
+    {
+        // Act
+        var resultado = controller.Edit(ObterModelo(), null, 0, false);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+        pagamentoServiceMock.Verify(service => service.Edit(It.IsAny<Pagamento>()), Times.Never);
+    }
+
+    [TestMethod]
     public void Edit_QuandoEnvioNaoPertenceAoInquilino_DeveRetornarNaoEncontradoSemGravar()
     {
         // Act
@@ -210,7 +252,7 @@ public class PagamentoControllerTests
     public void Comprovante_QuandoArquivoExiste_DeveDevolverParaVisualizacao()
     {
         // Act
-        var resultado = controller.Comprovante(1);
+        var resultado = controller.Comprovante(1, 2);
 
         // Assert
         var arquivo = Assert.IsInstanceOfType<FileContentResult>(resultado);
@@ -228,7 +270,27 @@ public class PagamentoControllerTests
         pagamentoServiceMock.Setup(service => service.Get(1)).Returns(pagamento);
 
         // Act
-        var resultado = controller.Comprovante(1);
+        var resultado = controller.Comprovante(1, 2);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
+    [TestMethod]
+    public void Comprovante_QuandoPagamentoNaoPertenceAoInquilino_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Comprovante(1, 9);
+
+        // Assert
+        Assert.IsInstanceOfType<NotFoundResult>(resultado);
+    }
+
+    [TestMethod]
+    public void Comprovante_QuandoPessoaNaoInformada_DeveRetornarNaoEncontrado()
+    {
+        // Act
+        var resultado = controller.Comprovante(1, 0);
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
@@ -243,7 +305,7 @@ public class PagamentoControllerTests
             .Throws(new ServiceException("Pagamento não encontrado."));
 
         // Act
-        var resultado = controller.Comprovante(1);
+        var resultado = controller.Comprovante(1, 2);
 
         // Assert
         Assert.IsInstanceOfType<NotFoundResult>(resultado);
