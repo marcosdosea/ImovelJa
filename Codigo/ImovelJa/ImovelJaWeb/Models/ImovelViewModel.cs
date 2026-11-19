@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using Util;
 
 namespace ImovelJaWeb.Models
@@ -23,6 +24,7 @@ namespace ImovelJaWeb.Models
 
         [Display(Name = "Área total")]
         [Range(0.01, 99999999.99, ErrorMessage = "O campo {0} deve ser maior que zero")]
+        [ModelBinder(BinderType = typeof(NumeroModelBinder))]
         public decimal? AreaTotal { get; set; }
 
         [Display(Name = "Banheiros")]
@@ -36,18 +38,22 @@ namespace ImovelJaWeb.Models
 
         [Display(Name = "Área da cozinha")]
         [Range(0.01, 99999999.99, ErrorMessage = "O campo {0} deve ser maior que zero")]
+        [ModelBinder(BinderType = typeof(NumeroModelBinder))]
         public decimal? AreaCozinha { get; set; }
 
         [Display(Name = "Área da sala")]
         [Range(0.01, 99999999.99, ErrorMessage = "O campo {0} deve ser maior que zero")]
+        [ModelBinder(BinderType = typeof(NumeroModelBinder))]
         public decimal? AreaSala { get; set; }
 
         [Display(Name = "Área do quintal")]
         [Range(0.01, 99999999.99, ErrorMessage = "O campo {0} deve ser maior que zero")]
+        [ModelBinder(BinderType = typeof(NumeroModelBinder))]
         public decimal? AreaQuintal { get; set; }
 
         [Display(Name = "Área da lavanderia")]
         [Range(0.01, 99999999.99, ErrorMessage = "O campo {0} deve ser maior que zero")]
+        [ModelBinder(BinderType = typeof(NumeroModelBinder))]
         public decimal? AreaLavanderia { get; set; }
 
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
@@ -75,6 +81,7 @@ namespace ImovelJaWeb.Models
         [DataType(DataType.Currency)]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         [Range(0.01, 9999999999.99, ErrorMessage = "O campo {0} deve ser maior que zero")]
+        [ModelBinder(BinderType = typeof(NumeroModelBinder))]
         public decimal Valor { get; set; }
 
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
