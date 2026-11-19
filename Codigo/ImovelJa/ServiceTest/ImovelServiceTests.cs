@@ -616,6 +616,38 @@ public class ImovelServiceTests
     }
 
     [TestMethod]
+    public void GetDoProprietario_QuandoImovelPertenceAPessoa_DeveRetornarImovel()
+    {
+        // Act
+        var imovel = servicoImovel.GetDoProprietario(6, 1);
+
+        // Assert
+        Assert.IsNotNull(imovel);
+        Assert.AreEqual(6u, imovel.Id);
+        Assert.AreEqual("P", imovel.Status);
+    }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoImovelNaoPertenceAPessoa_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetDoProprietario(6, 2);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoImovelNaoExiste_DeveRetornarNulo()
+    {
+        // Act
+        var imovel = servicoImovel.GetDoProprietario(999, 1);
+
+        // Assert
+        Assert.IsNull(imovel);
+    }
+
+    [TestMethod]
     public void Create_QuandoLimiteDoPlanoFoiAtingido_DeveLancarServiceException()
     {
         // Arrange: Maria já tem 6 anúncios e o plano Básico permite 1 (RN06)
@@ -678,6 +710,7 @@ public class ImovelServiceTests
         imovel.Valor = 1500m;
         imovel.Rua = "Rua Sete de Setembro, 300";
         imovel.IdPessoaProprietario = 2;
+        imovel.Status = "V";
         imovel.StatusValidacao = "A";
 
         // Act
@@ -694,6 +727,27 @@ public class ImovelServiceTests
         Assert.AreEqual("P", editado.StatusValidacao);
         Assert.AreEqual("D", editado.Status);
         Assert.AreEqual(new DateTime(2026, 7, 21, 14, 30, 0), editado.DataCadastro);
+    }
+
+    [TestMethod]
+    public void Edit_QuandoStatusInformadoDiverge_DeveManterOStatusOriginal()
+    {
+        // Arrange: o anúncio 6 está pausado; a edição não pode retomá-lo (RN18)
+        var imovel = servicoImovel.Get(6);
+        Assert.IsNotNull(imovel);
+
+        imovel.Nome = "Apartamento reformado nos Jardins";
+        imovel.Status = "D";
+
+        // Act
+        servicoImovel.Edit(imovel);
+
+        // Assert
+        var editado = servicoImovel.Get(6);
+        Assert.IsNotNull(editado);
+        Assert.AreEqual("Apartamento reformado nos Jardins", editado.Nome);
+        Assert.AreEqual("P", editado.Status);
+        Assert.AreEqual("A", editado.StatusValidacao);
     }
 
     [TestMethod]
