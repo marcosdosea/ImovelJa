@@ -1,0 +1,64 @@
+@model ImovelJaWeb.Models.AssinaturaViewModel
+
+@* Confirmação do cancelamento, com a data limite dos benefícios (CSU09),
+   no mesmo padrão da confirmação de cancelar aluguel (Tela_012.3) *@
+
+@{
+    ViewData["Title"] = "Cancelar o plano";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["NomeUsuario"] = "Proprietário";
+    ViewData["IdPessoa"] = Model.IdPessoa;
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var plano = ViewBag.PlanoAtual as PlanoViewModel;
+    var dataCobranca = Model.DataProximaCobranca.ToString("dd/MM/yyyy", ptBR);
+    var dataIso = Model.DataProximaCobranca.ToString("yyyy-MM-dd");
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Index" asp-route-idPessoa="@Model.IdPessoa" aria-label="Voltar para meu plano">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Cancelar o plano</h1>
+        <p>Confirme o cancelamento da assinatura</p>
+    </div>
+</div>
+
+<div class="painel-formulario confirmacao">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    @if (Model.Id == 0 || plano == null)
+    {
+        <p class="lista-vazia">Assinatura não encontrada.</p>
+    }
+    else if (Model.Status == "C")
+    {
+        <p class="confirmacao__texto">
+            O plano <strong>@plano.Nome</strong> já está cancelado. Os benefícios continuam até
+            <strong><time datetime="@dataIso">@dataCobranca</time></strong>.
+        </p>
+        <div class="acoes-formulario">
+            <a class="btn btn-outline-primary" asp-action="Index" asp-route-idPessoa="@Model.IdPessoa">Voltar</a>
+        </div>
+    }
+    else
+    {
+        <div class="confirmacao__icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+        </div>
+        <h2 class="confirmacao__titulo">Cancelar o plano @plano.Nome?</h2>
+        <p class="confirmacao__texto">
+            Os benefícios do plano continuam até
+            <strong><time datetime="@dataIso">@dataCobranca</time></strong>, data da próxima cobrança.
+            Depois disso, a assinatura não é renovada e não há novas cobranças.
+        </p>
+
+        <form asp-action="Cancel" method="post" class="acoes-formulario" data-envio-unico>
+            <input type="hidden" name="Id" value="@Model.Id" />
+            <input type="hidden" name="IdPessoa" value="@Model.IdPessoa" />
+            <a class="btn btn-outline-primary" asp-action="Index" asp-route-idPessoa="@Model.IdPessoa">Voltar</a>
+            <button type="submit" class="btn btn-reprovar">Cancelar o plano</button>
+        </form>
+    }
+</div>
