@@ -1,0 +1,189 @@
+@model ImovelJaWeb.Models.ImovelViewModel
+
+@{
+    var acao = ViewData["Acao"] as string ?? "Create";
+    var titulo = ViewData["TituloFormulario"] as string ?? "Cadastro de Imóvel";
+    var edicao = acao == "Edit";
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+}
+
+<form asp-action="@acao" method="post" class="painel-formulario" data-etapas data-envio-unico id="form-imovel">
+    <input type="hidden" asp-for="IdPessoaProprietario" />
+    @if (edicao)
+    {
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Status" />
+        <input type="hidden" asp-for="StatusValidacao" />
+    }
+
+    <ol class="etapas" aria-label="Etapas do cadastro">
+        <li class="etapas__item etapas__item--atual" data-etapa-indicador="1">
+            <span class="etapas__numero" aria-hidden="true">1</span>
+            Dados do imóvel
+        </li>
+        <li class="etapas__traco" aria-hidden="true"></li>
+        <li class="etapas__item" data-etapa-indicador="2">
+            <span class="etapas__numero" aria-hidden="true">2</span>
+            Endereço e publicação
+        </li>
+    </ol>
+
+    <h2 class="formulario__titulo">@titulo</h2>
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <fieldset class="formulario__etapa" data-etapa="1">
+        <div class="campo campo--largo">
+            <label class="form-label" asp-for="Nome">Título</label>
+            <input asp-for="Nome" class="form-control" placeholder="Ex.: Apartamento 2 quartos — Centro" />
+            <span asp-validation-for="Nome" class="text-danger"></span>
+        </div>
+
+        <div class="campo campo--largo">
+            <label class="form-label" asp-for="Descricao"></label>
+            <textarea asp-for="Descricao" class="form-control campo-longo" rows="4" placeholder="Descreva o imóvel..."></textarea>
+            <span asp-validation-for="Descricao" class="text-danger"></span>
+        </div>
+
+        <div class="grade-campos">
+            <div class="campo">
+                <label class="form-label" asp-for="Tipo"></label>
+                <select asp-for="Tipo" class="form-select">
+                    <option value="">Selecione</option>
+                    <option value="C">Casa</option>
+                    <option value="A">Apartamento</option>
+                    <option value="T">Terreno</option>
+                    <option value="S">Studio</option>
+                    <option value="CO">Comercial</option>
+                    <option value="O">Outro</option>
+                </select>
+                <span asp-validation-for="Tipo" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="AreaTotal">Área total (m²)</label>
+                <input asp-for="AreaTotal" class="form-control campo-numero" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" value="@Model.AreaTotal?.ToString("0.##", inv)" />
+                <span asp-validation-for="AreaTotal" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="QuantidadeQuartos"></label>
+                <select asp-for="QuantidadeQuartos" class="form-select">
+                    <option value="">Selecione</option>
+                    @for (var numero = 0; numero <= 10; numero++)
+                    {
+                        <option value="@numero">@numero</option>
+                    }
+                </select>
+                <span asp-validation-for="QuantidadeQuartos" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="QuantidadeBanheiros"></label>
+                <select asp-for="QuantidadeBanheiros" class="form-select">
+                    <option value="">Selecione</option>
+                    @for (var numero = 0; numero <= 10; numero++)
+                    {
+                        <option value="@numero">@numero</option>
+                    }
+                </select>
+                <span asp-validation-for="QuantidadeBanheiros" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="QuantidadeVagasGaragem"></label>
+                <select asp-for="QuantidadeVagasGaragem" class="form-select">
+                    <option value="">Selecione</option>
+                    @for (var numero = 0; numero <= 10; numero++)
+                    {
+                        <option value="@numero">@numero</option>
+                    }
+                </select>
+                <span asp-validation-for="QuantidadeVagasGaragem" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="AreaCozinha">Cozinha (m²)</label>
+                <input asp-for="AreaCozinha" class="form-control campo-numero" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" value="@Model.AreaCozinha?.ToString("0.##", inv)" />
+                <span asp-validation-for="AreaCozinha" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="AreaSala">Sala (m²)</label>
+                <input asp-for="AreaSala" class="form-control campo-numero" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" value="@Model.AreaSala?.ToString("0.##", inv)" />
+                <span asp-validation-for="AreaSala" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="AreaQuintal">Quintal (m²)</label>
+                <input asp-for="AreaQuintal" class="form-control campo-numero" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" value="@Model.AreaQuintal?.ToString("0.##", inv)" />
+                <span asp-validation-for="AreaQuintal" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="AreaLavanderia">Área limpeza (m²)</label>
+                <input asp-for="AreaLavanderia" class="form-control campo-numero" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" value="@Model.AreaLavanderia?.ToString("0.##", inv)" />
+                <span asp-validation-for="AreaLavanderia" class="text-danger"></span>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary formulario__avancar" data-etapa-proxima>
+            Próximo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+        </button>
+    </fieldset>
+
+    <fieldset class="formulario__etapa" data-etapa="2" hidden>
+        <div class="grade-campos">
+            <div class="campo campo--largo">
+                <label class="form-label" asp-for="Rua"></label>
+                <input asp-for="Rua" class="form-control" placeholder="Rua, número" />
+                <span asp-validation-for="Rua" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="Bairro"></label>
+                <input asp-for="Bairro" class="form-control" />
+                <span asp-validation-for="Bairro" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="Cep"></label>
+                <input asp-for="Cep" class="form-control campo-cep" inputmode="numeric" placeholder="00000000" />
+                <span asp-validation-for="Cep" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="Cidade"></label>
+                <input asp-for="Cidade" class="form-control" />
+                <span asp-validation-for="Cidade" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="Estado"></label>
+                <input asp-for="Estado" class="form-control" placeholder="Sergipe" />
+                <span asp-validation-for="Estado" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="Valor">Valor (R$)</label>
+                <input asp-for="Valor" class="form-control campo-valor" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" value="@Model.Valor.ToString("0.##", inv)" />
+                <span asp-validation-for="Valor" class="text-danger"></span>
+            </div>
+
+            <div class="campo">
+                <label class="form-label" asp-for="Finalidade"></label>
+                <select asp-for="Finalidade" class="form-select">
+                    <option value="">Selecione</option>
+                    <option value="A">Aluguel</option>
+                    <option value="V">Venda</option>
+                </select>
+                <span asp-validation-for="Finalidade" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="acoes-formulario">
+            <button type="button" class="btn btn-outline-primary" data-etapa-anterior>Voltar</button>
+            <button type="submit" class="btn btn-primary formulario__avancar">Publicar imóvel</button>
+        </div>
+    </fieldset>
+</form>

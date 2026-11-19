@@ -76,20 +76,50 @@ namespace Service
         }
 
         /// <summary>
-        /// Edita os dados do aluguel, mantendo o inquilino vinculado
+        /// Edita os dados do aluguel e, quando informados em IdPessoaInquilinoNavigation, atualiza o nome,
+        /// o CPF ou CNPJ (conforme o tipo da pessoa) e o telefone do inquilino vinculado, na mesma transação
+        /// do aluguel (RN16). O inquilino vinculado ao aluguel não muda. Se o documento informado pertencer
+        /// a outra pessoa, nada é gravado (RN11)
         /// </summary>
-        /// <param name="aluguel">dados do aluguel</param>
-        /// <exception cref="ServiceException">aluguel não encontrado</exception>
+        /// <param name="aluguel">dados do aluguel e, opcionalmente, do inquilino</param>
+        /// <exception cref="ServiceException">aluguel ou inquilino não encontrado, nome ou documento do inquilino ausente, ou documento pertencente a outra pessoa</exception>
         public void Edit(Aluguel aluguel)
         {
             var atual = context.Aluguels.AsNoTracking().FirstOrDefault(a => a.Id == aluguel.Id)
                 ?? throw new ServiceException("Aluguel não encontrado.");
 
+            var dados = aluguel.IdPessoaInquilinoNavigation;
+            Pessoa? inquilino = null;
+            string? documento = null;
+
+            if (dados != null)
+            {
+                inquilino = context.Pessoas.Find(atual.IdPessoaInquilino)
+                    ?? throw new ServiceException("Inquilino não encontrado.");
+
+                documento = inquilino.Tipo == "F" ? dados.Cpf : dados.Cnpj;
+                if (string.IsNullOrWhiteSpace(dados.Nome) || string.IsNullOrWhiteSpace(documento))
+                    throw new ServiceException("Informe o nome e o CPF ou CNPJ do inquilino.");
+
+                if (context.Pessoas.Any(p => p.Id != inquilino.Id && (p.Cpf == documento || p.Cnpj == documento)))
+                    throw new ServiceException("O CPF ou CNPJ informado pertence a outra pessoa.");
+            }
+
             aluguel.IdPessoaInquilino = atual.IdPessoaInquilino;
             aluguel.IdPessoaInquilinoNavigation = null!;
 
+            if (inquilino != null && dados != null)
+            {
+                inquilino.Nome = dados.Nome;
+                inquilino.Telefone = dados.Telefone;
+                if (inquilino.Tipo == "F")
+                    inquilino.Cpf = documento;
+                else
+                    inquilino.Cnpj = documento;
+            }
+
             context.Update(aluguel);
-            context.SaveChanges();
+            context.SaveChanges(); 
         }
 
         /// <summary>
@@ -120,6 +150,19 @@ namespace Service
         }
 
         /// <summary>
+        /// Busca um aluguel pelo id apenas se ele estiver vinculado ao inquilino informado
+        /// </summary>
+        /// <param name="id">id do aluguel</param>
+        /// <param name="idPessoa">id da pessoa inquilina</param>
+        /// <returns>dados do aluguel ou nulo se não for encontrado ou não pertencer ao inquilino</returns>
+        public Aluguel? GetDoInquilino(uint id, uint idPessoa)
+        {
+            return context.Aluguels
+                .AsNoTracking()
+                .FirstOrDefault(a => a.Id == id && a.IdPessoaInquilino == idPessoa);
+        }
+
+        /// <summary>
         /// Busca todos os aluguéis cadastrados
         /// </summary>
         /// <returns>lista de aluguéis</returns>
@@ -139,13 +182,16 @@ namespace Service
         }
 
         /// <summary>
-        /// Busca os aluguéis vinculados a um inquilino
+        /// Busca os aluguéis vinculados a um inquilino, com os dados do imóvel de cada aluguel
         /// </summary>
         /// <param name="idPessoa">id da pessoa inquilina</param>
         /// <returns>lista de aluguéis do inquilino</returns>
         public IEnumerable<Aluguel> GetByInquilino(uint idPessoa)
         {
-            return context.Aluguels.Where(a => a.IdPessoaInquilino == idPessoa).AsNoTracking();
+            return context.Aluguels
+                .Include(a => a.IdImovelNavigation)
+                .Where(a => a.IdPessoaInquilino == idPessoa)
+                .AsNoTracking();
         }
     }
 }
