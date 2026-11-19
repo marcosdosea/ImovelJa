@@ -101,10 +101,19 @@
         if (proxima) {
             proxima.addEventListener("click", function () {
                 var campos = formulario.querySelectorAll("[data-etapa='1'] input, [data-etapa='1'] select, [data-etapa='1'] textarea");
+                var validador = window.jQuery ? window.jQuery(formulario).data("validator") : null;
+                var primeiroInvalido = null;
+
                 for (var i = 0; i < campos.length; i++) {
-                    if (typeof campos[i].reportValidity === "function" && !campos[i].reportValidity()) {
-                        return;
+                    var valido = validador ? validador.element(campos[i]) !== false : campos[i].checkValidity();
+                    if (!valido && !primeiroInvalido) {
+                        primeiroInvalido = campos[i];
                     }
+                }
+
+                if (primeiroInvalido) {
+                    primeiroInvalido.focus();
+                    return;
                 }
 
                 mostrar(2, true);
