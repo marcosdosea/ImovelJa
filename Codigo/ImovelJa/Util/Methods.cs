@@ -104,6 +104,11 @@ namespace Util
             return cpf.EndsWith(digito);
         }
 
+        /// <summary>
+        /// Valida o CNPJ pelos dígitos verificadores, com ou sem máscara. Os zeros à esquerda fazem parte do número
+        /// </summary>
+        /// <param name="cnpj">CNPJ com ou sem máscara</param>
+        /// <returns>verdadeiro se o CNPJ for válido</returns>
         public static bool ValidarCnpj(string cnpj)
         {
             int[] multiplicador1 = new int[12] { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
@@ -112,8 +117,10 @@ namespace Util
             int resto;
             string digito;
             string tempCnpj;
-            cnpj = cnpj.Trim();
-            cnpj = cnpj.Replace(".", "").Replace("-", "").Replace("/", "");
+            if (string.IsNullOrWhiteSpace(cnpj))
+                return false;
+
+            cnpj = RemoveNaoNumericos(cnpj);
             if (cnpj.Length != 14)
                 return false;
 

@@ -427,6 +427,20 @@ public class ImovelControllerTests
     }
 
     [TestMethod]
+    public void ImovelViewModel_QuandoCepValidoIniciadoEmZero_DeveSerValido()
+    {
+        // Arrange
+        var modelo = new ImovelViewModel { Cep = "01310100" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsFalse(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(ImovelViewModel.Cep))));
+    }
+
+    [TestMethod]
     public void ImovelViewModel_QuandoCepComQuantidadeDeDigitosErrada_DeveSerInvalido()
     {
         // Arrange
