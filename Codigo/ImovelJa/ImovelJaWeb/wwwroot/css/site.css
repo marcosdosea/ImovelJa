@@ -1880,3 +1880,87 @@ h1 {
         padding: 2rem;
     }
 }
+
+/* ============================================================
+   Tela_012.3 — Modal de cancelamento do aluguel
+   ============================================================ */
+.cancelamento-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.cancelamento-modal {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cancelamento-modal__icone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: var(--selo-reprovado-fundo);
+    color: var(--selo-reprovado-texto);
+    margin: 0 auto 1rem;
+}
+
+.cancelamento-modal__icone svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.cancelamento-modal__titulo {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.cancelamento-modal__texto {
+    font-size: 0.875rem;
+    color: var(--cor-texto-suave, #6B7280);
+    margin-bottom: 1.5rem;
+}
+
+/* ============================================================
+   Tela_011 — Upload de contrato
+   ============================================================ */
+.contrato-upload {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 2px dashed var(--cor-borda, #D1D5DB);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.contrato-upload:hover,
+.contrato-upload:focus-within {
+    border-color: var(--cor-primaria, #111827);
+}
+
+.contrato-upload__icone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1.5px solid var(--cor-borda, #D1D5DB);
+    border-radius: 0.375rem;
+    flex-shrink: 0;
+}
+
+.contrato-upload__icone svg {
+    width: 1.125rem;
+    height: 1.125rem;
+}

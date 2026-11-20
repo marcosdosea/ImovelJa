@@ -1,0 +1,165 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@{
+    ViewData["Title"] = "Ver Aluguel";
+    ViewData["Perfil"] = "Usuario";
+
+    var imovel = Model.Imovel;
+    var inquilino = Model.Inquilino;
+    var idPessoa = imovel?.IdPessoaProprietario ?? 0u;
+    ViewData["IdPessoa"] = idPessoa;
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var nomeImovel = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Imóvel" : imovel.Nome;
+    var local = imovel == null
+        ? string.Empty
+        : string.Join(" — ", new[] { imovel.Bairro, imovel.Cidade }.Where(p => !string.IsNullOrWhiteSpace(p)));
+    var documentoRotulo = inquilino?.Tipo == "J" ? "CNPJ" : "CPF";
+    var documento = inquilino?.Tipo == "J"
+        ? (inquilino.Cnpj is { Length: 14 } ? Methods.PatternCnpj(inquilino.Cnpj) : inquilino.Cnpj)
+        : (inquilino?.Cpf is { Length: 11 } ? Methods.PatternCpf(inquilino.Cpf) : inquilino?.Cpf);
+    var digitos = new string((inquilino?.Telefone ?? "").Where(char.IsDigit).ToArray());
+    var telefone = digitos.Length == 11
+        ? $"({digitos[..2]}) {digitos[2..7]}-{digitos[7..]}"
+        : digitos.Length == 10
+            ? $"({digitos[..2]}) {digitos[2..6]}-{digitos[6..]}"
+            : inquilino?.Telefone ?? string.Empty;
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Details" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" aria-label="Voltar para o aluguel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Ver Aluguel</h1>
+        @if (!string.IsNullOrWhiteSpace(local))
+        {
+            <p>@local</p>
+        }
+    </div>
+</div>
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" data-envio-unico>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="IdImovel" />
+    <input type="hidden" asp-for="IdPessoaInquilino" />
+    <input type="hidden" asp-for="Status" />
+
+    <div class="aluguel-pagina">
+
+        @* Card esquerdo: dados do inquilino + campos editáveis do aluguel *@
+        <section class="detalhe-anuncio" aria-labelledby="edit-imovel">
+            <div class="detalhe-anuncio__corpo">
+                <h2 id="edit-imovel">@nomeImovel</h2>
+                @if (!string.IsNullOrWhiteSpace(local))
+                {
+                    <p class="detalhe-anuncio__local">@local</p>
+                }
+
+                <h3 class="aluguel-pagina__secao">Dados do inquilino</h3>
+
+                <div class="mb-3">
+                    <label class="form-label" for="nome-inquilino">Nome completo</label>
+                    <input id="nome-inquilino" class="form-control" value="@inquilino?.Nome" readonly />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="documento-inquilino">@documentoRotulo</label>
+                    <input id="documento-inquilino" class="form-control campo-cpf" value="@documento" readonly />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="telefone-inquilino">Telefone</label>
+                    <input id="telefone-inquilino" class="form-control campo-telefone" value="@telefone" readonly />
+                </div>
+
+                <h3 class="aluguel-pagina__secao">Dados do aluguel</h3>
+
+                <div class="mb-3">
+                    <label class="form-label" asp-for="DataVencimentoProximo">Próximo vencimento</label>
+                    <input asp-for="DataVencimentoProximo" class="form-control campo-curto" type="date" />
+                    <span asp-validation-for="DataVencimentoProximo" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <p class="form-label mb-2">Contrato</p>
+                    @if (Model.PossuiContrato)
+                    {
+                        <div class="contrato mb-2">
+                            <svg class="contrato__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                            <span class="contrato__nome">contrato</span>
+                            <a class="btn btn-outline-primary btn-sm" asp-action="Contrato" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+                                Baixar
+                            </a>
+                        </div>
+                    }
+                    <label class="contrato-upload" for="contrato-arquivo" role="button" tabindex="0">
+                        <span class="contrato-upload__icone" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                        </span>
+                        <span>
+                            <strong id="contrato-nome">@(Model.PossuiContrato ? "Substituir contrato" : "Adicionar contrato")</strong><br />
+                            <small class="text-muted">(opcional) — PDF ou imagem</small>
+                        </span>
+                    </label>
+                    <input id="contrato-arquivo" asp-for="Contrato" type="file" class="visually-hidden" accept=".pdf,.jpg,.jpeg,.png" />
+                    <span asp-validation-for="Contrato" class="text-danger"></span>
+                </div>
+            </div>
+        </section>
+
+        @* Card direito: histórico de pagamentos (espaço reservado para CSU08) *@
+        <section class="detalhe-anuncio" aria-labelledby="historico-pagamentos">
+            <div class="detalhe-anuncio__corpo">
+                <h2 id="historico-pagamentos">Histórico de Pagamentos</h2>
+                @if (Model.Pagamentos.Count == 0)
+                {
+                    <p class="lista-vazia mt-3">Nenhum pagamento registrado para este aluguel.</p>
+                }
+                else
+                {
+                    <ul class="historico">
+                        @foreach (var item in Model.Pagamentos)
+                        {
+                            var situacao = item.Status switch
+                            {
+                                "PA" => ("Pago", "selo--aprovado"),
+                                "EA" => ("Em atraso", "selo--reprovado"),
+                                _ => ("Pendente", "selo--pendente")
+                            };
+                            <li>
+                                <a class="historico__item" asp-controller="Pagamento" asp-action="Edit" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                                    <span class="historico__mes">@ptBR.TextInfo.ToTitleCase(item.MesReferencia.ToString("MMM yyyy", ptBR).Replace(".", ""))</span>
+                                    <span class="selo @situacao.Item2">@situacao.Item1</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <p class="aluguel-pagina__dica">Clique em um mês para registrar pagamento</p>
+                }
+            </div>
+        </section>
+
+    </div>
+
+    @* Barra de ações (Tela_012): Cancelar Aluguel + Salvar alterações *@
+    <div class="acoes-formulario mt-4">
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">
+            Cancelar Aluguel
+        </a>
+        <button type="submit" class="btn btn-primary">Salvar alterações</button>
+    </div>
+
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('contrato-arquivo')?.addEventListener('change', function () {
+            var label = document.getElementById('contrato-nome');
+            if (label) label.textContent = this.files[0]?.name || 'Adicionar contrato';
+        });
+    </script>
+}

@@ -1,0 +1,153 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@{
+    ViewData["Title"] = "Vincular Inquilino";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["NomeUsuario"] = "Proprietário";
+    ViewData["IdPessoa"] = Model.Imovel?.IdPessoaProprietario;
+
+    var imovel = Model.Imovel;
+    var nomeImovel = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Gerenciar Aluguel" : "Gerenciar Aluguel";
+    var local = imovel == null
+        ? string.Empty
+        : string.Join(" — ", new[] { imovel.Tipo == "C" ? "Casa" : imovel.Tipo == "A" ? "Apartamento" : imovel.Nome, imovel.Cidade }
+            .Where(parte => !string.IsNullOrWhiteSpace(parte)));
+    var idProprietario = imovel?.IdPessoaProprietario ?? 0u;
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-controller="Imovel" asp-action="Details" asp-route-id="@Model.IdImovel" asp-route-idPessoa="@idProprietario" aria-label="Voltar para o anúncio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>@nomeImovel</h1>
+        @if (!string.IsNullOrWhiteSpace(local))
+        {
+            <p>@local</p>
+        }
+    </div>
+</div>
+
+<section class="detalhe-anuncio" aria-labelledby="form-titulo">
+    <div class="detalhe-anuncio__corpo">
+        <h2 id="form-titulo">Gerenciar Aluguel</h2>
+        @if (!string.IsNullOrWhiteSpace(local))
+        {
+            <p class="detalhe-anuncio__local">@local</p>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <form asp-action="Create" method="post" enctype="multipart/form-data" data-envio-unico>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdImovel" />
+            <input type="hidden" asp-for="IdPessoaInquilino" id="id-pessoa-inquilino" />
+
+            @* Busca por CPF/CNPJ *@
+            <div class="mb-4">
+                <h3 class="aluguel-pagina__secao">Dados do inquilino</h3>
+
+                <div class="mb-3">
+                    <label class="form-label" for="busca-documento">CPF ou CNPJ</label>
+                    <div class="input-group">
+                        <input id="busca-documento" type="text" class="form-control campo-cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00" inputmode="numeric" autocomplete="off" />
+                        <button type="button" class="btn btn-outline-primary" id="btn-buscar-inquilino">Buscar</button>
+                    </div>
+                    <div id="busca-feedback" class="text-danger mt-1" role="alert" aria-live="polite"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="nome-inquilino">Nome completo</label>
+                    <input id="nome-inquilino" asp-for="Inquilino!.Nome" class="form-control" placeholder="Nome do inquilino" />
+                    <span asp-validation-for="Inquilino!.Nome" class="text-danger"></span>
+                </div>
+
+                <div class="grade-campos">
+                    <div class="campo">
+                        <label class="form-label" for="cpf-inquilino">CPF</label>
+                        <input id="cpf-inquilino" asp-for="Inquilino!.Cpf" class="form-control campo-cpf" placeholder="000.000.000-00" inputmode="numeric" />
+                        <span asp-validation-for="Inquilino!.Cpf" class="text-danger"></span>
+                    </div>
+                    <div class="campo">
+                        <label class="form-label" for="telefone-inquilino">Telefone</label>
+                        <input id="telefone-inquilino" asp-for="Inquilino!.Telefone" class="form-control campo-telefone" placeholder="(79) 99999-9999" inputmode="numeric" />
+                        <span asp-validation-for="Inquilino!.Telefone" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+
+            @* Dia do pagamento *@
+            <div class="mb-4">
+                <label class="form-label" asp-for="DiaPagamento">Dia do pagamento</label>
+                <select asp-for="DiaPagamento" class="form-select campo-curto">
+                    @for (var d = 1; d <= 28; d++)
+                    {
+                        <option value="@d">@d.ToString("00")</option>
+                    }
+                </select>
+                <span asp-validation-for="DiaPagamento" class="text-danger"></span>
+            </div>
+
+            @* Contrato *@
+            <div class="mb-4">
+                <label class="form-label" asp-for="Contrato">Contrato</label>
+                <label class="contrato-upload" for="contrato-arquivo" role="button" tabindex="0">
+                    <span class="contrato-upload__icone" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                    </span>
+                    <span>
+                        <strong id="contrato-nome">Adicionar contrato</strong><br />
+                        <small class="text-muted">(opcional) — PDF ou imagem</small>
+                    </span>
+                </label>
+                <input id="contrato-arquivo" asp-for="Contrato" type="file" class="visually-hidden" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="contrato-nome" />
+                <span asp-validation-for="Contrato" class="text-danger"></span>
+            </div>
+
+            <div class="acoes-formulario">
+                <a class="btn btn-outline-primary" asp-controller="Imovel" asp-action="Details" asp-route-id="@Model.IdImovel" asp-route-idPessoa="@idProprietario">Cancelar</a>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Exibe o nome do arquivo selecionado
+        document.getElementById('contrato-arquivo')?.addEventListener('change', function () {
+            var label = document.getElementById('contrato-nome');
+            if (label) label.textContent = this.files[0]?.name || 'Adicionar contrato';
+        });
+
+        // Busca inquilino por CPF/CNPJ
+        document.getElementById('btn-buscar-inquilino')?.addEventListener('click', function () {
+            var doc = document.getElementById('busca-documento').value.replace(/\D/g, '');
+            var feedback = document.getElementById('busca-feedback');
+            feedback.textContent = '';
+
+            if (doc.length !== 11 && doc.length !== 14) {
+                feedback.textContent = 'Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.';
+                return;
+            }
+
+            fetch('/Aluguel/BuscarInquilino?documento=' + encodeURIComponent(doc))
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.id) {
+                        document.getElementById('id-pessoa-inquilino').value = data.id;
+                        document.getElementById('nome-inquilino').value = data.nome || '';
+                        document.getElementById('cpf-inquilino').value = data.cpf || data.cnpj || '';
+                        document.getElementById('telefone-inquilino').value = data.telefone || '';
+                    } else {
+                        document.getElementById('id-pessoa-inquilino').value = '0';
+                        feedback.textContent = 'Inquilino não encontrado. Preencha os dados para cadastrá-lo.';
+                    }
+                })
+                .catch(function () {
+                    feedback.textContent = 'Erro ao buscar inquilino. Tente novamente.';
+                });
+        });
+    </script>
+}

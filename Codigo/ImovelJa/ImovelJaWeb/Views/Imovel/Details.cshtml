@@ -125,6 +125,22 @@ else
                             </form>
                         }
                     </div>
+
+                    @if (aluguel && Model.Status == "D")
+                    {
+                        <a class="btn btn-primary w-100 mt-3"
+                           asp-controller="Aluguel" asp-action="Create" asp-route-idImovel="@Model.Id">
+                            Alugar
+                        </a>
+                    }
+                    else if (aluguel && Model.Status == "A")
+                    {
+                        <a class="btn btn-primary w-100 mt-3"
+                           asp-controller="Aluguel" asp-action="Index"
+                           asp-route-idPessoa="@Model.IdPessoaProprietario">
+                            Ver aluguel
+                        </a>
+                    }
                 }
                 else
                 {

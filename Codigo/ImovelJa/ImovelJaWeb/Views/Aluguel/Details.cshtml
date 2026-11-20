@@ -147,3 +147,16 @@
         </div>
     </section>
 </div>
+
+@* Barra de ações (Tela_012): disponível apenas para o proprietário *@
+@if (ViewData["Dono"] as bool? == true && Model.Status == "A")
+{
+    <div class="acoes-formulario mt-4">
+        <a class="btn btn-outline-danger" asp-action="Delete" asp-route-id="@Model.Id">
+            Cancelar Aluguel
+        </a>
+        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">
+            Salvar alterações
+        </a>
+    </div>
+}
