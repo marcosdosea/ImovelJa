@@ -1,0 +1,73 @@
+@model ImovelJaWeb.Models.PagamentoViewModel
+
+@* Dados do pagamento do mês (Tela_012.2), usados para registrar (Create) e alterar (Edit) *@
+
+@{
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var acao = ViewData["Acao"] as string ?? "Edit";
+    var registro = acao == "Create";
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : 0u;
+    var pago = Model.Status == "PA";
+    var falta = Math.Max(0m, Model.ValorAluguel - (Model.ValorPago ?? 0m));
+}
+
+<section class="formulario-pagamento" aria-labelledby="titulo-pagamento">
+    <h2 class="visually-hidden" id="titulo-pagamento">@(registro ? "Registrar pagamento" : "Alterar pagamento")</h2>
+
+    <form asp-action="@acao" method="post" enctype="multipart/form-data" data-envio-unico>
+        @if (!registro)
+        {
+            <input type="hidden" asp-for="Id" />
+        }
+        <input type="hidden" asp-for="IdAluguel" />
+        <input type="hidden" name="MesReferencia" value="@Model.MesReferencia.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="Status" value="PE" />
+        <input type="hidden" name="NomeImovel" value="@Model.NomeImovel" />
+        <input type="hidden" name="ValorAluguel" value="@Model.ValorAluguel.ToString(inv)" />
+        <input type="hidden" name="PossuiComprovante" value="@(Model.PossuiComprovante ? "true" : "false")" />
+        <input type="hidden" name="idPessoa" value="@idPessoa" />
+
+        <div asp-validation-summary="ModelOnly"></div>
+
+        <div class="comprovante-envio mb-3">
+            <svg class="comprovante-envio__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+            <label for="comprovante">Adicionar comprovante <small>(opcional)</small></label>
+            <input id="comprovante" name="comprovante" type="file" accept="image/jpeg,image/png,application/pdf,.pdf" aria-describedby="comprovante-dica" />
+            <small id="comprovante-dica">PDF, JPG ou PNG</small>
+            @if (Model.PossuiComprovante && Model.Id != 0)
+            {
+                <a asp-action="Comprovante" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" target="_blank" rel="noopener">Ver comprovante enviado</a>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="ValorPago"></label>
+            <input asp-for="ValorPago" class="form-control campo-valor" type="number" step="0.01" min="0.01" inputmode="decimal"
+                   placeholder="0,00" value="@Model.ValorPago?.ToString("0.##", inv)" />
+            <span asp-validation-for="ValorPago"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="valor-faltante">Valor faltante</label>
+            <input id="valor-faltante" class="form-control campo-valor" readonly
+                   data-valor-faltante="ValorPago" data-aluguel="@Model.ValorAluguel.ToString(inv)" value="@falta.ToString("C", ptBR)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="DataPagamento"></label>
+            <input asp-for="DataPagamento" class="form-control campo-curto" type="date" />
+            <span asp-validation-for="DataPagamento"></span>
+        </div>
+
+        <div class="form-check campo-marcacao mb-4">
+            <input class="form-check-input" type="checkbox" name="pago" id="pago" value="true" checked="@(pago ? "checked" : null)" />
+            <label class="form-check-label" for="pago">Pago</label>
+        </div>
+
+        <div class="formulario-pagamento__acoes">
+            <a class="btn btn-outline-primary" asp-controller="Aluguel" asp-action="Details" asp-route-id="@Model.IdAluguel" asp-route-idPessoa="@idPessoa">Voltar</a>
+            <button type="submit" class="btn btn-primary">@(registro ? "Registrar pagamento" : "Salvar alterações")</button>
+        </div>
+    </form>
+</section>

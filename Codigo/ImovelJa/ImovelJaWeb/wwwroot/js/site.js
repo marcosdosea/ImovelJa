@@ -204,4 +204,31 @@
 
     document.querySelectorAll("[data-filtro-lista]").forEach(ligarFiltro);
 
+    /* Valor faltante do pagamento (Tela_012.2): acompanha o valor pago digitado.
+       O campo traz o valor do aluguel em data-aluguel e o id do campo do valor
+       pago em data-valor-faltante. */
+    function ligarValorFaltante(faltante) {
+        var valorPago = document.getElementById(faltante.getAttribute("data-valor-faltante"));
+        var aluguel = parseFloat(faltante.getAttribute("data-aluguel") || "0");
+        if (!valorPago || isNaN(aluguel)) {
+            return;
+        }
+
+        valorPago.addEventListener("input", function () {
+            var pago = parseFloat(valorPago.value);
+            var resta = Math.max(0, aluguel - (isNaN(pago) ? 0 : pago));
+            faltante.value = resta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        });
+    }
+
+    document.querySelectorAll("[data-valor-faltante]").forEach(ligarValorFaltante);
+
+    /* Janela que abre sozinha ao carregar a página, como a confirmação de
+       plano ativado (Tela_005.1.1). O componente de janela é o do Bootstrap. */
+    document.querySelectorAll(".modal[data-abrir-ao-carregar]").forEach(function (janela) {
+        if (window.bootstrap) {
+            window.bootstrap.Modal.getOrCreateInstance(janela).show();
+        }
+    });
+
 })();

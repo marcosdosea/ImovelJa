@@ -4,7 +4,6 @@
     ViewData["Title"] = "Ver Aluguel";
     ViewData["Perfil"] = "Usuario";
 
-    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
     var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : Model.IdPessoaInquilino;
     var imovel = Model.Imovel;
     var inquilino = Model.Inquilino;
@@ -44,11 +43,6 @@
         var dia = Math.Min(diaPagamento, DateTime.DaysInMonth(hoje.Year, hoje.Month));
         var data = new DateTime(hoje.Year, hoje.Month, dia);
         return data < hoje ? data.AddMonths(1) : data;
-    }
-
-    string Mes(DateTime data)
-    {
-        return ptBR.TextInfo.ToTitleCase(data.ToString("MMM yyyy", ptBR).Replace(".", ""));
     }
 }
 
@@ -114,38 +108,7 @@
         </div>
     </section>
 
-    <section class="detalhe-anuncio" aria-labelledby="historico-pagamentos">
-        <div class="detalhe-anuncio__corpo">
-            <h2 id="historico-pagamentos">Histórico de Pagamentos</h2>
-
-            @if (Model.Pagamentos.Count == 0)
-            {
-                <p class="lista-vazia mt-3">Nenhum pagamento registrado para este aluguel.</p>
-            }
-            else
-            {
-                <ul class="historico">
-                    @foreach (var item in Model.Pagamentos)
-                    {
-                        var situacao = item.Status switch
-                        {
-                            "PA" => ("Pago", "selo--aprovado"),
-                            "EA" => ("Em atraso", "selo--reprovado"),
-                            _ => ("Pendente", "selo--pendente")
-                        };
-
-                        <li>
-                            <a class="historico__item" asp-controller="Pagamento" asp-action="Edit" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
-                                <span class="historico__mes">@Mes(item.MesReferencia)</span>
-                                <span class="selo @situacao.Item2">@situacao.Item1</span>
-                            </a>
-                        </li>
-                    }
-                </ul>
-                <p class="aluguel-pagina__dica">Clique em um mês para registrar pagamento</p>
-            }
-        </div>
-    </section>
+    <partial name="~/Views/Pagamento/_Historico.cshtml" model="Model" />
 </div>
 
 @* Barra de ações (Tela_012): disponível apenas para o proprietário *@

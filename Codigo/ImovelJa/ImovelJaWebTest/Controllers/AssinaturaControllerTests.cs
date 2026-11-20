@@ -1,7 +1,9 @@
 using Core;
 using Core.Service;
 using ImovelJaWeb.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
 
 namespace ImovelJaWeb.Controllers.Tests;
@@ -43,7 +45,14 @@ public class AssinaturaControllerTests
             .Setup(service => service.Get(2))
             .Returns(ObterPlanosDeTeste().First(plano => plano.Id == 2));
 
-        controller = new AssinaturaController(assinaturaServiceMock.Object, planoServiceMock.Object);
+        planoServiceMock
+            .Setup(service => service.Get(3))
+            .Returns(ObterPlanosDeTeste().First(plano => plano.Id == 3));
+
+        controller = new AssinaturaController(assinaturaServiceMock.Object, planoServiceMock.Object)
+        {
+            TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>())
+        };
     }
 
     [TestMethod]
@@ -105,6 +114,7 @@ public class AssinaturaControllerTests
 
         // Assert
         VerificarRedirecionamentoParaIndex(resultado, 3);
+        Assert.AreEqual("Imobiliária", controller.TempData["PlanoAtivado"]);
 
         assinaturaServiceMock.Verify(
             service => service.Create(It.Is<Assinatura>(assinatura =>
@@ -195,6 +205,7 @@ public class AssinaturaControllerTests
 
         // Assert
         VerificarRedirecionamentoParaIndex(resultado, 1);
+        Assert.AreEqual("Imobiliária", controller.TempData["PlanoAtivado"]);
 
         assinaturaServiceMock.Verify(
             service => service.Edit(It.Is<Assinatura>(assinatura =>
