@@ -1,0 +1,67 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@* Histórico de pagamentos do aluguel (Tela_012 e Tela_012.1): os meses, do mais recente ao mais antigo,
+   com a situação de cada um. O dono do imóvel também registra o pagamento de outro mês. *@
+
+@{
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : 0u;
+    var dono = ViewData["Dono"] is true;
+    var pagamentos = Model.Pagamentos.OrderByDescending(pagamento => pagamento.MesReferencia).ToList();
+
+    string Mes(DateTime data) => ptBR.TextInfo.ToTitleCase(data.ToString("MMM yyyy", ptBR).Replace(".", ""));
+}
+
+<section class="detalhe-anuncio" aria-labelledby="historico-pagamentos">
+    <div class="detalhe-anuncio__corpo">
+        <h2 id="historico-pagamentos">Histórico de Pagamentos</h2>
+
+        @if (pagamentos.Count == 0)
+        {
+            <p class="lista-vazia mt-3">Nenhum pagamento registrado para este aluguel.</p>
+        }
+        else
+        {
+            <ul class="historico">
+                @foreach (var item in pagamentos)
+                {
+                    var mes = Mes(item.MesReferencia);
+
+                    <li class="historico__item">
+                        <a class="historico__link" asp-controller="Pagamento" asp-action="Edit" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                            <span class="historico__mes">@mes</span>
+                            <partial name="~/Views/Pagamento/_Situacao.cshtml" model="item.Status" />
+                        </a>
+                        <div class="dropdown">
+                            <button type="button" class="historico__menu" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Opções do pagamento de @mes">
+                                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="12" cy="19" r="2" /></svg>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" asp-controller="Pagamento" asp-action="Details" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">Ver detalhes</a></li>
+                                <li><a class="dropdown-item" asp-controller="Pagamento" asp-action="Edit" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">Alterar pagamento</a></li>
+                                @if (item.PossuiComprovante)
+                                {
+                                    <li><a class="dropdown-item" asp-controller="Pagamento" asp-action="Comprovante" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa" target="_blank" rel="noopener">Ver comprovante</a></li>
+                                }
+                            </ul>
+                        </div>
+                    </li>
+                }
+            </ul>
+            <p class="aluguel-pagina__dica">Clique em um mês para registrar pagamento</p>
+        }
+
+        @if (dono)
+        {
+            <form class="historico__novo" asp-controller="Pagamento" asp-action="Create" method="get">
+                <input type="hidden" name="idAluguel" value="@Model.Id" />
+                <input type="hidden" name="idPessoa" value="@idPessoa" />
+                <label class="form-label" for="mes-pagamento">Registrar pagamento de outro mês</label>
+                <div class="historico__novo-linha">
+                    <input id="mes-pagamento" name="mes" type="month" class="form-control" value="@DateTime.Today.ToString("yyyy-MM")" required />
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        }
+    </div>
+</section>

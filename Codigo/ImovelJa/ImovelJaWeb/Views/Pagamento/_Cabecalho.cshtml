@@ -1,0 +1,36 @@
+@model ImovelJaWeb.Models.PagamentoViewModel
+
+@* Título das telas de pagamento: o mês de referência, o imóvel e o valor do aluguel (Tela_012.2) *@
+
+@{
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : 0u;
+    var encontrado = Model.IdAluguel != 0;
+    var mes = encontrado
+        ? ptBR.TextInfo.ToTitleCase(Model.MesReferencia.ToString("MMM yyyy", ptBR).Replace(".", ""))
+        : "Pagamento";
+    var valor = Model.ValorAluguel.ToString("C", ptBR);
+    var subtitulo = string.IsNullOrWhiteSpace(Model.NomeImovel) ? valor : $"{Model.NomeImovel} • {valor}";
+}
+
+<div class="titulo-pagina">
+    @if (encontrado)
+    {
+        <a class="voltar" asp-controller="Aluguel" asp-action="Details" asp-route-id="@Model.IdAluguel" asp-route-idPessoa="@idPessoa" aria-label="Voltar para o aluguel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+        </a>
+    }
+    else
+    {
+        <a class="voltar" asp-controller="Imovel" asp-action="Index" asp-route-idPessoa="@idPessoa" aria-label="Voltar para a gestão de imóveis">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+        </a>
+    }
+    <div>
+        <h1>@mes</h1>
+        @if (encontrado)
+        {
+            <p>@subtitulo</p>
+        }
+    </div>
+</div>
