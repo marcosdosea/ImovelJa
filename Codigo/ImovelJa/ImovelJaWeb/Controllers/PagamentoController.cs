@@ -9,12 +9,94 @@ namespace ImovelJaWeb.Controllers
     public class PagamentoController : Controller
     {
         private readonly IPagamentoService pagamentoService;
+        private readonly IAluguelService aluguelService;
         private readonly IImovelService imovelService;
 
-        public PagamentoController(IPagamentoService pagamentoService, IImovelService imovelService)
+        public PagamentoController(IPagamentoService pagamentoService, IAluguelService aluguelService, IImovelService imovelService)
         {
             this.pagamentoService = pagamentoService;
+            this.aluguelService = aluguelService;
             this.imovelService = imovelService;
+        }
+
+        // GET: Pagamento/Details/5?idPessoa=2
+        public ActionResult Details(uint id, uint idPessoa)
+        {
+            ViewData[AluguelController.ChaveIdPessoa] = idPessoa;
+
+            try
+            {
+                var pagamento = pagamentoService.Get(id);
+                if (pagamento == null || !PodeAcessar(pagamento, idPessoa))
+                    return NotFound();
+
+                ViewData["Dono"] = !DoInquilino(pagamento, idPessoa);
+                return View(MontarModelo(pagamento));
+            }
+            catch (ServiceException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(new PagamentoViewModel { Id = id });
+            }
+        }
+
+        // GET: Pagamento/Create?idAluguel=4&mes=2026-12-01&idPessoa=3
+        public ActionResult Create(uint idAluguel, DateTime mes, uint idPessoa)
+        {
+            ViewData[AluguelController.ChaveIdPessoa] = idPessoa;
+
+            var aluguel = aluguelService.GetDoProprietario(idAluguel, idPessoa);
+            if (aluguel == null)
+                return NotFound();
+
+            var referencia = mes == default ? DateTime.Today : mes;
+            var mesReferencia = new DateTime(referencia.Year, referencia.Month, 1);
+
+            var registrado = pagamentoService.GetByAluguel(idAluguel)
+                .FirstOrDefault(pagamento => pagamento.MesReferencia.Year == mesReferencia.Year
+                                          && pagamento.MesReferencia.Month == mesReferencia.Month);
+            if (registrado != null)
+                return RedirectToAction(nameof(Edit), new { id = registrado.Id, idPessoa });
+
+            return View(new PagamentoViewModel
+            {
+                IdAluguel = idAluguel,
+                MesReferencia = mesReferencia,
+                ValorAluguel = aluguel.Valor,
+                NomeImovel = NomeDoImovel(aluguel)
+            });
+        }
+
+        // POST: Pagamento/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(PagamentoViewModel pagamentoViewModel, IFormFile? comprovante, uint idPessoa, bool pago)
+        {
+            ViewData[AluguelController.ChaveIdPessoa] = idPessoa;
+
+            pagamentoViewModel.Id = 0;
+            pagamentoViewModel.Status = pago ? "PA" : "PE";
+
+            if (!ModelState.IsValid)
+                return View(pagamentoViewModel);
+
+            try
+            {
+                if (aluguelService.GetDoProprietario(pagamentoViewModel.IdAluguel, idPessoa) == null)
+                    return NotFound();
+
+                if (comprovante != null && comprovante.Length > 0)
+                    pagamentoViewModel.Comprovante = LerArquivo(comprovante);
+
+                pagamentoService.Create(PagamentoMapper.ToEntity(pagamentoViewModel));
+            }
+            catch (ServiceException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(pagamentoViewModel);
+            }
+
+            return RedirectToAction(nameof(AluguelController.Details), "Aluguel", new { id = pagamentoViewModel.IdAluguel, idPessoa });
         }
 
         // GET: Pagamento/Edit/5?idPessoa=2
@@ -25,12 +107,10 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 var pagamento = pagamentoService.Get(id);
-                if (pagamento == null || !DoInquilino(pagamento, idPessoa))
+                if (pagamento == null || !PodeAcessar(pagamento, idPessoa))
                     return NotFound();
 
-                var modelo = PagamentoMapper.ToViewModel(pagamento);
-                modelo.NomeImovel = NomeDoImovel(pagamento);
-                return View(modelo);
+                return View(MontarModelo(pagamento));
             }
             catch (ServiceException ex)
             {
@@ -57,7 +137,7 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 var atual = pagamentoService.Get(pagamentoViewModel.Id);
-                if (atual == null || !DoInquilino(atual, idPessoa))
+                if (atual == null || !PodeAcessar(atual, idPessoa))
                     return NotFound();
 
                 pagamentoViewModel.IdAluguel = atual.IdAluguel;
@@ -83,7 +163,7 @@ namespace ImovelJaWeb.Controllers
             try
             {
                 var pagamento = pagamentoService.Get(id);
-                if (pagamento == null || !DoInquilino(pagamento, idPessoa)
+                if (pagamento == null || !PodeAcessar(pagamento, idPessoa)
                     || pagamento.Comprovante == null || pagamento.Comprovante.Length == 0)
                     return NotFound();
 
@@ -95,9 +175,15 @@ namespace ImovelJaWeb.Controllers
             }
         }
 
-        private string NomeDoImovel(Pagamento pagamento)
+        private PagamentoViewModel MontarModelo(Pagamento pagamento)
         {
-            var aluguel = pagamento.IdAluguelNavigation;
+            var modelo = PagamentoMapper.ToViewModel(pagamento);
+            modelo.NomeImovel = NomeDoImovel(pagamento.IdAluguelNavigation);
+            return modelo;
+        }
+
+        private string NomeDoImovel(Aluguel? aluguel)
+        {
             if (aluguel == null)
                 return string.Empty;
 
@@ -113,6 +199,18 @@ namespace ImovelJaWeb.Controllers
                 return imovel.Nome;
 
             return $"{imovel.Nome} — {imovel.Cidade}";
+        }
+
+        /// <summary>
+        /// Confere se a pessoa pode ver ou alterar o pagamento: o inquilino do aluguel ou o dono do imóvel alugado
+        /// </summary>
+        /// <param name="pagamento">pagamento com o aluguel carregado</param>
+        /// <param name="idPessoa">id da pessoa</param>
+        /// <returns>verdadeiro se a pessoa for o inquilino ou o dono</returns>
+        private bool PodeAcessar(Pagamento pagamento, uint idPessoa)
+        {
+            return DoInquilino(pagamento, idPessoa)
+                || aluguelService.GetDoProprietario(pagamento.IdAluguel, idPessoa) != null;
         }
 
         private static bool DoInquilino(Pagamento pagamento, uint idPessoa)
