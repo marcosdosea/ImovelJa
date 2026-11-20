@@ -1,0 +1,77 @@
+@model ImovelJaWeb.Models.PagamentoViewModel
+
+@* Consulta do pagamento do mês, no mesmo cartão da Tela_012.2 *@
+
+@{
+    ViewData["Title"] = "Pagamento";
+    ViewData["Perfil"] = "Usuario";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : 0u;
+    var falta = Math.Max(0m, Model.ValorAluguel - (Model.ValorPago ?? 0m));
+}
+
+<partial name="_Cabecalho" model="Model" />
+
+<section class="formulario-pagamento" aria-labelledby="dados-pagamento">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    @if (Model.IdAluguel == 0)
+    {
+        <p class="lista-vazia">Pagamento não encontrado.</p>
+    }
+    else
+    {
+        <h2 class="formulario-pagamento__titulo" id="dados-pagamento">Dados do pagamento</h2>
+
+        <dl class="dados-pagamento">
+            <div>
+                <dt>Situação</dt>
+                <dd><partial name="_Situacao" model="Model.Status" /></dd>
+            </div>
+            <div>
+                <dt>Valor do aluguel</dt>
+                <dd>@Model.ValorAluguel.ToString("C", ptBR)</dd>
+            </div>
+            <div>
+                <dt>Valor pago</dt>
+                <dd>@(Model.ValorPago?.ToString("C", ptBR) ?? "Nenhum valor informado")</dd>
+            </div>
+            <div>
+                <dt>Valor faltante</dt>
+                <dd>@falta.ToString("C", ptBR)</dd>
+            </div>
+            <div>
+                <dt>Data do pagamento</dt>
+                <dd>
+                    @if (Model.DataPagamento.HasValue)
+                    {
+                        <time datetime="@Model.DataPagamento.Value.ToString("yyyy-MM-dd")">@Model.DataPagamento.Value.ToString("dd/MM/yyyy")</time>
+                    }
+                    else
+                    {
+                        <span>Não informada</span>
+                    }
+                </dd>
+            </div>
+            <div>
+                <dt>Comprovante</dt>
+                <dd>
+                    @if (Model.PossuiComprovante)
+                    {
+                        <a asp-action="Comprovante" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" target="_blank" rel="noopener">Ver comprovante</a>
+                    }
+                    else
+                    {
+                        <span>Nenhum comprovante enviado</span>
+                    }
+                </dd>
+            </div>
+        </dl>
+
+        <div class="formulario-pagamento__acoes">
+            <a class="btn btn-outline-primary" asp-controller="Aluguel" asp-action="Details" asp-route-id="@Model.IdAluguel" asp-route-idPessoa="@idPessoa">Voltar</a>
+            <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa">Alterar pagamento</a>
+        </div>
+    }
+</section>

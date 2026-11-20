@@ -1,0 +1,14 @@
+@model ImovelJaWeb.Models.PagamentoViewModel
+
+@{
+    ViewData["Title"] = "Registrar pagamento";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["Acao"] = "Create";
+}
+
+<partial name="_Cabecalho" model="Model" />
+<partial name="_Formulario" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
