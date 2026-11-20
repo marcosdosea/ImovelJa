@@ -1,6 +1,6 @@
-﻿using ImovelJaWeb.Models;
-using Mapster;
 using Core;
+using ImovelJaWeb.Models;
+using Mapster;
 
 namespace ImovelJaWeb.Mappers
 {
@@ -15,12 +15,14 @@ namespace ImovelJaWeb.Mappers
         {
             var viewModel = entity.Adapt<PagamentoViewModel>();
             viewModel.ValorAluguel = entity.IdAluguelNavigation?.Valor ?? 0;
+            viewModel.PossuiComprovante = entity.Comprovante is { Length: > 0 };
+            viewModel.Comprovante = null;
             return viewModel;
         }
 
         public static IEnumerable<PagamentoViewModel> ToViewModel(IEnumerable<Pagamento> entities)
         {
-            return entities.Adapt<IEnumerable<PagamentoViewModel>>();
+            return entities.Select(ToViewModel);
         }
     }
 }

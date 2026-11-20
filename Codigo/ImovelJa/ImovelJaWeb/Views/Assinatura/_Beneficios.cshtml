@@ -1,0 +1,16 @@
+@model ImovelJaWeb.Models.PlanoViewModel
+
+@* Lista de benefícios do plano, usada no cartão (Tela_005) e na confirmação (Tela_005.1) *@
+<ul class="oferta__beneficios">
+    <li>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+        @PlanoTexto.Limite(Model.LimiteImoveisAnunciados)
+    </li>
+    @foreach (var beneficio in PlanoTexto.Beneficios(Model.Beneficios))
+    {
+        <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12" /></svg>
+            @beneficio
+        </li>
+    }
+</ul>

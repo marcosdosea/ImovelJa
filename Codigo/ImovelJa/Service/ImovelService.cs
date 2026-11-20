@@ -44,7 +44,7 @@ namespace Service
         }
 
         /// <summary>
-        /// Edita os dados do anúncio, mantendo o proprietário, a situação de validação e a data de envio
+        /// Edita os dados do anúncio, mantendo o proprietário, o status, a situação de validação e a data de envio
         /// </summary>
         /// <param name="imovel">dados do imóvel</param>
         /// <exception cref="ServiceException">imóvel não encontrado</exception>
@@ -54,6 +54,7 @@ namespace Service
                 ?? throw new ServiceException("Imóvel não encontrado.");
 
             imovel.IdPessoaProprietario = atual.IdPessoaProprietario;
+            imovel.Status = atual.Status;
             imovel.StatusValidacao = atual.StatusValidacao;
             imovel.DataCadastro = atual.DataCadastro;
 
@@ -102,6 +103,19 @@ namespace Service
         }
 
         /// <summary>
+        /// Retorna um imóvel pelo id somente se ele pertencer ao proprietário informado
+        /// </summary>
+        /// <param name="id">id do imóvel</param>
+        /// <param name="idPessoa">id do proprietário</param>
+        /// <returns>dados do imóvel ou nulo se não pertencer à pessoa</returns>
+        public Imovel? GetDoProprietario(uint id, uint idPessoa)
+        {
+            return context.Imovels
+                .AsNoTracking()
+                .FirstOrDefault(i => i.Id == id && i.IdPessoaProprietario == idPessoa);
+        }
+
+        /// <summary>
         /// Busca todos os imóveis cadastrados
         /// </summary>
         /// <returns>lista de imóveis</returns>
@@ -145,6 +159,36 @@ namespace Service
                 throw new ServiceException("Somente anúncios pendentes podem ser validados.");
 
             imovel.StatusValidacao = aprovado ? "A" : "R";
+            context.SaveChanges();
+        }
+
+        /// <summary>
+        /// Pausa um anúncio disponível ou retoma um anúncio pausado (RN18).
+        /// Pausado, o anúncio deixa de aparecer na busca pública
+        /// </summary>
+        /// <param name="id">id do imóvel</param>
+        /// <param name="pausado">verdadeiro para pausar, falso para retomar</param>
+        /// <exception cref="ServiceException">imóvel não encontrado ou em situação que não permite a ação</exception>
+        public void Pause(uint id, bool pausado)
+        {
+            var imovel = context.Imovels.Find(id)
+                ?? throw new ServiceException("Imóvel não encontrado.");
+
+            if (pausado)
+            {
+                if (imovel.Status != "D")
+                    throw new ServiceException("Não é possível pausar um imóvel nesta situação.");
+
+                imovel.Status = "P";
+            }
+            else
+            {
+                if (imovel.Status != "P")
+                    throw new ServiceException("Não é possível retomar um imóvel nesta situação.");
+
+                imovel.Status = "D";
+            }
+
             context.SaveChanges();
         }
 

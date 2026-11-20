@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace ImovelJaWeb.Models
 {
@@ -12,7 +12,7 @@ namespace ImovelJaWeb.Models
         [Display(Name = "Mês de referência")]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         [DataType(DataType.Date)]
-        [DisplayFormat(DataFormatString = "{0:MM/yyyy}")]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime MesReferencia { get; set; }
 
         [Display(Name = "Valor pago (R$)")]
@@ -25,6 +25,14 @@ namespace ImovelJaWeb.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? DataPagamento { get; set; }
 
+        [Display(Name = "Comprovante")]
+        public byte[]? Comprovante { get; set; }
+
+        public bool PossuiComprovante { get; set; }
+
+        /// <summary>
+        /// PE = PENDENTE, EA = EM ATRASO, PA = PAGO
+        /// </summary>
         [Display(Name = "Situação")]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         [RegularExpression("^(PE|EA|PA)$", ErrorMessage = "O campo {0} deve ser PE, EA ou PA")]
@@ -37,5 +45,8 @@ namespace ImovelJaWeb.Models
         [Display(Name = "Valor do aluguel (R$)")]
         [DataType(DataType.Currency)]
         public decimal ValorAluguel { get; set; }
+
+        [Display(Name = "Imóvel")]
+        public string? NomeImovel { get; set; }
     }
 }

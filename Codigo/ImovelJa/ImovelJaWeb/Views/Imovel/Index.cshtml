@@ -1,0 +1,157 @@
+@model IEnumerable<ImovelJaWeb.Models.ImovelViewModel>
+
+@{
+    ViewData["Title"] = "Gestão de imóveis";
+    ViewData["Perfil"] = "Usuario";
+    ViewData["NomeUsuario"] = "Proprietário";
+
+    var idPessoa = ViewData["IdPessoa"] is uint pessoa ? pessoa : 0u;
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var alugueis = ViewBag.Alugueis as List<AluguelViewModel> ?? new List<AluguelViewModel>();
+    var quantidade = Model.Count() + alugueis.Count;
+}
+
+<div class="titulo-pagina titulo-pagina--com-acao">
+    <a class="voltar" asp-controller="Home" asp-action="Index" aria-label="Voltar ao início">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Gestão de imóveis</h1>
+        <p>@(quantidade == 1 ? "1 imóvel" : $"{quantidade} imóveis")</p>
+    </div>
+    <a class="btn btn-primary titulo-pagina__acao" asp-action="Create" asp-route-idPessoa="@idPessoa">Novo imóvel</a>
+</div>
+
+<div asp-validation-summary="ModelOnly"></div>
+
+@if (quantidade == 0)
+{
+    <p class="lista-vazia">Nenhum imóvel cadastrado.</p>
+}
+else
+{
+    <div class="busca-campo mb-4" role="search">
+        <svg class="busca-campo__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+        <label class="visually-hidden" for="filtro-imoveis">Filtrar imóveis</label>
+        <input id="filtro-imoveis" type="search" class="busca-campo__entrada" placeholder="Filtrar imóveis..."
+               autocomplete="off" data-filtro-lista="lista-imoveis" />
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="lista-anuncios__cabecalho lista-anuncios__cabecalho--gestao" aria-hidden="true">
+            <span>Anúncio</span>
+            <span>Situação</span>
+            <span></span>
+        </div>
+    }
+
+    <ul class="lista-anuncios" id="lista-imoveis">
+        @foreach (var item in Model)
+        {
+            var aluguel = item.Finalidade != "V";
+            var validacao = item.StatusValidacao switch
+            {
+                "A" => ("Aprovado", "selo--aprovado"),
+                "R" => ("Reprovado", "selo--reprovado"),
+                _ => ("Pendente", "selo--pendente")
+            };
+            var situacao = item.Status switch
+            {
+                "A" => ("Alugado", "selo--neutro"),
+                "V" => ("Vendido", "selo--neutro"),
+                "P" => ("Pausado", "selo--pendente"),
+                _ => ("Disponível", "selo--aprovado")
+            };
+
+            <li data-filtro-texto="@item.Nome @item.Bairro @item.Cidade">
+                <article class="anuncio anuncio--gestao" aria-labelledby="anuncio-@item.Id">
+                    <div class="anuncio__dados">
+                        <div class="miniatura" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+                        </div>
+                        <div>
+                            <h2 class="anuncio__nome" id="anuncio-@item.Id">
+                                <a asp-action="Details" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">@item.Nome</a>
+                            </h2>
+                            <p class="anuncio__local">@item.Bairro, @item.Cidade - @item.Estado</p>
+                            <p class="anuncio__valores">
+                                <span class="selo selo--pequeno">@(aluguel ? "Aluguel" : "Venda")</span>
+                                <span class="preco">@item.Valor.ToString("C0", ptBR)@(aluguel ? "/mês" : "")</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="anuncio__situacao m-0">
+                        <span class="visually-hidden">Validação: </span>
+                        <span class="selo @validacao.Item2">@validacao.Item1</span>
+                        <span class="visually-hidden">Situação: </span>
+                        <span class="selo @situacao.Item2">@situacao.Item1</span>
+                    </p>
+
+                    <div class="anuncio__acao anuncio__acoes">
+                        <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                            Editar<span class="visually-hidden"> @item.Nome</span>
+                        </a>
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                            Excluir<span class="visually-hidden"> @item.Nome</span>
+                        </a>
+                        @if (item.Status == "D" || item.Status == "P")
+                        {
+                            var pausado = item.Status == "P";
+                            <form asp-action="Pause" method="post" class="d-inline" data-envio-unico>
+                                <input type="hidden" name="id" value="@item.Id" />
+                                <input type="hidden" name="idPessoa" value="@idPessoa" />
+                                <button type="submit" name="pausado" value="@(!pausado ? "true" : "false")" class="btn btn-sm @(pausado ? "btn-primary" : "btn-outline-primary")">
+                                    @(pausado ? "Retomar" : "Pausar")<span class="visually-hidden"> @item.Nome</span>
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </article>
+            </li>
+        }
+        @foreach (var item in alugueis)
+        {
+            var imovel = item.Imovel;
+            var nome = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Imóvel" : imovel.Nome;
+            var local = imovel == null ? string.Empty : $"{imovel.Bairro}, {imovel.Cidade} - {imovel.Estado}";
+
+            <li data-filtro-texto="@nome @local">
+                <article class="anuncio anuncio--gestao" aria-labelledby="aluguel-@item.Id">
+                    <div class="anuncio__dados">
+                        <div class="miniatura" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg>
+                        </div>
+                        <div>
+                            <h2 class="anuncio__nome" id="aluguel-@item.Id">@nome</h2>
+                            @if (!string.IsNullOrWhiteSpace(local))
+                            {
+                                <p class="anuncio__local">@local</p>
+                            }
+                            <p class="anuncio__valores">
+                                <span class="selo selo--pequeno">Aluguel</span>
+                                <span class="preco">@item.Valor.ToString("C0", ptBR)/mês</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <p class="anuncio__situacao m-0">
+                        <span class="visually-hidden">Situação: </span>
+                        <span class="selo selo--neutro">Alugado</span>
+                    </p>
+
+                    <div class="anuncio__acao anuncio__acoes">
+                        <a class="btn btn-sm btn-outline-primary" asp-controller="Aluguel" asp-action="Details" asp-route-id="@item.Id" asp-route-idPessoa="@idPessoa">
+                            Ver aluguel<span class="visually-hidden"> de @nome</span>
+                        </a>
+                    </div>
+                </article>
+            </li>
+        }
+    </ul>
+
+    <p class="lista-vazia mt-3" role="status" data-filtro-vazio="lista-imoveis" hidden>
+        Nenhum imóvel encontrado para o filtro informado.
+    </p>
+}

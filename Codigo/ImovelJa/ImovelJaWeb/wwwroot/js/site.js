@@ -51,8 +51,86 @@
         });
     }
 
+    /* Cadastro em duas etapas, no mesmo formulário: a etapa 2 fica oculta
+       até os campos visíveis da etapa 1 serem aceitos. Se o servidor devolver
+       erro, abre a etapa que contém o campo inválido. */
+    function ligarEtapas(formulario) {
+        var etapas = formulario.querySelectorAll("[data-etapa]");
+        var indicadores = formulario.querySelectorAll("[data-etapa-indicador]");
+        if (!etapas.length) {
+            return;
+        }
+
+        function etapaComErro(numero) {
+            var etapa = formulario.querySelector("[data-etapa='" + numero + "']");
+            if (!etapa) {
+                return false;
+            }
+
+            return etapa.querySelector(".input-validation-error, .field-validation-error:not(:empty)") !== null;
+        }
+
+        function mostrar(numero, focar) {
+            etapas.forEach(function (etapa) {
+                etapa.hidden = etapa.getAttribute("data-etapa") !== String(numero);
+            });
+
+            indicadores.forEach(function (item) {
+                var indice = Number(item.getAttribute("data-etapa-indicador"));
+                var atual = indice === numero;
+                item.classList.toggle("etapas__item--atual", atual);
+                item.classList.toggle("etapas__item--feita", indice < numero);
+                if (atual) {
+                    item.setAttribute("aria-current", "step");
+                } else {
+                    item.removeAttribute("aria-current");
+                }
+            });
+
+            if (focar) {
+                var foco = formulario.querySelector("[data-etapa='" + numero + "'] input, [data-etapa='" + numero + "'] select, [data-etapa='" + numero + "'] textarea");
+                if (foco) {
+                    foco.focus();
+                }
+            }
+        }
+
+        mostrar(etapaComErro(2) && !etapaComErro(1) ? 2 : 1, false);
+
+        var proxima = formulario.querySelector("[data-etapa-proxima]");
+        if (proxima) {
+            proxima.addEventListener("click", function () {
+                var campos = formulario.querySelectorAll("[data-etapa='1'] input, [data-etapa='1'] select, [data-etapa='1'] textarea");
+                var validador = window.jQuery ? window.jQuery(formulario).data("validator") : null;
+                var primeiroInvalido = null;
+
+                for (var i = 0; i < campos.length; i++) {
+                    var valido = validador ? validador.element(campos[i]) !== false : campos[i].checkValidity();
+                    if (!valido && !primeiroInvalido) {
+                        primeiroInvalido = campos[i];
+                    }
+                }
+
+                if (primeiroInvalido) {
+                    primeiroInvalido.focus();
+                    return;
+                }
+
+                mostrar(2, true);
+            });
+        }
+
+        var anterior = formulario.querySelector("[data-etapa-anterior]");
+        if (anterior) {
+            anterior.addEventListener("click", function () {
+                mostrar(1, true);
+            });
+        }
+    }
+
     function iniciar() {
         document.querySelectorAll("form[data-envio-unico]").forEach(ligarEnvioUnico);
+        document.querySelectorAll("form[data-etapas]").forEach(ligarEtapas);
     }
 
     function agendar() {
@@ -125,5 +203,13 @@
     }
 
     document.querySelectorAll("[data-filtro-lista]").forEach(ligarFiltro);
+
+    /* Janela que abre sozinha ao carregar a página, como a confirmação de
+       plano ativado (Tela_005.1.1). O componente de janela é o do Bootstrap. */
+    document.querySelectorAll(".modal[data-abrir-ao-carregar]").forEach(function (janela) {
+        if (window.bootstrap) {
+            window.bootstrap.Modal.getOrCreateInstance(janela).show();
+        }
+    });
 
 })();

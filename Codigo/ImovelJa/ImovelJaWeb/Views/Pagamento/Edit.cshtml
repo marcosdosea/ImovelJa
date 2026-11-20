@@ -1,0 +1,110 @@
+@model ImovelJaWeb.Models.PagamentoViewModel
+
+@{
+    ViewData["Title"] = "Pagamento";
+    ViewData["Perfil"] = "Usuario";
+
+    var ptBR = System.Globalization.CultureInfo.GetCultureInfo("pt-BR");
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : 0u;
+    var pago = Model.Status == "PA";
+    var pagoValor = Model.ValorPago ?? 0m;
+    var falta = Model.ValorAluguel - pagoValor;
+    if (falta < 0)
+        falta = 0;
+    var mes = ptBR.TextInfo.ToTitleCase(Model.MesReferencia.ToString("MMM yyyy", ptBR).Replace(".", ""));
+    var subtitulo = string.IsNullOrWhiteSpace(Model.NomeImovel)
+        ? Model.ValorAluguel.ToString("C", ptBR)
+        : $"{Model.NomeImovel} · {Model.ValorAluguel.ToString("C", ptBR)}";
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-controller="Aluguel" asp-action="Details" asp-route-id="@Model.IdAluguel" asp-route-idPessoa="@idPessoa" aria-label="Voltar para o aluguel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>@mes</h1>
+        <p>@subtitulo</p>
+    </div>
+</div>
+
+<section class="formulario-pagamento" aria-labelledby="titulo-pagamento">
+    <h2 class="visually-hidden" id="titulo-pagamento">Dados do pagamento</h2>
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" data-envio-unico>
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="IdAluguel" />
+        <input type="hidden" name="MesReferencia" value="@Model.MesReferencia.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="Status" value="PE" />
+        <input type="hidden" name="NomeImovel" value="@Model.NomeImovel" />
+        <input type="hidden" name="ValorAluguel" value="@Model.ValorAluguel.ToString(inv)" />
+        <input type="hidden" name="PossuiComprovante" value="@(Model.PossuiComprovante ? "true" : "false")" />
+        <input type="hidden" name="idPessoa" value="@idPessoa" />
+
+        <div asp-validation-summary="ModelOnly"></div>
+
+        <div class="comprovante-envio mb-3">
+            <label for="comprovante">Adicionar comprovante <small>(opcional)</small></label>
+            <input id="comprovante" name="comprovante" type="file" accept="image/*,application/pdf,.pdf" />
+            @if (Model.PossuiComprovante)
+            {
+                <a asp-action="Comprovante" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" target="_blank" rel="noopener">Ver comprovante</a>
+            }
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="ValorPago"></label>
+            <input asp-for="ValorPago" class="form-control campo-valor" type="number" step="0.01" min="0.01" lang="en" inputmode="decimal" />
+            <span asp-validation-for="ValorPago"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="valor-faltante">Valor faltante</label>
+            <input id="valor-faltante" class="form-control campo-valor" readonly
+                   data-aluguel="@Model.ValorAluguel.ToString(inv)" value="@falta.ToString("C", ptBR)" />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" asp-for="DataPagamento"></label>
+            <input asp-for="DataPagamento" class="form-control campo-curto" type="date" />
+            <span asp-validation-for="DataPagamento"></span>
+        </div>
+
+        <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" name="pago" id="pago" value="true" checked="@(pago ? "checked" : null)" />
+            <label class="form-check-label" for="pago">Pago</label>
+        </div>
+
+        <div class="formulario-pagamento__acoes">
+            <a class="btn btn-outline-primary" asp-controller="Aluguel" asp-action="Details" asp-route-id="@Model.IdAluguel" asp-route-idPessoa="@idPessoa">Voltar</a>
+            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            var valor = document.getElementById("ValorPago");
+            var faltante = document.getElementById("valor-faltante");
+            if (!valor || !faltante) {
+                return;
+            }
+
+            var aluguel = parseFloat(faltante.getAttribute("data-aluguel") || "0");
+
+            function atualizar() {
+                var pagoAgora = parseFloat(valor.value);
+                if (isNaN(pagoAgora)) {
+                    pagoAgora = 0;
+                }
+
+                var resta = Math.max(0, aluguel - pagoAgora);
+                faltante.value = resta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+            }
+
+            valor.addEventListener("input", atualizar);
+        })();
+    </script>
+}
