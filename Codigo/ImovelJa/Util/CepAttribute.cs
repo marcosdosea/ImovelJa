@@ -22,12 +22,9 @@ namespace Util
         {
             if (value == null || string.IsNullOrEmpty(value.ToString()))
                 return true;
-            var valueNoEspecial = Methods.RemoveSpecialsCaracts((string)value);
-            if (valueNoEspecial.ToString().Length != 8)
-                return false;
-            if (valueNoEspecial.ToString().StartsWith('0'))
-                return false;
-            return true;
+            // CEPs iniciados em 0 são válidos (ex.: 01310-100, em São Paulo)
+            var somenteNumeros = Methods.RemoveNaoNumericos(value.ToString()!);
+            return somenteNumeros.Length == 8;
         }
 
         public string GetErrorMessage() =>

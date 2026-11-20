@@ -12,9 +12,8 @@ namespace Util
         {
             if (value == null || string.IsNullOrEmpty(value.ToString()))
                 return true;
-            var valueNoEspecial = Methods.RemoveSpecialsCaracts((string)value);
-            bool valido = Methods.ValidarCnpj(valueNoEspecial.ToString());
-            return valido;
+            var somenteNumeros = Methods.RemoveNaoNumericos(value.ToString()!);
+            return Methods.ValidarCnpj(somenteNumeros);
         }
 
         public string GetErrorMessage() =>
