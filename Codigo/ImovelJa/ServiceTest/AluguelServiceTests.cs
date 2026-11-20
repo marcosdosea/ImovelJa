@@ -45,7 +45,7 @@ public class AluguelServiceTests
                 Status = "A"
             },
             new Pessoa
-            { 
+            {
                 Id = 3,
                 Tipo = "F",
                 Nome = "Carlos Inquilino",
@@ -241,6 +241,38 @@ public class AluguelServiceTests
     }
 
     [TestMethod]
+    public void GetDoProprietario_QuandoImovelPertenceAPessoa_DeveRetornarOAluguel()
+    {
+        // Act
+        var aluguel = servicoAluguel.GetDoProprietario(1, 1);
+
+        // Assert
+        Assert.IsNotNull(aluguel);
+        Assert.AreEqual(1u, aluguel.Id);
+        Assert.AreEqual(1u, aluguel.IdImovel);
+    }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoImovelNaoPertenceAPessoa_DeveRetornarNulo()
+    {
+        // Act
+        var aluguel = servicoAluguel.GetDoProprietario(1, 2);
+
+        // Assert
+        Assert.IsNull(aluguel);
+    }
+
+    [TestMethod]
+    public void GetDoProprietario_QuandoAluguelNaoExiste_DeveRetornarNulo()
+    {
+        // Act
+        var aluguel = servicoAluguel.GetDoProprietario(999, 1);
+
+        // Assert
+        Assert.IsNull(aluguel);
+    }
+
+    [TestMethod]
     public void Create_QuandoPessoaJaCadastrada_DeveVincularAPessoaExistente()
     {
         // Arrange
@@ -372,6 +404,51 @@ public class AluguelServiceTests
     }
 
     [TestMethod]
+    public void Create_QuandoImovelNaoEhAnunciadoParaAluguel_DeveLancarServiceException()
+    {
+        // Arrange
+        AlterarImovel(2, imovel => imovel.Finalidade = "V");
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(
+            () => servicoAluguel.Create(ObterAluguelNovo()));
+
+        // Assert
+        Assert.AreEqual("O imóvel não é anunciado para aluguel.", excecao.Message);
+        Assert.HasCount(1, servicoAluguel.GetByImovel(2).ToList());
+    }
+
+    [TestMethod]
+    public void Create_QuandoAnuncioNaoFoiAprovado_DeveLancarServiceException()
+    {
+        // Arrange
+        AlterarImovel(2, imovel => imovel.StatusValidacao = "P");
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(
+            () => servicoAluguel.Create(ObterAluguelNovo()));
+
+        // Assert
+        Assert.AreEqual("O anúncio do imóvel ainda não foi aprovado.", excecao.Message);
+        Assert.HasCount(1, servicoAluguel.GetByImovel(2).ToList());
+    }
+
+    [TestMethod]
+    public void Create_QuandoImovelEstaPausado_DeveLancarServiceException()
+    {
+        // Arrange
+        AlterarImovel(2, imovel => imovel.Status = "P");
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(
+            () => servicoAluguel.Create(ObterAluguelNovo()));
+
+        // Assert
+        Assert.AreEqual("O imóvel não está disponível para aluguel.", excecao.Message);
+        Assert.HasCount(1, servicoAluguel.GetByImovel(2).ToList());
+    }
+
+    [TestMethod]
     public void Create_QuandoImovelTemApenasAluguelCancelado_DeveRegistrarNovoAluguel()
     {
         // Arrange
@@ -475,7 +552,7 @@ public class AluguelServiceTests
             IdPessoaInquilinoNavigation = new Pessoa
             {
                 Nome = "João C. da Conceição",
-                Cpf = "39053344705", 
+                Cpf = "39053344705",
                 Telefone = "79998887766"
             }
         };
@@ -545,6 +622,34 @@ public class AluguelServiceTests
     }
 
     [TestMethod]
+    public void Edit_QuandoAluguelCancelado_DeveLancarServiceExceptionENaoGravarNada()
+    {
+        // Arrange
+        var edicao = new Aluguel
+        {
+            Id = 2,
+            DiaPagamento = 8,
+            Valor = 950m,
+            IdImovel = 2,
+            IdPessoaInquilino = 3,
+            Status = "C"
+        };
+
+        // Act
+        var excecao = Assert.ThrowsExactly<ServiceException>(
+            () => servicoAluguel.Edit(edicao));
+
+        // Assert
+        Assert.AreEqual("Não é possível editar um aluguel cancelado.", excecao.Message);
+
+        contexto.ChangeTracker.Clear();
+        var aluguel = servicoAluguel.Get(2);
+        Assert.IsNotNull(aluguel);
+        Assert.AreEqual(900m, aluguel.Valor);
+        Assert.AreEqual(5, aluguel.DiaPagamento);
+    }
+
+    [TestMethod]
     public void Delete_QuandoAluguelAtivo_DeveCancelarMantendoOVinculoEDevolverImovelParaDisponivel()
     {
         // Act
@@ -565,5 +670,25 @@ public class AluguelServiceTests
 
         Assert.HasCount(1, doInquilino);
         Assert.AreEqual(1u, doInquilino[0].Id);
+    }
+
+    private void AlterarImovel(uint id, Action<Imovel> alteracao)
+    {
+        var imovel = contexto.Imovels.Find(id)!;
+        alteracao(imovel);
+        contexto.SaveChanges();
+        contexto.ChangeTracker.Clear();
+    }
+
+    private static Aluguel ObterAluguelNovo()
+    {
+        return new Aluguel
+        {
+            Id = 10,
+            DiaPagamento = 5,
+            Valor = 900m,
+            IdImovel = 2,
+            IdPessoaInquilino = 3
+        };
     }
 }

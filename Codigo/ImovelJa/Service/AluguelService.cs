@@ -24,7 +24,8 @@ namespace Service
         /// </summary>
         /// <param name="aluguel">dados do aluguel e do inquilino</param>
         /// <returns>id do aluguel criado</returns>
-        /// <exception cref="ServiceException">imóvel não encontrado ou com aluguel ativo, inquilino não encontrado ou dados do inquilino incompletos</exception>
+        /// <exception cref="ServiceException">imóvel não encontrado, com aluguel ativo, não anunciado para aluguel, não aprovado ou indisponível,
+        /// inquilino não encontrado ou dados do inquilino incompletos</exception>
         public uint Create(Aluguel aluguel)
         {
             var imovel = context.Imovels.Find(aluguel.IdImovel)
@@ -32,6 +33,15 @@ namespace Service
 
             if (context.Aluguels.Any(a => a.IdImovel == aluguel.IdImovel && a.Status == "A"))
                 throw new ServiceException("O imóvel já possui um aluguel ativo.");
+
+            if (imovel.Finalidade != "A")
+                throw new ServiceException("O imóvel não é anunciado para aluguel.");
+
+            if (imovel.StatusValidacao != "A")
+                throw new ServiceException("O anúncio do imóvel ainda não foi aprovado.");
+
+            if (imovel.Status != "D")
+                throw new ServiceException("O imóvel não está disponível para aluguel.");
 
             if (aluguel.IdPessoaInquilino != 0)
             {
@@ -82,11 +92,14 @@ namespace Service
         /// a outra pessoa, nada é gravado (RN11)
         /// </summary>
         /// <param name="aluguel">dados do aluguel e, opcionalmente, do inquilino</param>
-        /// <exception cref="ServiceException">aluguel ou inquilino não encontrado, nome ou documento do inquilino ausente, ou documento pertencente a outra pessoa</exception>
+        /// <exception cref="ServiceException">aluguel ou inquilino não encontrado, aluguel cancelado, nome ou documento do inquilino ausente, ou documento pertencente a outra pessoa</exception>
         public void Edit(Aluguel aluguel)
         {
             var atual = context.Aluguels.AsNoTracking().FirstOrDefault(a => a.Id == aluguel.Id)
                 ?? throw new ServiceException("Aluguel não encontrado.");
+
+            if (atual.Status != "A")
+                throw new ServiceException("Não é possível editar um aluguel cancelado.");
 
             var dados = aluguel.IdPessoaInquilinoNavigation;
             Pessoa? inquilino = null;
@@ -119,7 +132,7 @@ namespace Service
             }
 
             context.Update(aluguel);
-            context.SaveChanges(); 
+            context.SaveChanges();
         }
 
         /// <summary>
@@ -160,6 +173,19 @@ namespace Service
             return context.Aluguels
                 .AsNoTracking()
                 .FirstOrDefault(a => a.Id == id && a.IdPessoaInquilino == idPessoa);
+        }
+
+        /// <summary>
+        /// Busca um aluguel pelo id apenas se o imóvel alugado pertencer à pessoa informada
+        /// </summary>
+        /// <param name="id">id do aluguel</param>
+        /// <param name="idPessoa">id da pessoa dona do imóvel</param>
+        /// <returns>dados do aluguel ou nulo se não for encontrado ou o imóvel não pertencer à pessoa</returns>
+        public Aluguel? GetDoProprietario(uint id, uint idPessoa)
+        {
+            return context.Aluguels
+                .AsNoTracking()
+                .FirstOrDefault(a => a.Id == id && a.IdImovelNavigation.IdPessoaProprietario == idPessoa);
         }
 
         /// <summary>

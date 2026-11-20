@@ -1,4 +1,8 @@
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Util;
 
 namespace ImovelJaWeb.Models
 {
@@ -32,9 +36,17 @@ namespace ImovelJaWeb.Models
         [Display(Name = "Imóvel")]
         public uint IdImovel { get; set; }
 
+        /// <summary>
+        /// Diferente de zero: inquilino já cadastrado. Zero no Create: usa os dados de Inquilino para cadastrar (RN04)
+        /// </summary>
         [Display(Name = "Inquilino")]
         public uint IdPessoaInquilino { get; set; }
 
+        [Display(Name = "Contrato (PDF, JPG ou PNG)")]
+        [ArquivoContrato]
+        public IFormFile? Contrato { get; set; }
+
+        [Display(Name = "Contrato anexado")]
         public bool PossuiContrato { get; set; }
 
         public ImovelViewModel? Imovel { get; set; }
