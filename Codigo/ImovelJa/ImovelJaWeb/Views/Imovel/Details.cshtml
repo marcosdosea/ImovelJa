@@ -126,17 +126,22 @@ else
                         }
                     </div>
 
-                    @if (aluguel && Model.Status == "D")
+                    @* Aluguel do imóvel (Tela_007.1 e Tela_007.2) *@
+                    @if (TempData["Erro"] is string erro)
+                    {
+                        <div class="validation-summary-errors mt-3" role="alert"><ul><li>@erro</li></ul></div>
+                    }
+                    @if (aluguel && Model.Status == "D" && Model.StatusValidacao == "A")
                     {
                         <a class="btn btn-primary w-100 mt-3"
                            asp-controller="Aluguel" asp-action="Create" asp-route-idImovel="@Model.Id">
                             Alugar
                         </a>
                     }
-                    else if (aluguel && Model.Status == "A")
+                    else if (Model.Status == "A" && ViewData["IdAluguel"] is uint idAluguel)
                     {
                         <a class="btn btn-primary w-100 mt-3"
-                           asp-controller="Aluguel" asp-action="Index"
+                           asp-controller="Aluguel" asp-action="Details" asp-route-id="@idAluguel"
                            asp-route-idPessoa="@Model.IdPessoaProprietario">
                             Ver aluguel
                         </a>

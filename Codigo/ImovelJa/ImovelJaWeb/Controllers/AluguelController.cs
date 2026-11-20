@@ -3,6 +3,7 @@ using Core.Service;
 using ImovelJaWeb.Mappers;
 using ImovelJaWeb.Models;
 using Microsoft.AspNetCore.Mvc;
+using Util;
 
 namespace ImovelJaWeb.Controllers
 {
@@ -41,10 +42,13 @@ namespace ImovelJaWeb.Controllers
                 return RedirectToAction("Details", "Imovel", new { id = idImovel, idPessoa = imovel.IdPessoaProprietario });
             }
 
+            PrepararPessoa(imovel.IdPessoaProprietario);
+
             var model = new AluguelViewModel
             {
                 IdImovel = idImovel,
                 Valor = imovel.Valor,
+                Imovel = ImovelMapper.ToViewModel(imovel),
                 Inquilino = new PessoaViewModel { Tipo = "F" }
             };
             return View(model);
@@ -59,8 +63,16 @@ namespace ImovelJaWeb.Controllers
             if (imovel == null)
                 return NotFound();
 
+            PrepararPessoa(imovel.IdPessoaProprietario);
+            model.Imovel = ImovelMapper.ToViewModel(imovel);
+
             if (model.IdPessoaInquilino != 0)
                 IgnorarErrosDoInquilino();
+            else if (model.Inquilino != null)
+            {
+                model.Inquilino.Cpf = SomenteNumeros(model.Inquilino.Cpf);
+                model.Inquilino.Telefone = SomenteNumeros(model.Inquilino.Telefone);
+            }
 
             string? erro = VerificarImovel(imovel);
             if (erro != null)
@@ -290,7 +302,19 @@ namespace ImovelJaWeb.Controllers
 
         private AluguelViewModel MontarModelo(Aluguel aluguel)
         {
-            return AluguelMapper.ToViewModel(aluguel, BuscarImovel(aluguel), BuscarInquilino(aluguel));
+            var modelo = AluguelMapper.ToViewModel(aluguel, BuscarImovel(aluguel), BuscarInquilino(aluguel));
+            modelo.Pagamentos = PagamentoMapper.ToViewModel(pagamentoService.GetByAluguel(aluguel.Id)).ToList();
+            return modelo;
+        }
+
+        /// <summary>
+        /// Tira a pontuação do CPF e do telefone digitados com máscara, como o banco guarda
+        /// </summary>
+        /// <param name="valor">texto digitado</param>
+        /// <returns>somente os números, ou nulo se nada foi digitado</returns>
+        private static string? SomenteNumeros(string? valor)
+        {
+            return string.IsNullOrWhiteSpace(valor) ? null : Methods.RemoveNaoNumericos(valor);
         }
 
         private AluguelViewModel CompletarModelo(AluguelViewModel model, Aluguel aluguel)
@@ -302,6 +326,8 @@ namespace ImovelJaWeb.Controllers
             model.Status = aluguel.Status;
             model.PossuiContrato = aluguel.ArquivoContrato is { Length: > 0 };
             model.Inquilino = inquilino == null ? null : PessoaMapper.ToViewModel(inquilino);
+            model.Imovel = BuscarImovel(aluguel) is Imovel imovel ? ImovelMapper.ToViewModel(imovel) : null;
+            model.Pagamentos = PagamentoMapper.ToViewModel(pagamentoService.GetByAluguel(aluguel.Id)).ToList();
             return model;
         }
 

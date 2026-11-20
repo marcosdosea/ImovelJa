@@ -1,4 +1,4 @@
-(function () {
+(function() {
     "use strict";
 
     /* Envio único: nos formulários marcados com data-envio-unico, desativa os
@@ -6,7 +6,7 @@
        "Aprovar" manda dois pedidos, e o segundo falha porque o anúncio já foi
        validado. Se a validação recusar o envio, os botões continuam ativos. */
     function ligarEnvioUnico(formulario) {
-        formulario.addEventListener("submit", function (evento) {
+        formulario.addEventListener("submit", function(evento) {
             if (evento.defaultPrevented || (typeof formulario.checkValidity === "function" && !formulario.checkValidity())) {
                 return;
             }
@@ -24,7 +24,7 @@
                 formulario.appendChild(campo);
             }
 
-            formulario.querySelectorAll("button[type='submit']").forEach(function (item) {
+            formulario.querySelectorAll("button[type='submit']").forEach(function(item) {
                 item.disabled = true;
             });
 
@@ -40,12 +40,12 @@
         if (!evento.persisted) {
             return;
         }
-        document.querySelectorAll("form[data-envio-unico]").forEach(function (formulario) {
-            formulario.querySelectorAll("button[type='submit']").forEach(function (item) {
+        document.querySelectorAll("form[data-envio-unico]").forEach(function(formulario) {
+            formulario.querySelectorAll("button[type='submit']").forEach(function(item) {
                 item.disabled = false;
                 item.removeAttribute("aria-busy");
             });
-            formulario.querySelectorAll("input[data-envio-unico-copia]").forEach(function (item) {
+            formulario.querySelectorAll("input[data-envio-unico-copia]").forEach(function(item) {
                 item.remove();
             });
         });
@@ -71,11 +71,11 @@
         }
 
         function mostrar(numero, focar) {
-            etapas.forEach(function (etapa) {
+            etapas.forEach(function(etapa) {
                 etapa.hidden = etapa.getAttribute("data-etapa") !== String(numero);
             });
 
-            indicadores.forEach(function (item) {
+            indicadores.forEach(function(item) {
                 var indice = Number(item.getAttribute("data-etapa-indicador"));
                 var atual = indice === numero;
                 item.classList.toggle("etapas__item--atual", atual);
@@ -99,7 +99,7 @@
 
         var proxima = formulario.querySelector("[data-etapa-proxima]");
         if (proxima) {
-            proxima.addEventListener("click", function () {
+            proxima.addEventListener("click", function() {
                 var campos = formulario.querySelectorAll("[data-etapa='1'] input, [data-etapa='1'] select, [data-etapa='1'] textarea");
                 var validador = window.jQuery ? window.jQuery(formulario).data("validator") : null;
                 var primeiroInvalido = null;
@@ -122,7 +122,7 @@
 
         var anterior = formulario.querySelector("[data-etapa-anterior]");
         if (anterior) {
-            anterior.addEventListener("click", function () {
+            anterior.addEventListener("click", function() {
                 mostrar(1, true);
             });
         }
@@ -142,11 +142,11 @@
     } else {
         agendar();
     }
-      /* Confirmação: nos formulários marcados com data-confirm-nome, pede
-    confirmação antes de bloquear. O nome vem de um atributo, lido como
-    texto puro, e nunca é montado dentro de código JavaScript. */
+    /* Confirmação: nos formulários marcados com data-confirm-nome, pede
+  confirmação antes de bloquear. O nome vem de um atributo, lido como
+  texto puro, e nunca é montado dentro de código JavaScript. */
     function ligarConfirmacao(formulario) {
-        formulario.addEventListener("submit", function (evento) {
+        formulario.addEventListener("submit", function(evento) {
             var nome = formulario.getAttribute("data-confirm-nome");
 
             if (!window.confirm("Deseja realmente bloquear o usuário " + nome + "?")) {
@@ -157,7 +157,7 @@
     window.addEventListener("pageshow", reativarFormularios);
 
     /* A conversa abre já no fim do histórico, na mensagem mais recente. */
-    document.querySelectorAll("[data-rolar-fim]").forEach(function (painel) {
+    document.querySelectorAll("[data-rolar-fim]").forEach(function(painel) {
         painel.scrollTop = painel.scrollHeight;
     });
     document.querySelectorAll("form[data-confirm-nome]").forEach(ligarConfirmacao);
@@ -179,13 +179,13 @@
         var itens = lista.querySelectorAll("[data-filtro-texto]");
         var aviso = document.querySelector("[data-filtro-vazio='" + lista.id + "']");
 
-        campo.addEventListener("input", function () {
+        campo.addEventListener("input", function() {
             var termo = normalizar(campo.value.trim());
             var soDocumento = /^[0-9.\-\/\s]+$/.test(termo);
             var digitos = termo.replace(/[^0-9]/g, "");
             var visiveis = 0;
 
-            itens.forEach(function (item) {
+            itens.forEach(function(item) {
                 var texto = normalizar(item.getAttribute("data-filtro-texto"));
                 var combina = termo === "" ||
                     (soDocumento ? texto.indexOf(digitos) !== -1 : texto.indexOf(termo) !== -1);
@@ -204,6 +204,20 @@
 
     document.querySelectorAll("[data-filtro-lista]").forEach(ligarFiltro);
 
+    /* Nome do arquivo escolhido nas caixas de envio, como a do contrato do aluguel
+       (Tela_011): o campo aponta em data-arquivo-nome o id do texto que mostra o nome */
+    document.querySelectorAll("input[type='file'][data-arquivo-nome]").forEach(function(campo) {
+        var texto = document.getElementById(campo.getAttribute("data-arquivo-nome"));
+        if (!texto) {
+            return;
+        }
+
+        var original = texto.textContent;
+        campo.addEventListener("change", function() {
+            texto.textContent = campo.files && campo.files.length ? campo.files[0].name : original;
+        });
+    });
+
     /* Valor faltante do pagamento (Tela_012.2): acompanha o valor pago digitado.
        O campo traz o valor do aluguel em data-aluguel e o id do campo do valor
        pago em data-valor-faltante. */
@@ -214,7 +228,7 @@
             return;
         }
 
-        valorPago.addEventListener("input", function () {
+        valorPago.addEventListener("input", function() {
             var pago = parseFloat(valorPago.value);
             var resta = Math.max(0, aluguel - (isNaN(pago) ? 0 : pago));
             faltante.value = resta.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -225,7 +239,7 @@
 
     /* Janela que abre sozinha ao carregar a página, como a confirmação de
        plano ativado (Tela_005.1.1). O componente de janela é o do Bootstrap. */
-    document.querySelectorAll(".modal[data-abrir-ao-carregar]").forEach(function (janela) {
+    document.querySelectorAll(".modal[data-abrir-ao-carregar]").forEach(function(janela) {
         if (window.bootstrap) {
             window.bootstrap.Modal.getOrCreateInstance(janela).show();
         }

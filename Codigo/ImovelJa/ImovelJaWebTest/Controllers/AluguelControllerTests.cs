@@ -317,6 +317,8 @@ public class AluguelControllerTests
         Assert.AreEqual(10u, aluguel.IdImovel);
         Assert.AreEqual(1500m, aluguel.Valor);
         Assert.AreEqual("F", aluguel.Inquilino!.Tipo);
+        Assert.AreEqual("Casa Azul", aluguel.Imovel?.Nome);
+        Assert.AreEqual(IdProprietario, viewResult.ViewData[AluguelController.ChaveIdPessoa]);
 
         imovelServiceMock.Verify(
             service => service.Get(10),
@@ -440,6 +442,48 @@ public class AluguelControllerTests
                 && aluguel.IdPessoaInquilinoNavigation.Cpf == "52998224725"
                 && aluguel.IdPessoaInquilinoNavigation.Email == null)),
             Times.Once);
+    }
+
+    [TestMethod]
+    public void CreatePost_QuandoCpfETelefoneVemComMascara_DeveEnviarSomenteOsNumeros()
+    {
+        // Arrange
+        var modelo = ObterModelo();
+        modelo.IdPessoaInquilino = 0;
+        modelo.Inquilino = new PessoaViewModel
+        {
+            Tipo = "F",
+            Nome = "Ana Souza",
+            Cpf = "529.982.247-25",
+            Telefone = "(79) 99876-5432"
+        };
+
+        // Act
+        controller.Create(modelo);
+
+        // Assert
+        aluguelServiceMock.Verify(
+            service => service.Create(It.Is<Aluguel>(aluguel =>
+                aluguel.IdPessoaInquilinoNavigation.Cpf == "52998224725"
+                && aluguel.IdPessoaInquilinoNavigation.Telefone == "79998765432")),
+            Times.Once);
+    }
+
+    [TestMethod]
+    public void CreatePost_QuandoServicoRecusa_DeveDevolverOFormularioComOImovel()
+    {
+        // Arrange
+        aluguelServiceMock
+            .Setup(service => service.Create(It.IsAny<Aluguel>()))
+            .Throws(new ServiceException("O imóvel já possui um aluguel ativo."));
+
+        // Act
+        var resultado = controller.Create(ObterModelo());
+
+        // Assert
+        var viewResult = Assert.IsInstanceOfType<ViewResult>(resultado);
+        var aluguel = Assert.IsInstanceOfType<AluguelViewModel>(viewResult.ViewData.Model);
+        Assert.AreEqual("Casa Azul", aluguel.Imovel?.Nome);
     }
 
     [TestMethod]
@@ -583,6 +627,7 @@ public class AluguelControllerTests
         Assert.AreEqual(1500m, aluguel.Valor);
         Assert.IsTrue(aluguel.PossuiContrato);
         Assert.AreEqual("Maria José Santos", aluguel.Inquilino?.Nome);
+        Assert.HasCount(2, aluguel.Pagamentos);
     }
 
     [TestMethod]

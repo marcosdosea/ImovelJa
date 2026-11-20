@@ -1,10 +1,12 @@
-using System.ComponentModel.DataAnnotations;
 using Core;
+using Core.DTO;
 using Core.Service;
 using ImovelJaWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Core.DTO;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace ImovelJaWeb.Controllers.Tests;
 
@@ -969,6 +971,14 @@ public class ImovelControllerTests
             .Setup(service => service.GetDoProprietario(5, 1))
             .Returns(ObterImovelPublico(5, "A"));
 
+        aluguelServiceMock
+            .Setup(service => service.GetByImovel(5))
+            .Returns(new List<Aluguel>
+            {
+                ObterAluguel(6, "C", ObterImovelPublico(5, "A")),
+                ObterAluguel(7, "A", ObterImovelPublico(5, "A"))
+            });
+
         // Act
         var resultado = controller.Details(5, 1);
 
@@ -979,6 +989,7 @@ public class ImovelControllerTests
         Assert.AreEqual(5u, imovel.Id);
         Assert.AreEqual("A", imovel.Status);
         Assert.AreEqual(true, viewResult.ViewData["Dono"]);
+        Assert.AreEqual(7u, viewResult.ViewData["IdAluguel"]);
 
         imovelServiceMock.Verify(service => service.GetPublico(It.IsAny<uint>()), Times.Never);
     }
