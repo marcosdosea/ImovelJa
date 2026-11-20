@@ -274,6 +274,20 @@ public class UsuarioControllerTests
     }
 
     [TestMethod]
+    public void PessoaViewModel_QuandoCnpjValidoIniciadoEmZero_DeveSerValido()
+    {
+        // Arrange
+        var modelo = new PessoaViewModel { Id = 2, Tipo = "J", Nome = "Banco do Brasil", Cnpj = "00000000000191", Status = "A" };
+
+        // Act
+        var resultados = Validar(modelo);
+
+        // Assert
+        Assert.IsFalse(resultados.Any(resultado =>
+            resultado.MemberNames.Contains(nameof(PessoaViewModel.Cnpj))));
+    }
+
+    [TestMethod]
     public void PessoaViewModel_QuandoCnpjComDigitoVerificadorErrado_DeveSerInvalido()
     {
         // Arrange
