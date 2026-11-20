@@ -247,6 +247,8 @@ namespace ImovelJaWeb.Controllers
                 {
                     ViewData["Dono"] = true;
                     ViewData["IdPessoa"] = idPessoa;
+                    ViewData["IdAluguel"] = aluguelService.GetByImovel(id)
+                        .FirstOrDefault(aluguel => aluguel.Status == "A")?.Id;
                     return View(ImovelMapper.ToViewModel(doDono));
                 }
             }

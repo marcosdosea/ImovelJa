@@ -1,0 +1,48 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@* Confirmação do cancelamento do aluguel (Tela_012.3), no mesmo componente
+   de confirmação usado no cancelamento do plano *@
+
+@{
+    ViewData["Title"] = "Cancelar Aluguel";
+    ViewData["Perfil"] = "Usuario";
+
+    var imovel = Model.Imovel;
+    var nomeInquilino = string.IsNullOrWhiteSpace(Model.Inquilino?.Nome) ? "o inquilino" : Model.Inquilino.Nome;
+    var idPessoa = imovel?.IdPessoaProprietario ?? 0u;
+    ViewData["IdPessoa"] = idPessoa;
+    var local = imovel == null
+        ? string.Empty
+        : string.Join(" — ", new[] { imovel.Bairro, imovel.Cidade }.Where(parte => !string.IsNullOrWhiteSpace(parte)));
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Details" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" aria-label="Voltar para o aluguel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Cancelar aluguel</h1>
+        @if (!string.IsNullOrWhiteSpace(local))
+        {
+            <p>@local</p>
+        }
+    </div>
+</div>
+
+<div class="painel-formulario confirmacao">
+    <div asp-validation-summary="ModelOnly"></div>
+
+    <div class="confirmacao__icone" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+    </div>
+    <h2 class="confirmacao__titulo">Cancelar aluguel?</h2>
+    <p class="confirmacao__texto">
+        Esta ação irá remover <strong>@nomeInquilino</strong> como inquilino.
+        O histórico de pagamentos será mantido dentro dos detalhes do imóvel.
+    </p>
+
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="acoes-formulario" data-envio-unico>
+        <a class="btn btn-outline-primary" asp-action="Details" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa">Voltar</a>
+        <button type="submit" class="btn btn-reprovar">Cancelar aluguel</button>
+    </form>
+</div>

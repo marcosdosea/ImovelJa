@@ -1,0 +1,128 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@{
+    ViewData["Title"] = "Ver Aluguel";
+    ViewData["Perfil"] = "Usuario";
+
+    var imovel = Model.Imovel;
+    var inquilino = Model.Inquilino;
+    var idPessoa = imovel?.IdPessoaProprietario ?? 0u;
+    ViewData["IdPessoa"] = idPessoa;
+
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    ViewData["Dono"] = true;
+    var nomeImovel = string.IsNullOrWhiteSpace(imovel?.Nome) ? "Imóvel" : imovel.Nome;
+    var local = imovel == null
+        ? string.Empty
+        : string.Join(" — ", new[] { imovel.Bairro, imovel.Cidade }.Where(p => !string.IsNullOrWhiteSpace(p)));
+    var documentoRotulo = inquilino?.Tipo == "J" ? "CNPJ" : "CPF";
+    var documento = inquilino?.Tipo == "J"
+        ? (inquilino.Cnpj is { Length: 14 } ? Methods.PatternCnpj(inquilino.Cnpj) : inquilino.Cnpj)
+        : (inquilino?.Cpf is { Length: 11 } ? Methods.PatternCpf(inquilino.Cpf) : inquilino?.Cpf);
+    var digitos = new string((inquilino?.Telefone ?? "").Where(char.IsDigit).ToArray());
+    var telefone = digitos.Length == 11
+        ? $"({digitos[..2]}) {digitos[2..7]}-{digitos[7..]}"
+        : digitos.Length == 10
+            ? $"({digitos[..2]}) {digitos[2..6]}-{digitos[6..]}"
+            : inquilino?.Telefone ?? string.Empty;
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-action="Details" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa" aria-label="Voltar para o aluguel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Ver Aluguel</h1>
+        @if (!string.IsNullOrWhiteSpace(local))
+        {
+            <p>@local</p>
+        }
+    </div>
+</div>
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="aluguel-pagina">
+
+    @* Cartão da esquerda: dados do inquilino e campos do aluguel que o dono altera (Tela_012) *@
+    <section class="detalhe-anuncio" aria-labelledby="edit-imovel">
+        <div class="detalhe-anuncio__corpo">
+            <h2 id="edit-imovel">@nomeImovel</h2>
+            @if (!string.IsNullOrWhiteSpace(local))
+            {
+                <p class="detalhe-anuncio__local">@local</p>
+            }
+
+            <form id="form-aluguel" asp-action="Edit" method="post" enctype="multipart/form-data" data-envio-unico>
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="IdImovel" />
+                <input type="hidden" asp-for="IdPessoaInquilino" />
+                <input type="hidden" asp-for="Status" />
+                <input type="hidden" name="DiaPagamento" value="@Model.DiaPagamento" />
+                <input type="hidden" name="Valor" value="@Model.Valor.ToString(inv)" />
+
+                <h3 class="aluguel-pagina__secao">Dados do inquilino</h3>
+
+                <div class="mb-3">
+                    <label class="form-label" for="nome-inquilino">Nome completo</label>
+                    <input id="nome-inquilino" class="form-control" value="@inquilino?.Nome" readonly />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="documento-inquilino">@documentoRotulo</label>
+                    <input id="documento-inquilino" class="form-control campo-cpf" value="@documento" readonly />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="telefone-inquilino">Telefone</label>
+                    <input id="telefone-inquilino" class="form-control campo-telefone" value="@telefone" readonly />
+                </div>
+
+                <h3 class="aluguel-pagina__secao">Dados do aluguel</h3>
+
+                <div class="mb-3">
+                    <label class="form-label" asp-for="DataVencimentoProximo">Próximo vencimento</label>
+                    <input asp-for="DataVencimentoProximo" class="form-control campo-curto" type="date"
+                           value="@Model.DataVencimentoProximo?.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="DataVencimentoProximo"></span>
+                </div>
+
+                <p class="form-label mb-2">Contrato</p>
+                @if (Model.PossuiContrato)
+                {
+                    <div class="contrato mb-2">
+                        <svg class="contrato__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                        <span class="contrato__nome">contrato</span>
+                        <a class="btn btn-outline-primary btn-sm" asp-action="Contrato" asp-route-id="@Model.Id" asp-route-idPessoa="@idPessoa">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12" /><path d="m7 10 5 5 5-5" /><path d="M5 21h14" /></svg>
+                            Baixar
+                        </a>
+                    </div>
+                }
+                <label class="contrato-upload">
+                    <span class="contrato-upload__icone" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                    </span>
+                    <span class="contrato-upload__texto">
+                        <strong id="contrato-nome">@(Model.PossuiContrato ? "Substituir contrato" : "Adicionar contrato")</strong>
+                        <small>(opcional) — PDF ou imagem</small>
+                    </span>
+                    <input asp-for="Contrato" type="file" class="visually-hidden" accept="application/pdf,image/jpeg,image/png,.pdf" data-arquivo-nome="contrato-nome" />
+                </label>
+                <span asp-validation-for="Contrato"></span>
+            </form>
+        </div>
+    </section>
+
+    @* Cartão da direita: histórico de pagamentos (CSU08) *@
+    <partial name="~/Views/Pagamento/_Historico.cshtml" model="Model" />
+
+</div>
+
+@* Ações do aluguel (Tela_012). O botão de salvar envia o formulário do cartão da esquerda. *@
+<div class="acoes-formulario mt-4">
+    <a class="btn btn-reprovar" asp-action="Delete" asp-route-id="@Model.Id">Cancelar aluguel</a>
+    <button type="submit" form="form-aluguel" class="btn btn-primary">Salvar alterações</button>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

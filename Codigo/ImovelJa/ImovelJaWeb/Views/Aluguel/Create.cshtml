@@ -1,0 +1,101 @@
+@model ImovelJaWeb.Models.AluguelViewModel
+
+@* Vincular inquilino ao imóvel (Tela_011). Se o CPF já estiver cadastrado,
+   o serviço vincula o aluguel à pessoa existente (RN04). *@
+
+@{
+    ViewData["Title"] = "Vincular Inquilino";
+    ViewData["Perfil"] = "Usuario";
+
+    var inv = System.Globalization.CultureInfo.InvariantCulture;
+    var imovel = Model.Imovel;
+    var idPessoa = ViewData["IdPessoa"] is uint informado ? informado : imovel?.IdPessoaProprietario ?? 0u;
+    var local = imovel == null
+        ? string.Empty
+        : string.Join(" — ", new[] { imovel.Nome, imovel.Cidade }.Where(parte => !string.IsNullOrWhiteSpace(parte)));
+}
+
+<div class="titulo-pagina">
+    <a class="voltar" asp-controller="Imovel" asp-action="Details" asp-route-id="@Model.IdImovel" asp-route-idPessoa="@idPessoa" aria-label="Voltar para o anúncio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+    </a>
+    <div>
+        <h1>Vincular Inquilino</h1>
+    </div>
+</div>
+
+<section class="painel-formulario" aria-labelledby="titulo-aluguel">
+    <h2 class="formulario__titulo mb-1" id="titulo-aluguel">Gerenciar Aluguel</h2>
+    @if (!string.IsNullOrWhiteSpace(local))
+    {
+        <p class="detalhe-anuncio__local mb-4">@local</p>
+    }
+
+    <form asp-action="Create" method="post" enctype="multipart/form-data" data-envio-unico>
+        <div asp-validation-summary="ModelOnly"></div>
+
+        <input type="hidden" asp-for="IdImovel" />
+        <input type="hidden" name="IdPessoaInquilino" value="0" />
+        <input type="hidden" name="Valor" value="@Model.Valor.ToString(inv)" />
+        <input type="hidden" name="Status" value="A" />
+        <input type="hidden" name="Inquilino.Tipo" value="F" />
+        <input type="hidden" name="Inquilino.Status" value="A" />
+
+        <fieldset class="caixa-inquilino">
+            <legend class="caixa-inquilino__titulo">Dados do inquilino</legend>
+
+            <div class="campo mb-3">
+                <label class="form-label" asp-for="Inquilino!.Nome">Nome completo</label>
+                <input asp-for="Inquilino!.Nome" class="form-control" placeholder="Nome do inquilino" autocomplete="name" />
+                <span asp-validation-for="Inquilino!.Nome"></span>
+            </div>
+
+            <div class="grade-campos">
+                <div class="campo">
+                    <label class="form-label" asp-for="Inquilino!.Cpf">CPF</label>
+                    <input asp-for="Inquilino!.Cpf" class="form-control campo-cpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" />
+                    <span asp-validation-for="Inquilino!.Cpf"></span>
+                </div>
+                <div class="campo">
+                    <label class="form-label" asp-for="Inquilino!.Telefone">Telefone</label>
+                    <input asp-for="Inquilino!.Telefone" class="form-control campo-telefone" type="tel" placeholder="(79) 99999-9999" autocomplete="tel" maxlength="15" />
+                    <span asp-validation-for="Inquilino!.Telefone"></span>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="campo mb-4">
+            <label class="form-label" asp-for="DiaPagamento">Dia do pagamento</label>
+            <select asp-for="DiaPagamento" class="form-select campo-curto">
+                @for (var dia = 1; dia <= 28; dia++)
+                {
+                    <option value="@dia">@dia.ToString("00")</option>
+                }
+            </select>
+            <span asp-validation-for="DiaPagamento"></span>
+        </div>
+
+        <div class="mb-4">
+            <label class="contrato-upload">
+                <span class="contrato-upload__icone" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+                </span>
+                <span class="contrato-upload__texto">
+                    <strong id="contrato-nome">Adicionar contrato</strong>
+                    <small>(opcional) — PDF ou imagem</small>
+                </span>
+                <input asp-for="Contrato" type="file" class="visually-hidden" accept="application/pdf,image/jpeg,image/png,.pdf" data-arquivo-nome="contrato-nome" />
+            </label>
+            <span asp-validation-for="Contrato"></span>
+        </div>
+
+        <div class="acoes-formulario">
+            <a class="btn btn-outline-primary" asp-controller="Imovel" asp-action="Details" asp-route-id="@Model.IdImovel" asp-route-idPessoa="@idPessoa">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

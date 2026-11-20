@@ -61,6 +61,11 @@
 
 <div asp-validation-summary="ModelOnly"></div>
 
+@if (TempData["Erro"] is string erro)
+{
+    <div class="validation-summary-errors" role="alert"><ul><li>@erro</li></ul></div>
+}
+
 <div class="aluguel-pagina">
     <section class="detalhe-anuncio" aria-labelledby="aluguel-imovel">
         <div class="detalhe-anuncio__corpo">
@@ -110,3 +115,12 @@
 
     <partial name="~/Views/Pagamento/_Historico.cshtml" model="Model" />
 </div>
+
+@* Ações do dono do imóvel (Tela_012): alterar ou cancelar o aluguel ativo *@
+@if (ViewData["Dono"] is true && Model.Status == "A")
+{
+    <div class="acoes-formulario mt-4">
+        <a class="btn btn-reprovar" asp-action="Delete" asp-route-id="@Model.Id">Cancelar aluguel</a>
+        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">Alterar aluguel</a>
+    </div>
+}
